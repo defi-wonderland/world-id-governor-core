@@ -40,7 +40,7 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
     uint8 _support,
     string memory _reason,
     bytes memory _params
-  ) internal override returns (uint256 _votingWeight) {
+  ) internal virtual override returns (uint256 _votingWeight) {
     // Decode the parameters
     (uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
       abi.decode(_params, (uint256, uint256, uint256[8]));
@@ -58,7 +58,7 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
     return super._castVote(_proposalId, _account, _support, _reason, _params);
   }
 
-  function _castVote(uint256, address, uint8, string memory) internal pure override returns (uint256) {
+  function _castVote(uint256, address, uint8, string memory) internal virtual override returns (uint256) {
     revert GovernorWorldID_NotSupportedFunction();
   }
 }
