@@ -25,6 +25,7 @@ contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, Governo
     return super.quorum(blockNumber);
   }
 
+  // solhint-disable-next-line
   function CLOCK_MODE() public view override(Governor, GovernorVotes, IERC6372) returns (string memory) {
     return super.CLOCK_MODE();
   }
