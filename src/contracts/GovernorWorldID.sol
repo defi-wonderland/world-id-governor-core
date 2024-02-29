@@ -2,10 +2,15 @@
 pragma solidity 0.8.23;
 
 import {Governor} from 'open-zeppelin/governance/Governor.sol';
+import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 
+/**
+ * @dev Abstraction on top of Governor, it disables some functions that are not compatible
+ * and checks if the voter is a real human before proceeding with the vote.
+ */
 abstract contract GovernorWorldID is IGovernorWorldID, Governor {
   using ByteHasher for bytes;
 
@@ -30,65 +35,49 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
     _EXTERNAL_NULLIFIER = abi.encodePacked(abi.encodePacked(_appId).hashToField(), _actionId).hashToField();
   }
 
-  function castVoteWithReasonAndParams(
+  function castVote(uint256, uint8) public pure override(Governor, IGovernor) returns (uint256) {
+    revert GovernorWorldID_NotSupportedFunction();
+  }
+
+  function castVoteWithReason(
+    uint256,
+    uint8,
+    string calldata
+  ) public pure override(Governor, IGovernor) returns (uint256) {
+    revert GovernorWorldID_NotSupportedFunction();
+  }
+
+  function castVoteBySig(
+    uint256,
+    uint8,
+    address,
+    bytes memory
+  ) public pure override(Governor, IGovernor) returns (uint256) {
+    revert GovernorWorldID_NotSupportedFunction();
+  }
+
+  function _castVote(
     uint256 _proposalId,
+    address _account,
     uint8 _support,
-    string calldata _reason,
+    string memory _reason,
     bytes memory _params
-  ) public override returns (uint256 _votingWeight) {
+  ) internal override returns (uint256) {
     // Decode the parameters
-    (address _signal, uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
-      abi.decode(_params, (address, uint256, uint256, uint256[8]));
+    (uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
+      abi.decode(_params, (uint256, uint256, uint256[8]));
 
-    // Verify that is a human
-    _isHuman(_signal, _root, _nullifierHash, _proof);
-
-    // Continue with normal code execution
-    return super.castVoteWithReasonAndParams(_proposalId, _support, _reason, _params);
-  }
-
-  function castVoteWithReasonAndParamsBySig(
-    uint256 _proposalId,
-    uint8 _support,
-    address _voter,
-    string calldata _reason,
-    bytes memory _params,
-    bytes memory _signature
-  ) public override returns (uint256 _votingWeight) {
-    // Decode the parameters
-    (address _signal, uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
-      abi.decode(_params, (address, uint256, uint256, uint256[8]));
-
-    // Verify that is a human
-    _isHuman(_signal, _root, _nullifierHash, _proof);
-
-    // Continue with normal code execution
-    return super.castVoteWithReasonAndParamsBySig(_proposalId, _support, _voter, _reason, _params, _signature);
-  }
-
-  function castVote(uint256, uint8) public pure override returns (uint256) {
-    revert GovernorWorldID_NotSupportedFunction();
-  }
-
-  function castVoteWithReason(uint256, uint8, string calldata) public pure override returns (uint256) {
-    revert GovernorWorldID_NotSupportedFunction();
-  }
-
-  function castVoteBySig(uint256, uint8, address, bytes memory) public pure override returns (uint256) {
-    revert GovernorWorldID_NotSupportedFunction();
-  }
-
-  function _isHuman(address _signal, uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) internal {
     // Check that the nullifier hash has not been used before
     if (_nullifierHashes[_nullifierHash]) revert GovernorWorldID_InvalidNullifier();
 
     // Verify the provided proof
-    _WORLD_ID.verifyProof(
-      _root, _GROUP_ID, abi.encodePacked(_signal).hashToField(), _nullifierHash, _EXTERNAL_NULLIFIER, _proof
-    );
+    uint256 _signal = abi.encodePacked(_proposalId, _account).hashToField();
+    _WORLD_ID.verifyProof(_root, _GROUP_ID, _signal, _nullifierHash, _EXTERNAL_NULLIFIER, _proof);
 
     // Save the verified nullifier hash
     _nullifierHashes[_nullifierHash] = true;
+
+    return super._castVote(_proposalId, _account, _support, _reason, _params);
   }
 
   function _castVote(uint256, address, uint8, string memory) internal pure override returns (uint256) {
