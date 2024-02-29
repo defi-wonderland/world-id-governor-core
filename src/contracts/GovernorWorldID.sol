@@ -2,7 +2,6 @@
 pragma solidity 0.8.23;
 
 import {Governor} from 'open-zeppelin/governance/Governor.sol';
-import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
@@ -35,34 +34,13 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
     _EXTERNAL_NULLIFIER = abi.encodePacked(abi.encodePacked(_appId).hashToField(), _actionId).hashToField();
   }
 
-  function castVote(uint256, uint8) public pure override(Governor, IGovernor) returns (uint256) {
-    revert GovernorWorldID_NotSupportedFunction();
-  }
-
-  function castVoteWithReason(
-    uint256,
-    uint8,
-    string calldata
-  ) public pure override(Governor, IGovernor) returns (uint256) {
-    revert GovernorWorldID_NotSupportedFunction();
-  }
-
-  function castVoteBySig(
-    uint256,
-    uint8,
-    address,
-    bytes memory
-  ) public pure override(Governor, IGovernor) returns (uint256) {
-    revert GovernorWorldID_NotSupportedFunction();
-  }
-
   function _castVote(
     uint256 _proposalId,
     address _account,
     uint8 _support,
     string memory _reason,
     bytes memory _params
-  ) internal override returns (uint256) {
+  ) internal override returns (uint256 _votingWeight) {
     // Decode the parameters
     (uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
       abi.decode(_params, (uint256, uint256, uint256[8]));
