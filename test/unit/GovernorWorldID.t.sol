@@ -16,6 +16,8 @@ abstract contract Base is Test {
   uint256 public proposalId;
 
   function setUp() public virtual {
+    vm.clearMockedCalls();
+
     // Deploy token
     token = new MockERC20Votes();
 
@@ -69,13 +71,89 @@ contract UnitGovernorWorldIDCastVoteWithParams is Base {
     governor.castVoteWithReasonAndParams(proposalId, 0, '', _params);
   }
 
-  function testCastVoteWithReasonAndParamsBySigShouldWork() public {}
+  // TODO: fix this
+  function testCastVoteWithReasonAndParamsBySigShouldWork(
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    // // Encode the parameters
+    // bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
-  function testCastVoteWithReasonAndParamsShouldRevertIfNullifierAlreadyUsed() public {}
+    // // Mock
+    // vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
 
-  function testCastVoteWithReasonAndParamsBySigShouldRevertIfNullifierAlreadyUsed() public {}
+    // // Cast the vote
+    // governor.castVoteWithReasonAndParamsBySig(proposalId, 0, address(this), '', _params, '');
+  }
 
-  function testCastVoteWithReasonAndParamsShouldRevertIfProofIsNotValid() public {}
+  function testCastVoteWithReasonAndParamsShouldRevertIfNullifierAlreadyUsed(
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    // Cast a vote
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+    governor.castVoteWithReasonAndParams(proposalId, 0, '', _params);
 
-  function testCastVoteWithReasonAndParamsBySigShouldRevertIfProofIsNotValid() public {}
+    // Try to cast another vote with same nullifier
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
+    governor.castVoteWithReasonAndParams(proposalId, 0, '', _params);
+  }
+
+  // TODO: fix this
+  function testCastVoteWithReasonAndParamsBySigShouldRevertIfNullifierAlreadyUsed(
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof,
+    bytes memory _signature
+  ) public {
+    // // Cast a vote
+    // bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+    // vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+    // governor.castVoteWithReasonAndParams(proposalId, 0, '', _params);
+
+    // // Try to cast another vote with same nullifier
+    // vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
+    // governor.castVoteWithReasonAndParamsBySig(proposalId, 0, address(this), '', _params, _signature);
+  }
+
+  function testCastVoteWithReasonAndParamsShouldRevertIfProofIsNotValid(
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    // Encode the parameters
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // Mock
+    vm.mockCallRevert(
+      address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode('Invalid proof')
+    );
+
+    // Cast the vote
+    vm.expectRevert(); // TODO: be more explicit
+    governor.castVoteWithReasonAndParams(proposalId, 0, '', _params);
+  }
+
+  // TODO: fix this
+  function testCastVoteWithReasonAndParamsBySigShouldRevertIfProofIsNotValid(
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof,
+    bytes memory _signature
+  ) public {
+    //   // Encode the parameters
+    // bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // // Mock
+    // vm.mockCallRevert(
+    //   address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode('Invalid proof')
+    // );
+
+    // // Cast the vote
+    // vm.expectRevert(); // TODO: be more explicit
+    // governor.castVoteWithReasonAndParamsBySig(proposalId, 0, address(this), '', _params, _signature);
+  }
 }
