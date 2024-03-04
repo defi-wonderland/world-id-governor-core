@@ -29,6 +29,7 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
   /// @param _appId The World ID app ID
   /// @param _actionId The World ID action ID
   /// @param _name The governor name
+  // solhint-disable-next-line no-unused-vars
   constructor(IWorldID _worldId, string memory _appId, string memory _actionId, string memory _name) Governor(_name) {
     _WORLD_ID = _worldId;
     _EXTERNAL_NULLIFIER = abi.encodePacked(abi.encodePacked(_appId).hashToField(), _actionId).hashToField();
