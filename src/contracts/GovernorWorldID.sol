@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Governor} from 'open-zeppelin/governance/Governor.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
+import {Governor} from 'open-zeppelin/governance/Governor.sol';
 
 /**
  * @dev Abstraction on top of Governor, it disables some functions that are not compatible
