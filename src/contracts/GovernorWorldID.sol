@@ -13,8 +13,8 @@ import {Governor} from 'open-zeppelin/governance/Governor.sol';
 abstract contract GovernorWorldID is IGovernorWorldID, Governor {
   using ByteHasher for bytes;
 
-  /// @dev The World ID group ID (always 1)
-  uint256 internal constant _GROUP_ID = 1;
+  /// @dev The World ID group ID
+  uint256 internal immutable _GROUP_ID;
 
   /// @dev The World ID instance that will be used for verifying proofs
   IWorldID internal immutable _WORLD_ID;
@@ -25,12 +25,20 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
   /// @dev Whether a nullifier hash has been used already. Used to guarantee an action is only performed once by a single person
   mapping(uint256 => bool) internal _nullifierHashes;
 
+  /// @param _groupID The WorldID group ID, 1 for orb verification level
   /// @param _worldId The WorldID instance that will verify the proofs
   /// @param _appId The World ID app ID
   /// @param _actionId The World ID action ID
   /// @param _name The governor name
-  // solhint-disable-next-line no-unused-vars
-  constructor(IWorldID _worldId, string memory _appId, string memory _actionId, string memory _name) Governor(_name) {
+  constructor(
+    uint256 _groupID,
+    IWorldID _worldId,
+    string memory _appId,
+    string memory _actionId,
+    // solhint-disable-next-line no-unused-vars
+    string memory _name
+  ) Governor(_name) {
+    _GROUP_ID = _groupID;
     _WORLD_ID = _worldId;
     _EXTERNAL_NULLIFIER = abi.encodePacked(abi.encodePacked(_appId).hashToField(), _actionId).hashToField();
   }

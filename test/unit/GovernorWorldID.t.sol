@@ -21,6 +21,7 @@ abstract contract Base is Test {
 
   Vm.Wallet public signer;
   uint8 public support = 0;
+  uint256 public groupId = 1;
 
   function setUp() public virtual {
     vm.clearMockedCalls();
@@ -35,7 +36,7 @@ abstract contract Base is Test {
     vm.etch(address(worldID), new bytes(0x1));
 
     // Deploy governor
-    governor = new MockGovernorWorldId(worldID, 'appId', 'actionId', IVotes(address(token)));
+    governor = new MockGovernorWorldId(groupId, worldID, 'appId', 'actionId', IVotes(address(token)));
 
     // Deploy sigUtils
     sigUtils = new GovernorSigUtils(address(governor));

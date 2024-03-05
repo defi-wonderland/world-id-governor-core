@@ -10,11 +10,16 @@ import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/G
 
 contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction {
   constructor(
+    uint256 _groupID,
     IWorldID _worldId,
     string memory _appId,
     string memory _actionId,
     IVotes _token
-  ) GovernorWorldID(_worldId, _appId, _actionId, 'Governor') GovernorVotes(_token) GovernorVotesQuorumFraction(4) {}
+  )
+    GovernorWorldID(_groupID, _worldId, _appId, _actionId, 'Governor')
+    GovernorVotes(_token)
+    GovernorVotesQuorumFraction(4)
+  {}
 
   function quorum(uint256 blockNumber)
     public
