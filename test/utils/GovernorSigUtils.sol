@@ -6,11 +6,10 @@ import {MessageHashUtils} from 'open-zeppelin/utils/cryptography/MessageHashUtil
 contract GovernorSigUtils {
   using MessageHashUtils for bytes32;
 
-  uint256 public nonce; // NOTE: hardcoding the nonce to 0
-
   bytes32 public constant TYPE_HASH =
     keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)');
   bytes32 public immutable DOMAIN_SEPARATOR;
+  uint256 public nonce; // NOTE: hardcoding the nonce to 0
 
   constructor(address _governorAddress) {
     bytes32 _hashedName = keccak256(bytes('Governor'));

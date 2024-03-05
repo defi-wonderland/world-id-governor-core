@@ -54,29 +54,29 @@ abstract contract Base is Test {
   }
 }
 
-contract UnitGovernorWorldIDCastVoteDisabled is Base {
-  function testCastVoteShouldBeDisabled() public {
+contract GovernorWorldID_Unit_CastVote is Base {
+  function test_shouldBeDisabled() public {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVote(proposalId, support);
   }
+}
 
-  function testCastVoteWithReasonShouldBeDisabled() public {
+contract GovernorWorldID_Unit_CastVoteWithReason is Base {
+  function test_shouldBeDisabled() public {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVoteWithReason(proposalId, support, '');
   }
+}
 
-  function testCastVoteBySigShouldBeDisabled() public {
+contract GovernorWorldID_Unit_CastVoteBySig is Base {
+  function test_shouldBeDisabled() public {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVoteBySig(proposalId, support, signer.addr, signature);
   }
 }
 
-contract UnitGovernorWorldIDCastVoteWithParams is Base {
-  function testCastVoteWithReasonAndParamsShouldWork(
-    uint256 _root,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) public {
+contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
+  function test_shouldWork(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
@@ -87,27 +87,7 @@ contract UnitGovernorWorldIDCastVoteWithParams is Base {
     governor.castVoteWithReasonAndParams(proposalId, support, '', _params);
   }
 
-  function testCastVoteWithReasonAndParamsBySigShouldWork(
-    uint256 _root,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) public {
-    // Encode the parameters
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Mock
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
-
-    // Sign
-    bytes32 _hash = sigUtils.getHash(proposalId, support, signer.addr, '', _params);
-    (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-    bytes memory extendedBallotSignature = abi.encodePacked(_r, _s, _v);
-
-    // Cast the vote
-    governor.castVoteWithReasonAndParamsBySig(proposalId, support, signer.addr, '', _params, extendedBallotSignature);
-  }
-
-  function testCastVoteWithReasonAndParamsShouldRevertIfNullifierAlreadyUsed(
+  function test_shouldRevertIfNullifierAlreadyUsed(
     uint256 _root,
     uint256 _nullifierHash,
     uint256[8] memory _proof
@@ -122,31 +102,7 @@ contract UnitGovernorWorldIDCastVoteWithParams is Base {
     governor.castVoteWithReasonAndParams(proposalId, support, '', _params);
   }
 
-  function testCastVoteWithReasonAndParamsBySigShouldRevertIfNullifierAlreadyUsed(
-    uint256 _root,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) public {
-    // Cast a vote
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
-    governor.castVoteWithReasonAndParams(proposalId, support, '', _params);
-
-    // Sign
-    bytes32 _hash = sigUtils.getHash(proposalId, support, signer.addr, '', _params);
-    (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-    bytes memory extendedBallotSignature = abi.encodePacked(_r, _s, _v);
-
-    // Try to cast another vote with same nullifier
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
-    governor.castVoteWithReasonAndParamsBySig(proposalId, support, signer.addr, '', _params, extendedBallotSignature);
-  }
-
-  function testCastVoteWithReasonAndParamsShouldRevertIfProofIsNotValid(
-    uint256 _root,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) public {
+  function test_shouldRevertIfProofIsNotValid(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
@@ -159,12 +115,46 @@ contract UnitGovernorWorldIDCastVoteWithParams is Base {
     vm.expectRevert(); // TODO: be more explicit
     governor.castVoteWithReasonAndParams(proposalId, support, '', _params);
   }
+}
 
-  function testCastVoteWithReasonAndParamsBySigShouldRevertIfProofIsNotValid(
+contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
+  function test_shouldWork(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    // Encode the parameters
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // Mock
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+
+    // Sign
+    bytes32 _hash = sigUtils.getHash(proposalId, support, signer.addr, '', _params);
+    (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
+    bytes memory extendedBallotSignature = abi.encodePacked(_r, _s, _v);
+
+    // Cast the vote
+    governor.castVoteWithReasonAndParamsBySig(proposalId, support, signer.addr, '', _params, extendedBallotSignature);
+  }
+
+  function test_shouldRevertIfNullifierAlreadyUsed(
     uint256 _root,
     uint256 _nullifierHash,
     uint256[8] memory _proof
   ) public {
+    // Cast a vote
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+    governor.castVoteWithReasonAndParams(proposalId, support, '', _params);
+
+    // Sign
+    bytes32 _hash = sigUtils.getHash(proposalId, support, signer.addr, '', _params);
+    (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
+    bytes memory extendedBallotSignature = abi.encodePacked(_r, _s, _v);
+
+    // Try to cast another vote with same nullifier
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
+    governor.castVoteWithReasonAndParamsBySig(proposalId, support, signer.addr, '', _params, extendedBallotSignature);
+  }
+
+  function test_shouldRevertIfProofIsNotValid(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
