@@ -3,54 +3,12 @@ pragma solidity 0.8.23;
 
 import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
 import {MockGovernorWorldId} from '../mocks/MockGovernorWorldId.sol';
+import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
-import {MessageHashUtils} from 'open-zeppelin/utils/cryptography/MessageHashUtils.sol';
-
-contract GovernorSigUtils {
-  using MessageHashUtils for bytes32;
-
-  bytes32 public constant TYPE_HASH =
-    keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)');
-  bytes32 public immutable DOMAIN_SEPARATOR;
-
-  constructor(address _governorAddress) {
-    bytes32 _hashedName = keccak256(bytes('Governor'));
-    bytes32 _hashedVersion = keccak256(bytes('1'));
-    DOMAIN_SEPARATOR = keccak256(abi.encode(TYPE_HASH, _hashedName, _hashedVersion, block.chainid, _governorAddress));
-  }
-
-  function getHash(uint256 _proposalId, uint8 _support, address _voter) public view returns (bytes32 _hash) {
-    bytes32 _ballotTypehash = keccak256('Ballot(uint256 proposalId,uint8 support,address voter,uint256 nonce)');
-    _hash = _hashTypedDataV4(keccak256(abi.encode(_ballotTypehash, _proposalId, _support, _voter, 0))); // NOTE: hardcoding the nonce to 0
-  }
-
-  function getHash(
-    uint256 _proposalId,
-    uint8 _support,
-    address _voter,
-    string memory _reason,
-    bytes memory _params
-  ) public view returns (bytes32 _hash) {
-    bytes32 _extendedBallotTypehash = keccak256(
-      'ExtendedBallot(uint256 proposalId,uint8 support,address voter,uint256 nonce,string reason,bytes params)'
-    );
-    _hash = _hashTypedDataV4(
-      keccak256(
-        abi.encode(
-          _extendedBallotTypehash, _proposalId, _support, _voter, 0, keccak256(bytes(_reason)), keccak256(_params)
-        )
-      )
-    ); // NOTE: hardcoding the nonce to 0
-  }
-
-  function _hashTypedDataV4(bytes32 _structHash) internal view virtual returns (bytes32) {
-    return MessageHashUtils.toTypedDataHash(DOMAIN_SEPARATOR, _structHash);
-  }
-}
 
 abstract contract Base is Test {
   IERC20 public token;
