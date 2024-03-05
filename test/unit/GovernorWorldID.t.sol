@@ -55,6 +55,9 @@ abstract contract Base is Test {
 }
 
 contract GovernorWorldID_Unit_CastVote is Base {
+  /**
+   * @notice Check that the function is disabled and reverts
+   */
   function test_shouldBeDisabled() public {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVote(proposalId, support);
@@ -62,6 +65,9 @@ contract GovernorWorldID_Unit_CastVote is Base {
 }
 
 contract GovernorWorldID_Unit_CastVoteWithReason is Base {
+  /**
+   * @notice Check that the function is disabled and reverts
+   */
   function test_shouldBeDisabled() public {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVoteWithReason(proposalId, support, '');
@@ -69,6 +75,9 @@ contract GovernorWorldID_Unit_CastVoteWithReason is Base {
 }
 
 contract GovernorWorldID_Unit_CastVoteBySig is Base {
+  /**
+   * @notice Check that the function is disabled and reverts
+   */
   function test_shouldBeDisabled() public {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVoteBySig(proposalId, support, signer.addr, signature);
@@ -76,6 +85,9 @@ contract GovernorWorldID_Unit_CastVoteBySig is Base {
 }
 
 contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
   function test_shouldWork(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
@@ -87,6 +99,9 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
     governor.castVoteWithReasonAndParams(proposalId, support, '', _params);
   }
 
+  /**
+   * @notice Test that the function reverts if the nullifier has already been used
+   */
   function test_shouldRevertIfNullifierAlreadyUsed(
     uint256 _root,
     uint256 _nullifierHash,
@@ -102,6 +117,9 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
     governor.castVoteWithReasonAndParams(proposalId, support, '', _params);
   }
 
+  /**
+   * @notice Test that the function reverts if the proof is not valid
+   */
   function test_shouldRevertIfProofIsNotValid(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
@@ -118,6 +136,9 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
 }
 
 contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
   function test_shouldWork(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
@@ -134,6 +155,9 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     governor.castVoteWithReasonAndParamsBySig(proposalId, support, signer.addr, '', _params, extendedBallotSignature);
   }
 
+  /**
+   * @notice Test that the function reverts if the nullifier has already been used
+   */
   function test_shouldRevertIfNullifierAlreadyUsed(
     uint256 _root,
     uint256 _nullifierHash,
@@ -154,6 +178,9 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     governor.castVoteWithReasonAndParamsBySig(proposalId, support, signer.addr, '', _params, extendedBallotSignature);
   }
 
+  /**
+   * @notice Test that the function reverts if the proof is not valid
+   */
   function test_shouldRevertIfProofIsNotValid(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
