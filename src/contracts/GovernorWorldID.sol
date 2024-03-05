@@ -43,6 +43,16 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
     _EXTERNAL_NULLIFIER = abi.encodePacked(abi.encodePacked(_appId).hashToField(), _actionId).hashToField();
   }
 
+  /**
+   * @notice Cast a vote for a proposal
+   * @dev It checks if the voter is a real human before proceeding with the vote
+   * @param _proposalId The proposal id
+   * @param _account The account that is casting the vote
+   * @param _support The support value, 0 for against and 1 for in favor
+   * @param _reason The reason for the vote
+   * @param _params The parameters for the vote
+   * @return _votingWeight The voting weight of the voter
+   */
   function _castVote(
     uint256 _proposalId,
     address _account,
@@ -67,6 +77,9 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
     return super._castVote(_proposalId, _account, _support, _reason, _params);
   }
 
+  /**
+   * @notice This function is disabled because is not compatible with the new implementations. It will make revert the functions that implement it as: `castVote`, `castVoteWithReason`, `castVoteBySig`.
+   */
   function _castVote(uint256, address, uint8, string memory) internal virtual override returns (uint256) {
     revert GovernorWorldID_NotSupportedFunction();
   }
