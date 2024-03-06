@@ -25,11 +25,13 @@ abstract contract Base is Test {
   uint256 public proposalId;
   bytes public signature;
   Vm.Wallet public signer;
+  Vm.Wallet public random;
 
   function setUp() public virtual {
     vm.clearMockedCalls();
 
     signer = vm.createWallet('voter');
+    random = vm.createWallet('random');
 
     // Deploy token
     token = new MockERC20Votes();
@@ -77,6 +79,7 @@ contract GovernorWorldID_Unit_CastVote_WithoutParams is Base {
    * @notice Check that the function is disabled and reverts
    */
   function test_revertWithNotSupportedFunction() public {
+    vm.prank(random.addr);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVote(proposalId, SUPPORT);
   }
@@ -87,6 +90,7 @@ contract GovernorWorldID_Unit_CastVoteWithReason is Base {
    * @notice Check that the function is disabled and reverts
    */
   function test_revertWithNotSupportedFunction() public {
+    vm.prank(random.addr);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVoteWithReason(proposalId, SUPPORT, REASON);
   }
@@ -97,6 +101,7 @@ contract GovernorWorldID_Unit_CastVoteBySig is Base {
    * @notice Check that the function is disabled and reverts
    */
   function test_revertWithNotSupportedFunction() public {
+    vm.prank(random.addr);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVoteBySig(proposalId, SUPPORT, signer.addr, signature);
   }
@@ -113,7 +118,8 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
     // Try to cast another vote with same nullifier
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, address(this), SUPPORT, REASON, _params);
+    vm.prank(signer.addr);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, signer.addr, SUPPORT, REASON, _params);
   }
 
   /**
@@ -127,7 +133,8 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
     _mockAndExpect(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
 
     // Cast the vote
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, address(this), SUPPORT, REASON, _params);
+    vm.prank(signer.addr);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, signer.addr, SUPPORT, REASON, _params);
   }
 
   /**
@@ -141,7 +148,8 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
 
     // Cast the vote
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, address(this), SUPPORT, REASON, _params);
+    vm.prank(signer.addr);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, signer.addr, SUPPORT, REASON, _params);
 
     // Check that the nullifier hash is stored
     bool _nullifierUsed = IMockGovernorWorldIdForTest(address(governor)).forTest_nullifierHashes(_nullifierHash);
@@ -159,10 +167,11 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(address(this), proposalId, SUPPORT, WEIGHT, REASON, _params);
+    emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
     // Cast the vote
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, address(this), SUPPORT, REASON, _params);
+    vm.prank(signer.addr);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, signer.addr, SUPPORT, REASON, _params);
   }
 }
 
@@ -178,9 +187,10 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(address(this), proposalId, SUPPORT, WEIGHT, REASON, _params);
+    emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
     // Cast the vote
+    vm.prank(signer.addr);
     governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
   }
 }
@@ -209,6 +219,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
     // Cast the vote
+    vm.prank(random.addr);
     governor.castVoteWithReasonAndParamsBySig(
       proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
     );
