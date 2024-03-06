@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
-import {MockGovernorWorldId} from '../mocks/MockGovernorWorldId.sol';
+import {MockGovernorWorldId, IMockGovernorWorldIdForTest} from '../mocks/MockGovernorWorldId.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
@@ -110,13 +110,12 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
    * @notice Test that the function reverts if the nullifier has already been used
    */
   function test_revertIfNullifierAlreadyUsed(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    // Cast a vote
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
-    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
+    // Set nullifier as used
+    IMockGovernorWorldIdForTest(address(governor)).forTest_setNullifierHashes(_nullifierHash, true);
 
     // Try to cast another vote with same nullifier
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
     governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
   }
 
@@ -150,12 +149,12 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     // Sign
     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-    bytes memory extendedBallotSignature = abi.encodePacked(_r, _s, _v);
+    bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
 
     // Cast the vote
     vm.expectRevert(_semaphoreErrorMock);
     governor.castVoteWithReasonAndParamsBySig(
-      proposalId, SUPPORT, signer.addr, REASON, _params, extendedBallotSignature
+      proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
     );
   }
 
@@ -163,20 +162,19 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
    * @notice Test that the function reverts if the nullifier has already been used
    */
   function test_revertIfNullifierAlreadyUsed(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    // Cast a vote
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
-    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
+    // Set nullifier as used
+    IMockGovernorWorldIdForTest(address(governor)).forTest_setNullifierHashes(_nullifierHash, true);
 
     // Sign
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-    bytes memory extendedBallotSignature = abi.encodePacked(_r, _s, _v);
+    bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
 
     // Try to cast another vote with same nullifier
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
     governor.castVoteWithReasonAndParamsBySig(
-      proposalId, SUPPORT, signer.addr, REASON, _params, extendedBallotSignature
+      proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
     );
   }
 
@@ -197,11 +195,11 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     // Sign
     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-    bytes memory extendedBallotSignature = abi.encodePacked(_r, _s, _v);
+    bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
 
     // Cast the vote
     governor.castVoteWithReasonAndParamsBySig(
-      proposalId, SUPPORT, signer.addr, REASON, _params, extendedBallotSignature
+      proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
     );
   }
 }
