@@ -9,11 +9,13 @@ import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
+import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 
 abstract contract Base is Test {
   uint8 public constant SUPPORT = 0;
   uint256 public constant GROUP_ID = 1;
   string public constant REASON = '';
+  uint256 public constant WEIGHT = 0;
 
   IERC20 public token;
   IGovernorWorldID public governor;
@@ -89,7 +91,7 @@ contract GovernorWorldID_Unit_CastVoteBySig is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
+contract GovernorWorldID_Unit_CastVoteInternal is Base {
   /**
    * @notice Test that the function reverts if the proof is not valid
    */
@@ -103,7 +105,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
 
     // Cast the vote
     vm.expectRevert(_semaphoreErrorMock);
-    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, address(this), SUPPORT, REASON, _params);
   }
 
   /**
@@ -116,7 +118,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
     // Try to cast another vote with same nullifier
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, address(this), SUPPORT, REASON, _params);
   }
 
   /**
@@ -130,54 +132,30 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
 
     // Cast the vote
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, address(this), SUPPORT, REASON, _params);
+  }
+}
+
+contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    // Encode the parameters
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // Mock
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+
+    vm.expectEmit(true, true, true, true);
+    emit IGovernor.VoteCastWithParams(address(this), proposalId, SUPPORT, WEIGHT, REASON, _params);
+
+    // Cast the vote
     governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
   }
 }
 
 contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
-  /**
-   * @notice Test that the function reverts if the proof is not valid
-   */
-  function test_revertIfProofIsNotValid(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    // Encode the parameters
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Mock
-    bytes memory _semaphoreErrorMock = abi.encode('Invalid proof');
-    vm.mockCallRevert(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), _semaphoreErrorMock);
-
-    // Sign
-    bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
-    (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-    bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
-
-    // Cast the vote
-    vm.expectRevert(_semaphoreErrorMock);
-    governor.castVoteWithReasonAndParamsBySig(
-      proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
-    );
-  }
-
-  /**
-   * @notice Test that the function reverts if the nullifier has already been used
-   */
-  function test_revertIfNullifierAlreadyUsed(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    // Set nullifier as used
-    IMockGovernorWorldIdForTest(address(governor)).forTest_setNullifierHashes(_nullifierHash, true);
-
-    // Sign
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-    bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
-    (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-    bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
-
-    // Try to cast another vote with same nullifier
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
-    governor.castVoteWithReasonAndParamsBySig(
-      proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
-    );
-  }
-
   /**
    * @notice Check that the function works as expected
    */
@@ -196,6 +174,9 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
     bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
+
+    vm.expectEmit(true, true, true, true);
+    emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
     // Cast the vote
     governor.castVoteWithReasonAndParamsBySig(

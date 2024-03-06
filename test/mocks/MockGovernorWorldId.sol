@@ -10,6 +10,14 @@ import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/G
 
 interface IMockGovernorWorldIdForTest {
   function forTest_setNullifierHashes(uint256 _nullifierHash, bool _value) external;
+
+  function forTest_castVote(
+    uint256 _proposalId,
+    address _account,
+    uint8 _support,
+    string memory _reason,
+    bytes memory _params
+  ) external;
 }
 
 contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction {
@@ -27,6 +35,16 @@ contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, Governo
 
   function forTest_setNullifierHashes(uint256 _nullifierHash, bool _value) public {
     _nullifierHashes[_nullifierHash] = _value;
+  }
+
+  function forTest_castVote(
+    uint256 _proposalId,
+    address _account,
+    uint8 _support,
+    string memory _reason,
+    bytes memory _params
+  ) public {
+    _castVote(_proposalId, _account, _support, _reason, _params);
   }
 
   function quorum(uint256 blockNumber)
