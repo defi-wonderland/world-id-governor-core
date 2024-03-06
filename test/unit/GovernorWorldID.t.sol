@@ -11,6 +11,10 @@ import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
 abstract contract Base is Test {
+  uint8 public constant SUPPORT = 0;
+  uint256 public constant GROUP_ID = 1;
+  string public constant REASON = '';
+
   IERC20 public token;
   IGovernorWorldID public governor;
   IWorldID public worldID;
@@ -18,11 +22,7 @@ abstract contract Base is Test {
 
   uint256 public proposalId;
   bytes public signature;
-
   Vm.Wallet public signer;
-  uint8 public support = 0;
-  uint256 public groupId = 1;
-  string public reason = '';
 
   function setUp() public virtual {
     vm.clearMockedCalls();
@@ -37,20 +37,23 @@ abstract contract Base is Test {
     vm.etch(address(worldID), new bytes(0x1));
 
     // Deploy governor
-    governor = new MockGovernorWorldId(groupId, worldID, 'appId', 'actionId', IVotes(address(token)));
+    string memory _appId = 'appId';
+    string memory _actionId = 'actionId';
+    governor = new MockGovernorWorldId(GROUP_ID, worldID, _appId, _actionId, IVotes(address(token)));
 
     // Deploy sigUtils
     sigUtils = new GovernorSigUtils(address(governor));
 
     // Create proposal
-    proposalId = governor.propose(new address[](1), new uint256[](1), new bytes[](1), '0x');
+    string memory _description = '0xDescription';
+    proposalId = governor.propose(new address[](1), new uint256[](1), new bytes[](1), _description);
 
     // Advance time assuming 1 block == 1 second (this will make the proposal active)
     vm.warp(block.timestamp + governor.votingDelay() + 1);
     vm.roll(block.number + governor.votingDelay() + 1);
 
     // Generate signature
-    bytes32 _hash = sigUtils.getHash(proposalId, support, signer.addr);
+    bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr);
     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
     signature = abi.encodePacked(_r, _s, _v);
   }
@@ -60,9 +63,9 @@ contract GovernorWorldID_Unit_CastVote is Base {
   /**
    * @notice Check that the function is disabled and reverts
    */
-  function test_revert() public {
+  function test_revertWithNotSupportedFunction() public {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
-    governor.castVote(proposalId, support);
+    governor.castVote(proposalId, SUPPORT);
   }
 }
 
@@ -70,9 +73,9 @@ contract GovernorWorldID_Unit_CastVoteWithReason is Base {
   /**
    * @notice Check that the function is disabled and reverts
    */
-  function test_revert() public {
+  function test_revertWithNotSupportedFunction() public {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
-    governor.castVoteWithReason(proposalId, support, reason);
+    governor.castVoteWithReason(proposalId, SUPPORT, REASON);
   }
 }
 
@@ -80,9 +83,9 @@ contract GovernorWorldID_Unit_CastVoteBySig is Base {
   /**
    * @notice Check that the function is disabled and reverts
    */
-  function test_revert() public {
+  function test_revertWithNotSupportedFunction() public {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
-    governor.castVoteBySig(proposalId, support, signer.addr, signature);
+    governor.castVoteBySig(proposalId, SUPPORT, signer.addr, signature);
   }
 }
 
@@ -95,13 +98,12 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
     // Mock
-    vm.mockCallRevert(
-      address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode('Invalid proof')
-    );
+    bytes memory _semaphoreErrorMock = abi.encode('Invalid proof');
+    vm.mockCallRevert(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), _semaphoreErrorMock);
 
     // Cast the vote
-    vm.expectRevert(); // TODO: be more explicit
-    governor.castVoteWithReasonAndParams(proposalId, support, reason, _params);
+    vm.expectRevert(_semaphoreErrorMock);
+    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
   }
 
   /**
@@ -111,11 +113,11 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
     // Cast a vote
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
-    governor.castVoteWithReasonAndParams(proposalId, support, reason, _params);
+    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
 
     // Try to cast another vote with same nullifier
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
-    governor.castVoteWithReasonAndParams(proposalId, support, reason, _params);
+    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
   }
 
   /**
@@ -129,7 +131,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
 
     // Cast the vote
-    governor.castVoteWithReasonAndParams(proposalId, support, reason, _params);
+    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
   }
 }
 
@@ -142,19 +144,18 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
     // Mock
-    vm.mockCallRevert(
-      address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode('Invalid proof')
-    );
+    bytes memory _semaphoreErrorMock = abi.encode('Invalid proof');
+    vm.mockCallRevert(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), _semaphoreErrorMock);
 
     // Sign
-    bytes32 _hash = sigUtils.getHash(proposalId, support, signer.addr, reason, _params);
+    bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
     bytes memory extendedBallotSignature = abi.encodePacked(_r, _s, _v);
 
     // Cast the vote
-    vm.expectRevert(); // TODO: be more explicit
+    vm.expectRevert(_semaphoreErrorMock);
     governor.castVoteWithReasonAndParamsBySig(
-      proposalId, support, signer.addr, reason, _params, extendedBallotSignature
+      proposalId, SUPPORT, signer.addr, REASON, _params, extendedBallotSignature
     );
   }
 
@@ -165,17 +166,17 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     // Cast a vote
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
-    governor.castVoteWithReasonAndParams(proposalId, support, reason, _params);
+    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
 
     // Sign
-    bytes32 _hash = sigUtils.getHash(proposalId, support, signer.addr, reason, _params);
+    bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
     bytes memory extendedBallotSignature = abi.encodePacked(_r, _s, _v);
 
     // Try to cast another vote with same nullifier
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
     governor.castVoteWithReasonAndParamsBySig(
-      proposalId, support, signer.addr, reason, _params, extendedBallotSignature
+      proposalId, SUPPORT, signer.addr, REASON, _params, extendedBallotSignature
     );
   }
 
@@ -194,13 +195,13 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
 
     // Sign
-    bytes32 _hash = sigUtils.getHash(proposalId, support, signer.addr, reason, _params);
+    bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
     bytes memory extendedBallotSignature = abi.encodePacked(_r, _s, _v);
 
     // Cast the vote
     governor.castVoteWithReasonAndParamsBySig(
-      proposalId, support, signer.addr, reason, _params, extendedBallotSignature
+      proposalId, SUPPORT, signer.addr, REASON, _params, extendedBallotSignature
     );
   }
 }
