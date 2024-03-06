@@ -2,14 +2,14 @@
 pragma solidity 0.8.23;
 
 import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
-import {MockGovernorWorldId, IMockGovernorWorldIdForTest} from '../mocks/MockGovernorWorldId.sol';
+import {IMockGovernorWorldIdForTest, MockGovernorWorldId} from '../mocks/MockGovernorWorldId.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
+import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
-import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 
 abstract contract Base is Test {
   uint8 public constant SUPPORT = 0;
