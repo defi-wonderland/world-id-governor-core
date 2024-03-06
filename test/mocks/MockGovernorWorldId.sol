@@ -18,6 +18,8 @@ interface IMockGovernorWorldIdForTest {
     string memory _reason,
     bytes memory _params
   ) external;
+
+  function forTest_nullifierHashes(uint256 _nullifierHash) external view returns (bool _isUsed);
 }
 
 contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction {
@@ -45,6 +47,10 @@ contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, Governo
     bytes memory _params
   ) public {
     _castVote(_proposalId, _account, _support, _reason, _params);
+  }
+
+  function forTest_nullifierHashes(uint256 _nullifierHash) public view returns (bool _isUsed) {
+    return _nullifierHashes[_nullifierHash];
   }
 
   function quorum(uint256 blockNumber)

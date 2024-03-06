@@ -59,9 +59,20 @@ abstract contract Base is Test {
     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
     signature = abi.encodePacked(_r, _s, _v);
   }
+
+  /**
+   * @notice Sets up a mock and expects a call to it*
+   * @param _receiver The address to have a mock on
+   * @param _calldata The calldata to mock and expect
+   * @param _returned The data to return from the mocked call
+   */
+  function _mockAndExpect(address _receiver, bytes memory _calldata, bytes memory _returned) internal {
+    vm.mockCall(_receiver, _calldata, _returned);
+    vm.expectCall(_receiver, _calldata);
+  }
 }
 
-contract GovernorWorldID_Unit_CastVote is Base {
+contract GovernorWorldID_Unit_CastVote_WithoutParams is Base {
   /**
    * @notice Check that the function is disabled and reverts
    */
@@ -91,23 +102,7 @@ contract GovernorWorldID_Unit_CastVoteBySig is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CastVoteInternal is Base {
-  /**
-   * @notice Test that the function reverts if the proof is not valid
-   */
-  function test_revertIfProofIsNotValid(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    // Encode the parameters
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Mock
-    bytes memory _semaphoreErrorMock = abi.encode('Invalid proof');
-    vm.mockCallRevert(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), _semaphoreErrorMock);
-
-    // Cast the vote
-    vm.expectRevert(_semaphoreErrorMock);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, address(this), SUPPORT, REASON, _params);
-  }
-
+contract GovernorWorldID_Unit_CastVote_WithParams is Base {
   /**
    * @notice Test that the function reverts if the nullifier has already been used
    */
@@ -122,6 +117,38 @@ contract GovernorWorldID_Unit_CastVoteInternal is Base {
   }
 
   /**
+   * @notice Test that the function calls the verifyProof function from the WorldID contract
+   */
+  function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    // Encode the parameters
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // Mock
+    _mockAndExpect(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+
+    // Cast the vote
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, address(this), SUPPORT, REASON, _params);
+  }
+
+  /**
+   * @notice Test that the nullifier hash is stored
+   */
+  function test_storeNullifierHash(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    // Encode the parameters
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // Mock
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+
+    // Cast the vote
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, address(this), SUPPORT, REASON, _params);
+
+    // Check that the nullifier hash is stored
+    bool _nullifierUsed = IMockGovernorWorldIdForTest(address(governor)).forTest_nullifierHashes(_nullifierHash);
+    assertEq(_nullifierUsed, true);
+  }
+
+  /**
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
@@ -130,6 +157,9 @@ contract GovernorWorldID_Unit_CastVoteInternal is Base {
 
     // Mock
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+
+    vm.expectEmit(true, true, true, true);
+    emit IGovernor.VoteCastWithParams(address(this), proposalId, SUPPORT, WEIGHT, REASON, _params);
 
     // Cast the vote
     IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, address(this), SUPPORT, REASON, _params);
