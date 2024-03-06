@@ -35,7 +35,6 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
     IWorldID _worldId,
     string memory _appId,
     string memory _actionId,
-    // solhint-disable-next-line no-unused-vars
     string memory _name
   ) Governor(_name) {
     _GROUP_ID = _groupID;
