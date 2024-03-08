@@ -42,6 +42,12 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
     _EXTERNAL_NULLIFIER = abi.encodePacked(abi.encodePacked(_appId).hashToField(), _actionId).hashToField();
   }
 
+  /**
+   * @notice Check if the voter is a real human
+   * @param _voter The voter address
+   * @param _proposalId The proposal id
+   * @param _proofData The proof data
+   */
   function _isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) internal virtual {
     if (_proofData.length == 0) revert GovernorWorldID_NoProofData();
 

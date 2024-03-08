@@ -17,5 +17,6 @@ interface IWorldID {
     uint256[8] calldata _proof
   ) external view;
 
+  /// @notice Returns the latest root of the merkle tree
   function latestRoot() external view returns (uint256 _latestRoot);
 }
