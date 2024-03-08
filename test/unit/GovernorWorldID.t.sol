@@ -7,6 +7,7 @@ import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
+import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
@@ -19,6 +20,7 @@ abstract contract Base is Test {
 
   IERC20 public token;
   IGovernorWorldID public governor;
+  IWorldIDRouter public worldIDRouter;
   IWorldID public worldID;
   GovernorSigUtils public sigUtils;
 
@@ -36,14 +38,25 @@ abstract contract Base is Test {
     // Deploy token
     token = new MockERC20Votes();
 
+    // Deploy mock worldIDRouter
+    worldIDRouter = IWorldIDRouter(makeAddr('worldIDRouter'));
+    vm.etch(address(worldIDRouter), new bytes(0x1));
+
     // Deploy mock worldID
     worldID = IWorldID(makeAddr('worldID'));
     vm.etch(address(worldID), new bytes(0x1));
 
+    // Mock the routeFor function
+    vm.mockCall(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
+      abi.encode(address(worldID))
+    );
+
     // Deploy governor
     string memory _appId = 'appId';
     string memory _actionId = 'actionId';
-    governor = new MockGovernorWorldId(GROUP_ID, worldID, _appId, _actionId, IVotes(address(token)));
+    governor = new MockGovernorWorldId(GROUP_ID, worldIDRouter, _appId, _actionId, IVotes(address(token)));
 
     // Deploy sigUtils
     sigUtils = new GovernorSigUtils(address(governor));
@@ -107,7 +120,16 @@ contract GovernorWorldID_Unit_CastVoteBySig is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CastVote_WithParams is Base {
+contract GovernorWorldID_Unit_IsHuman is Base {
+  /**
+   * @notice Test that the function reverts if no proof data is provided
+   */
+  function test_revertIfNoProofData() public {
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NoProofData.selector);
+    vm.prank(signer.addr);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, '');
+  }
+
   /**
    * @notice Test that the function reverts if the nullifier has already been used
    */
@@ -119,13 +141,58 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
     vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, signer.addr, SUPPORT, REASON, _params);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function returns if the root is already verified
+   */
+  function test_returnIfAlreadyVerifiedOnLatestRoot(
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
+
+    IMockGovernorWorldIdForTest(address(governor)).forTest_setLatestRootPerVoter(signer.addr, _root);
+
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+    vm.expectCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), 0);
+    vm.prank(signer.addr);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function reverts if the root is outdated
+   */
+  function test_revertIfOutdatedRoot(
+    uint256 _currentRoot,
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    vm.assume(_currentRoot != 0);
+    vm.assume(_currentRoot != _root);
+
+    // Set the current root
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_currentRoot));
+
+    // Try to cast a vote with an outdated root
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
+    vm.prank(signer.addr);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
   }
 
   /**
    * @notice Test that the function calls the verifyProof function from the WorldID contract
    */
   function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    vm.assume(_root != 0);
+
+    // Set the current root
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
+
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
@@ -134,13 +201,18 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
 
     // Cast the vote
     vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, signer.addr, SUPPORT, REASON, _params);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
   }
 
   /**
    * @notice Test that the nullifier hash is stored
    */
   function test_storeNullifierHash(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    vm.assume(_root != 0);
+
+    // Set the current root
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
+
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
@@ -149,7 +221,7 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
 
     // Cast the vote
     vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, signer.addr, SUPPORT, REASON, _params);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
 
     // Check that the nullifier hash is stored
     bool _nullifierUsed = IMockGovernorWorldIdForTest(address(governor)).forTest_nullifierHashes(_nullifierHash);
@@ -157,9 +229,40 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
   }
 
   /**
+   * @notice Test that the latest root is stored
+   */
+  function test_storeLatestRootPerVoter(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    vm.assume(_root != 0);
+
+    // Set the current root
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
+
+    // Encode the parameters
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // Mock
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+
+    // Cast the vote
+    vm.prank(signer.addr);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
+
+    // Check that the latest root is stored
+    uint256 _latestRootStored = IMockGovernorWorldIdForTest(address(governor)).forTest_latestRootPerVoter(signer.addr);
+    assertEq(_latestRootStored, _root);
+  }
+}
+
+contract GovernorWorldID_Unit_CastVote_WithParams is Base {
+  /**
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    vm.assume(_root != 0);
+
+    // Set the current root
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
+
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
@@ -180,6 +283,11 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    vm.assume(_root != 0);
+
+    // Set the current root
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
+
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
@@ -204,6 +312,11 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     uint256 _nullifierHash,
     uint256[8] memory _proof
   ) public {
+    vm.assume(_root != 0);
+
+    // Set the current root
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
+
     // Encode the parameters
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
