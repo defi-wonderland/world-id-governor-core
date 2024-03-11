@@ -20,9 +20,6 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
   /// @dev The contract's external nullifier hash
   uint256 internal immutable _EXTERNAL_NULLIFIER;
 
-  /// @dev Whether a nullifier hash has been used already. Used to guarantee an action is only performed once by a single person
-  mapping(uint256 => bool) internal _nullifierHashes;
-
   /// @dev The latest root verifier for each voter
   mapping(address => uint256) internal _latestRootPerVoter;
 
@@ -55,9 +52,6 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
     (uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
       abi.decode(_proofData, (uint256, uint256, uint256[8]));
 
-    // Check that the nullifier hash has not been used before
-    if (_nullifierHashes[_nullifierHash]) revert GovernorWorldID_InvalidNullifier();
-
     // Get the current root
     uint256 _currentRoot = _WORLD_ID.latestRoot();
 
@@ -69,9 +63,6 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
     // Verify the provided proof
     uint256 _signal = abi.encodePacked(_proposalId, _voter).hashToField();
     _WORLD_ID.verifyProof(_root, _signal, _nullifierHash, _EXTERNAL_NULLIFIER, _proof);
-
-    // Save the verified nullifier hash
-    _nullifierHashes[_nullifierHash] = true;
 
     // Save the latest root for the user
     _latestRootPerVoter[_voter] = _currentRoot;

@@ -7,9 +7,6 @@ interface IGovernorWorldID is IGovernor {
   /// @notice Thrown when attempting to call a non supported function
   error GovernorWorldID_NotSupportedFunction();
 
-  /// @notice Thrown when attempting to use a nullifier hash that has been used before
-  error GovernorWorldID_InvalidNullifier();
-
   /// @notice Thrown when the proof data is empty
   error GovernorWorldID_NoProofData();
 

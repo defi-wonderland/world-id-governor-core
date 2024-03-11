@@ -9,8 +9,6 @@ import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/Governo
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
 
 interface IMockGovernorWorldIdForTest {
-  function forTest_setNullifierHashes(uint256 _nullifierHash, bool _value) external;
-
   function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) external;
 
   function forTest_castVote(
@@ -22,8 +20,6 @@ interface IMockGovernorWorldIdForTest {
   ) external;
 
   function forTest_isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) external;
-
-  function forTest_nullifierHashes(uint256 _nullifierHash) external view returns (bool _isUsed);
 
   function forTest_latestRootPerVoter(address _account) external view returns (uint256 _latestRoot);
 }
@@ -41,10 +37,6 @@ contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, Governo
     GovernorVotesQuorumFraction(4)
   {}
 
-  function forTest_setNullifierHashes(uint256 _nullifierHash, bool _value) public {
-    _nullifierHashes[_nullifierHash] = _value;
-  }
-
   function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) public {
     _latestRootPerVoter[_account] = _latestRoot;
   }
@@ -61,10 +53,6 @@ contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, Governo
 
   function forTest_isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) public {
     _isHuman(_voter, _proposalId, _proofData);
-  }
-
-  function forTest_nullifierHashes(uint256 _nullifierHash) public view returns (bool _isUsed) {
-    return _nullifierHashes[_nullifierHash];
   }
 
   function forTest_latestRootPerVoter(address _account) public view returns (uint256 _latestRoot) {

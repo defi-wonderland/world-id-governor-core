@@ -131,20 +131,6 @@ contract GovernorWorldID_Unit_IsHuman is Base {
   }
 
   /**
-   * @notice Test that the function reverts if the nullifier has already been used
-   */
-  function test_revertIfNullifierAlreadyUsed(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    // Set nullifier as used
-    IMockGovernorWorldIdForTest(address(governor)).forTest_setNullifierHashes(_nullifierHash, true);
-
-    // Try to cast another vote with same nullifier
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidNullifier.selector);
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-    vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
-  }
-
-  /**
    * @notice Test that the function returns if the root is already verified
    */
   function test_returnIfAlreadyVerifiedOnLatestRoot(
@@ -202,30 +188,6 @@ contract GovernorWorldID_Unit_IsHuman is Base {
     // Cast the vote
     vm.prank(signer.addr);
     IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
-  }
-
-  /**
-   * @notice Test that the nullifier hash is stored
-   */
-  function test_storeNullifierHash(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    vm.assume(_root != 0);
-
-    // Set the current root
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
-
-    // Encode the parameters
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Mock
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
-
-    // Cast the vote
-    vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
-
-    // Check that the nullifier hash is stored
-    bool _nullifierUsed = IMockGovernorWorldIdForTest(address(governor)).forTest_nullifierHashes(_nullifierHash);
-    assertEq(_nullifierUsed, true);
   }
 
   /**
