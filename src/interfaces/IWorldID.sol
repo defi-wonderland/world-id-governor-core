@@ -18,5 +18,6 @@ interface IWorldID {
   ) external view;
 
   /// @notice Returns the latest root of the merkle tree
+  /// @return _latestRoot The latest root
   function latestRoot() external view returns (uint256 _latestRoot);
 }
