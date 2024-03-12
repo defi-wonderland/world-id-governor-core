@@ -8,8 +8,8 @@ import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {Governor} from 'open-zeppelin/governance/Governor.sol';
 
 /**
- * @dev Abstraction on top of Governor, it disables some functions that are not compatible
- * and checks if the voter is a real human before proceeding with the vote.
+ * @title GovernorWorldID
+ * @notice Governor contract that checks if the voter is a real human before proceeding with the vote.
  */
 abstract contract GovernorWorldID is IGovernorWorldID, Governor {
   using ByteHasher for bytes;
@@ -17,7 +17,7 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
   /// @dev The World ID instance that will be used for verifying proofs
   IWorldID public immutable WORLD_ID;
 
-  /// @dev The contract's external nullifier hash
+  /// @dev The contract's external nullifier hash. It's composed by the `appId` and `actionId` and is used to verify the proofs.
   uint256 public immutable EXTERNAL_NULLIFIER;
 
   /// @dev The latest root verifier for each voter

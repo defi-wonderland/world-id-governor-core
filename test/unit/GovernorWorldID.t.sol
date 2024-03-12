@@ -171,7 +171,8 @@ contract GovernorWorldID_Unit_IsHuman is Base {
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NoProofData.selector);
     vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, '');
+    bytes memory _emptyProofParams = '';
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _emptyProofParams);
   }
 
   /**
