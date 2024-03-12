@@ -41,31 +41,31 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
 
   /**
    * @notice Check if the voter is a real human
-   * @param _voter The voter address
+   * @param _account The account of the voter address
    * @param _proposalId The proposal id
    * @param _proofData The proof data
    */
-  function _isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) internal virtual {
+  function _isHuman(address _account, uint256 _proposalId, bytes memory _proofData) internal virtual {
+    // Get the current root
+    uint256 _currentRoot = _WORLD_ID.latestRoot();
+
+    // If the user has already verified himself on the latest root, skip the verification
+    if (_latestRootPerVoter[_account] == _currentRoot) return;
+
     if (_proofData.length == 0) revert GovernorWorldID_NoProofData();
 
     // Decode the parameters
     (uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
       abi.decode(_proofData, (uint256, uint256, uint256[8]));
 
-    // Get the current root
-    uint256 _currentRoot = _WORLD_ID.latestRoot();
-
-    // If the user has already verified himself on the latest root, skip the verification
-    if (_latestRootPerVoter[_voter] == _currentRoot) return;
-
     if (_root != _currentRoot) revert GovernorWorldID_OutdatedRoot();
 
     // Verify the provided proof
-    uint256 _signal = abi.encodePacked(_proposalId, _voter).hashToField();
+    uint256 _signal = abi.encodePacked(_proposalId, _account).hashToField();
     _WORLD_ID.verifyProof(_root, _signal, _nullifierHash, _EXTERNAL_NULLIFIER, _proof);
 
     // Save the latest root for the user
-    _latestRootPerVoter[_voter] = _currentRoot;
+    _latestRootPerVoter[_account] = _currentRoot;
   }
 
   /**

@@ -122,15 +122,6 @@ contract GovernorWorldID_Unit_CastVoteBySig is Base {
 
 contract GovernorWorldID_Unit_IsHuman is Base {
   /**
-   * @notice Test that the function reverts if no proof data is provided
-   */
-  function test_revertIfNoProofData() public {
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NoProofData.selector);
-    vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, '');
-  }
-
-  /**
    * @notice Test that the function returns if the root is already verified
    */
   function test_returnIfAlreadyVerifiedOnLatestRoot(
@@ -146,6 +137,18 @@ contract GovernorWorldID_Unit_IsHuman is Base {
     vm.expectCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), 0);
     vm.prank(signer.addr);
     IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function reverts if no proof data is provided
+   */
+  function test_revertIfNoProofData(uint256 _root) public {
+    vm.assume(_root != 0);
+    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NoProofData.selector);
+    vm.prank(signer.addr);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, '');
   }
 
   /**
