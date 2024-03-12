@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {GovernorDemocratic} from 'contracts/GovernorDemocratic.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
-import {Governor, IGovernor} from 'open-zeppelin/governance/Governor.sol';
+import {Governor, IGovernor, IERC6372} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
 import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/GovernorVotes.sol';
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
@@ -16,14 +16,23 @@ interface IMockGovernorDemocraticForTest {
   ) external view returns (uint256 _votingWeight);
 }
 
-contract MockGovernorDemocratic is GovernorDemocratic, GovernorCountingSimple, GovernorVotesQuorumFraction {
+contract MockGovernorDemocratic is
+  GovernorVotes,
+  GovernorCountingSimple,
+  GovernorVotesQuorumFraction,
+  GovernorDemocratic
+{
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
     string memory _appId,
     string memory _actionId,
     IVotes _token
-  ) GovernorDemocratic(_groupID, _worldIdRouter, _appId, _actionId, 'Governor', _token) GovernorVotesQuorumFraction(4) {}
+  )
+    GovernorVotes(_token)
+    GovernorVotesQuorumFraction(4)
+    GovernorDemocratic(_groupID, _worldIdRouter, _appId, _actionId, 'Governor')
+  {}
 
   function forTest_getVotes(
     address _account,
@@ -42,11 +51,11 @@ contract MockGovernorDemocratic is GovernorDemocratic, GovernorCountingSimple, G
     return super.quorum(blockNumber);
   }
 
-  function CLOCK_MODE() public view override(Governor, GovernorVotes, GovernorDemocratic) returns (string memory) {
+  function CLOCK_MODE() public view override(Governor, GovernorVotes, IERC6372) returns (string memory) {
     return super.CLOCK_MODE();
   }
 
-  function clock() public view override(Governor, GovernorVotes, GovernorDemocratic) returns (uint48) {
+  function clock() public view override(Governor, GovernorVotes, IERC6372) returns (uint48) {
     return super.clock();
   }
 
