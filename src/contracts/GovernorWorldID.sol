@@ -11,7 +11,7 @@ import {Governor} from 'open-zeppelin/governance/Governor.sol';
  * @title GovernorWorldID
  * @notice Governor contract that checks if the voter is a real human before proceeding with the vote.
  */
-abstract contract GovernorWorldID is IGovernorWorldID, Governor {
+abstract contract GovernorWorldID is Governor, IGovernorWorldID {
   using ByteHasher for bytes;
 
   /// @dev The World ID instance that will be used for verifying proofs
