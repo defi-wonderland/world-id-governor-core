@@ -2,14 +2,14 @@
 pragma solidity 0.8.23;
 
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
-import {IWorldID} from 'interfaces/IWorldID.sol';
+import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
 import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/GovernorVotes.sol';
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
 
 interface IMockGovernorWorldIdForTest {
-  function forTest_setNullifierHashes(uint256 _nullifierHash, bool _value) external;
+  function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) external;
 
   function forTest_castVote(
     uint256 _proposalId,
@@ -19,24 +19,24 @@ interface IMockGovernorWorldIdForTest {
     bytes memory _params
   ) external;
 
-  function forTest_nullifierHashes(uint256 _nullifierHash) external view returns (bool _isUsed);
+  function forTest_isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) external;
 }
 
 contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction {
   constructor(
     uint256 _groupID,
-    IWorldID _worldId,
+    IWorldIDRouter _worldIdRouter,
     string memory _appId,
     string memory _actionId,
     IVotes _token
   )
-    GovernorWorldID(_groupID, _worldId, _appId, _actionId, 'Governor')
+    GovernorWorldID(_groupID, _worldIdRouter, _appId, _actionId, 'Governor')
     GovernorVotes(_token)
     GovernorVotesQuorumFraction(4)
   {}
 
-  function forTest_setNullifierHashes(uint256 _nullifierHash, bool _value) public {
-    _nullifierHashes[_nullifierHash] = _value;
+  function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) public {
+    latestRootPerVoter[_account] = _latestRoot;
   }
 
   function forTest_castVote(
@@ -49,8 +49,8 @@ contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, Governo
     _castVote(_proposalId, _account, _support, _reason, _params);
   }
 
-  function forTest_nullifierHashes(uint256 _nullifierHash) public view returns (bool _isUsed) {
-    return _nullifierHashes[_nullifierHash];
+  function forTest_isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) public {
+    _isHuman(_voter, _proposalId, _proofData);
   }
 
   function quorum(uint256 blockNumber)
