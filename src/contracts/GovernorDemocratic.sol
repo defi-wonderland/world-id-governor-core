@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
-import {Governor} from 'open-zeppelin/governance/Governor.sol';
 
 abstract contract GovernorDemocratic is GovernorWorldID {
   /**
@@ -31,11 +30,7 @@ abstract contract GovernorDemocratic is GovernorWorldID {
    * @notice Returns 1 as the voting weight for the voter
    * @return _votingWeight 1 as voting weight
    */
-  function _getVotes(
-    address,
-    uint256,
-    bytes memory
-  ) internal view virtual override(Governor) returns (uint256 _votingWeight) {
+  function _getVotes(address, uint256, bytes memory) internal view virtual override returns (uint256 _votingWeight) {
     return ONE_VOTE;
   }
 }
