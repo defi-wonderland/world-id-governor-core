@@ -11,12 +11,15 @@ import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
+import {ByteHasher} from 'libraries/ByteHasher.sol';
 
 abstract contract Base is Test {
   uint8 public constant SUPPORT = 0;
   uint256 public constant GROUP_ID = 1;
   string public constant REASON = '';
   uint256 public constant WEIGHT = 0;
+  string public constant APP_ID = 'appId';
+  string public constant ACTION_ID = 'actionId';
 
   IERC20 public token;
   IGovernorWorldID public governor;
@@ -54,9 +57,7 @@ abstract contract Base is Test {
     );
 
     // Deploy governor
-    string memory _appId = 'appId';
-    string memory _actionId = 'actionId';
-    governor = new MockGovernorWorldId(GROUP_ID, worldIDRouter, _appId, _actionId, IVotes(address(token)));
+    governor = new MockGovernorWorldId(GROUP_ID, worldIDRouter, APP_ID, ACTION_ID, IVotes(address(token)));
 
     // Deploy sigUtils
     sigUtils = new GovernorSigUtils(address(governor));
@@ -84,6 +85,28 @@ abstract contract Base is Test {
   function _mockAndExpect(address _receiver, bytes memory _calldata, bytes memory _returned) internal {
     vm.mockCall(_receiver, _calldata, _returned);
     vm.expectCall(_receiver, _calldata);
+  }
+}
+
+contract GovernorWorldId_Unit_WORLD_ID is Base {
+  /**
+   * @notice Test that the function returns the WorldID instance
+   */
+  function test_returnWorldIDInstance() public {
+    assertEq(address(governor.WORLD_ID()), address(worldID));
+  }
+}
+
+contract GovernorWorldId_Unit_EXTERNAL_NULLIFIER is Base {
+  using ByteHasher for bytes;
+
+  /**
+   * @notice Test that the function returns the EXTERNAL_NULLIFIER
+   */
+  function test_returnEXTERNAL_NULLIFIER() public {
+    assertEq(
+      governor.EXTERNAL_NULLIFIER(), abi.encodePacked(abi.encodePacked(APP_ID).hashToField(), ACTION_ID).hashToField()
+    );
   }
 }
 
@@ -213,7 +236,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
     IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
 
     // Check that the latest root is stored
-    uint256 _latestRootStored = IMockGovernorWorldIdForTest(address(governor)).forTest_latestRootPerVoter(signer.addr);
+    uint256 _latestRootStored = governor.latestRootPerVoter(signer.addr);
     assertEq(_latestRootStored, _root);
   }
 }

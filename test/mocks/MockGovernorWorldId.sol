@@ -20,8 +20,6 @@ interface IMockGovernorWorldIdForTest {
   ) external;
 
   function forTest_isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) external;
-
-  function forTest_latestRootPerVoter(address _account) external view returns (uint256 _latestRoot);
 }
 
 contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction {
@@ -38,7 +36,7 @@ contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, Governo
   {}
 
   function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) public {
-    _latestRootPerVoter[_account] = _latestRoot;
+    latestRootPerVoter[_account] = _latestRoot;
   }
 
   function forTest_castVote(
@@ -53,10 +51,6 @@ contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, Governo
 
   function forTest_isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) public {
     _isHuman(_voter, _proposalId, _proofData);
-  }
-
-  function forTest_latestRootPerVoter(address _account) public view returns (uint256 _latestRoot) {
-    return _latestRootPerVoter[_account];
   }
 
   function quorum(uint256 blockNumber)

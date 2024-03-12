@@ -15,13 +15,13 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
   using ByteHasher for bytes;
 
   /// @dev The World ID instance that will be used for verifying proofs
-  IWorldID internal immutable _WORLD_ID;
+  IWorldID public immutable WORLD_ID;
 
   /// @dev The contract's external nullifier hash
-  uint256 internal immutable _EXTERNAL_NULLIFIER;
+  uint256 public immutable EXTERNAL_NULLIFIER;
 
   /// @dev The latest root verifier for each voter
-  mapping(address => uint256) internal _latestRootPerVoter;
+  mapping(address => uint256) public latestRootPerVoter;
 
   /// @param _groupID The WorldID group ID, 1 for orb verification level
   /// @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
@@ -35,8 +35,8 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
     string memory _actionId,
     string memory _name
   ) Governor(_name) {
-    _WORLD_ID = IWorldID(_worldIdRouter.routeFor(_groupID));
-    _EXTERNAL_NULLIFIER = abi.encodePacked(abi.encodePacked(_appId).hashToField(), _actionId).hashToField();
+    WORLD_ID = IWorldID(_worldIdRouter.routeFor(_groupID));
+    EXTERNAL_NULLIFIER = abi.encodePacked(abi.encodePacked(_appId).hashToField(), _actionId).hashToField();
   }
 
   /**
@@ -47,10 +47,10 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
    */
   function _isHuman(address _account, uint256 _proposalId, bytes memory _proofData) internal virtual {
     // Get the current root
-    uint256 _currentRoot = _WORLD_ID.latestRoot();
+    uint256 _currentRoot = WORLD_ID.latestRoot();
 
     // If the user has already verified himself on the latest root, skip the verification
-    if (_latestRootPerVoter[_account] == _currentRoot) return;
+    if (latestRootPerVoter[_account] == _currentRoot) return;
 
     if (_proofData.length == 0) revert GovernorWorldID_NoProofData();
 
@@ -62,10 +62,10 @@ abstract contract GovernorWorldID is IGovernorWorldID, Governor {
 
     // Verify the provided proof
     uint256 _signal = abi.encodePacked(_proposalId, _account).hashToField();
-    _WORLD_ID.verifyProof(_root, _signal, _nullifierHash, _EXTERNAL_NULLIFIER, _proof);
+    WORLD_ID.verifyProof(_root, _signal, _nullifierHash, EXTERNAL_NULLIFIER, _proof);
 
     // Save the latest root for the user
-    _latestRootPerVoter[_account] = _currentRoot;
+    latestRootPerVoter[_account] = _currentRoot;
   }
 
   /**
