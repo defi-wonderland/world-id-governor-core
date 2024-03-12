@@ -8,7 +8,6 @@ import {Test} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
-import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
@@ -71,32 +70,5 @@ contract GovernorDemocratic_Unit_GetVotes is Base {
   function test_returnsOne(address _account, uint256 _timepoint, bytes memory _params) public {
     uint256 _votes = IMockGovernorDemocraticForTest(address(governor)).forTest_getVotes(_account, _timepoint, _params);
     assertEq(_votes, 1);
-  }
-}
-
-contract GovernorDemocratic_Unit_CastVoteWithReason is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_castVoteWithReason() public {
-    vm.prank(user);
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
-    IMockGovernorDemocraticForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON);
-  }
-}
-
-contract GovernorDemocratic_Unit_CastVoteWithReasonAndParams is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(worldID, _root, _nullifierHash, _proof);
-
-    vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
-
-    // Cast the vote
-    vm.prank(user);
-    IMockGovernorDemocraticForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
   }
 }

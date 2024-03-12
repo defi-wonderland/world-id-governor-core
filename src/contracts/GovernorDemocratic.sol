@@ -23,25 +23,6 @@ abstract contract GovernorDemocratic is GovernorWorldID {
     string memory _name
   ) GovernorWorldID(_groupID, _worldIdRouter, _appId, _actionId, _name) {}
 
-  function _castVote(
-    uint256 _proposalId,
-    address _account,
-    uint8 _support,
-    string memory _reason
-  ) internal virtual override(GovernorWorldID) returns (uint256) {
-    return super._castVote(_proposalId, _account, _support, _reason);
-  }
-
-  function _castVote(
-    uint256 _proposalId,
-    address _account,
-    uint8 _support,
-    string memory _reason,
-    bytes memory _params
-  ) internal virtual override(GovernorWorldID) returns (uint256) {
-    return super._castVote(_proposalId, _account, _support, _reason, _params);
-  }
-
   /**
    * @notice Returns 1 as the voting weight for the voter
    * @return _votingWeight address The voter address

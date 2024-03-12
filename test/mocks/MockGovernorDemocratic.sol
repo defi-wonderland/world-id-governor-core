@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {GovernorDemocratic} from 'contracts/GovernorDemocratic.sol';
+import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
@@ -49,25 +50,6 @@ contract MockGovernorDemocratic is
     GovernorDemocratic(_groupID, _worldIdRouter, _appId, _actionId, 'Governor')
   {}
 
-  function forTest_castVote(
-    uint256 _proposalId,
-    address _account,
-    uint8 _support,
-    string memory _reason
-  ) public returns (uint256) {
-    return _castVote(_proposalId, _account, _support, _reason);
-  }
-
-  function forTest_castVote(
-    uint256 _proposalId,
-    address _account,
-    uint8 _support,
-    string memory _reason,
-    bytes memory _params
-  ) public returns (uint256) {
-    return _castVote(_proposalId, _account, _support, _reason, _params);
-  }
-
   function forTest_getVotes(
     address _account,
     uint256 _timepoint,
@@ -106,7 +88,7 @@ contract MockGovernorDemocratic is
     address _account,
     uint8 _support,
     string memory _reason
-  ) internal override(Governor, GovernorDemocratic) returns (uint256) {
+  ) internal override(Governor, GovernorWorldID) returns (uint256) {
     return super._castVote(_proposalId, _account, _support, _reason);
   }
 
@@ -116,7 +98,7 @@ contract MockGovernorDemocratic is
     uint8 _support,
     string memory _reason,
     bytes memory _params
-  ) internal override(Governor, GovernorDemocratic) returns (uint256) {
+  ) internal override(Governor, GovernorWorldID) returns (uint256) {
     return super._castVote(_proposalId, _account, _support, _reason, _params);
   }
 
