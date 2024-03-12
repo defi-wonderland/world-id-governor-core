@@ -14,7 +14,7 @@ import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
 abstract contract Base is Test {
-  uint8 public constant SUPPORT = 0;
+  uint8 public constant SUPPORT = 1;
   uint256 public constant GROUP_ID = 1;
   string public constant REASON = '';
   uint256 public constant WEIGHT = 0;
@@ -30,13 +30,13 @@ abstract contract Base is Test {
   uint256 public proposalId;
   bytes public signature;
   Vm.Wallet public signer;
-  Vm.Wallet public random;
+  address public user;
 
   function setUp() public virtual {
     vm.clearMockedCalls();
 
-    signer = vm.createWallet('voter');
-    random = vm.createWallet('random');
+    signer = vm.createWallet('signer');
+    user = makeAddr('user');
 
     // Deploy token
     token = new MockERC20Votes();
@@ -86,6 +86,30 @@ abstract contract Base is Test {
     vm.mockCall(_receiver, _calldata, _returned);
     vm.expectCall(_receiver, _calldata);
   }
+
+  /**
+   * @notice Mocks the WorldID contract calls to `latestRoot` and `verifyRoot` and expects them to be called
+   * @param _root The root to mock and expect
+   * @param _nullifierHash The nullifier hash to mock and expect
+   * @param _proof The proof to mock and expect
+   * @return _params The encoded parameters to mock and expect
+   */
+  function _mockWorlIDCalls(
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) internal returns (bytes memory _params) {
+    vm.assume(_root != 0);
+
+    // Set the current root
+    _mockAndExpect(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
+
+    // Encode the parameters
+    _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // Mock
+    _mockAndExpect(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(true));
+  }
 }
 
 contract GovernorWorldId_Unit_WORLD_ID is Base {
@@ -115,7 +139,7 @@ contract GovernorWorldID_Unit_CastVote_WithoutParams is Base {
    * @notice Check that the function is disabled and reverts
    */
   function test_revertWithNotSupportedFunction() public {
-    vm.prank(random.addr);
+    vm.prank(user);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVote(proposalId, SUPPORT);
   }
@@ -126,7 +150,7 @@ contract GovernorWorldID_Unit_CastVoteWithReason is Base {
    * @notice Check that the function is disabled and reverts
    */
   function test_revertWithNotSupportedFunction() public {
-    vm.prank(random.addr);
+    vm.prank(user);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVoteWithReason(proposalId, SUPPORT, REASON);
   }
@@ -137,7 +161,7 @@ contract GovernorWorldID_Unit_CastVoteBySig is Base {
    * @notice Check that the function is disabled and reverts
    */
   function test_revertWithNotSupportedFunction() public {
-    vm.prank(random.addr);
+    vm.prank(signer.addr);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVoteBySig(proposalId, SUPPORT, signer.addr, signature);
   }
@@ -153,13 +177,15 @@ contract GovernorWorldID_Unit_IsHuman is Base {
     uint256[8] memory _proof
   ) public {
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
-
-    IMockGovernorWorldIdForTest(address(governor)).forTest_setLatestRootPerVoter(signer.addr, _root);
-
+    IMockGovernorWorldIdForTest(address(governor)).forTest_setLatestRootPerVoter(user, _root);
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-    vm.expectCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), 0);
-    vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
+
+    // Since the function returns, no call is expected to `verifyProof`
+    uint64 _methodCallsCounter = 0;
+    vm.expectCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), _methodCallsCounter);
+
+    vm.prank(user);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
   }
 
   /**
@@ -170,9 +196,9 @@ contract GovernorWorldID_Unit_IsHuman is Base {
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NoProofData.selector);
-    vm.prank(signer.addr);
+    vm.prank(user);
     bytes memory _emptyProofParams = '';
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _emptyProofParams);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _emptyProofParams);
   }
 
   /**
@@ -193,51 +219,33 @@ contract GovernorWorldID_Unit_IsHuman is Base {
     // Try to cast a vote with an outdated root
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
-    vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
+    vm.prank(user);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
   }
 
   /**
    * @notice Test that the function calls the verifyProof function from the WorldID contract
    */
   function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    vm.assume(_root != 0);
-
-    // Set the current root
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
-
-    // Encode the parameters
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Mock
-    _mockAndExpect(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+    bytes memory _params = _mockWorlIDCalls(_root, _nullifierHash, _proof);
 
     // Cast the vote
-    vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
+    vm.prank(user);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
   }
 
   /**
    * @notice Test that the latest root is stored
    */
   function test_storeLatestRootPerVoter(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    vm.assume(_root != 0);
-
-    // Set the current root
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
-
-    // Encode the parameters
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Mock
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+    bytes memory _params = _mockWorlIDCalls(_root, _nullifierHash, _proof);
 
     // Cast the vote
-    vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(signer.addr, proposalId, _params);
+    vm.prank(user);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
 
     // Check that the latest root is stored
-    uint256 _latestRootStored = governor.latestRootPerVoter(signer.addr);
+    uint256 _latestRootStored = governor.latestRootPerVoter(user);
     assertEq(_latestRootStored, _root);
   }
 }
@@ -247,23 +255,14 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    vm.assume(_root != 0);
-
-    // Set the current root
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
-
-    // Encode the parameters
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Mock
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+    bytes memory _params = _mockWorlIDCalls(_root, _nullifierHash, _proof);
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
+    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
     // Cast the vote
-    vm.prank(signer.addr);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, signer.addr, SUPPORT, REASON, _params);
+    vm.prank(user);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
   }
 }
 
@@ -272,22 +271,13 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    vm.assume(_root != 0);
-
-    // Set the current root
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
-
-    // Encode the parameters
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Mock
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+    bytes memory _params = _mockWorlIDCalls(_root, _nullifierHash, _proof);
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
+    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
     // Cast the vote
-    vm.prank(signer.addr);
+    vm.prank(user);
     governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
   }
 }
@@ -301,16 +291,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     uint256 _nullifierHash,
     uint256[8] memory _proof
   ) public {
-    vm.assume(_root != 0);
-
-    // Set the current root
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
-
-    // Encode the parameters
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Mock
-    vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(0));
+    bytes memory _params = _mockWorlIDCalls(_root, _nullifierHash, _proof);
 
     // Sign
     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
@@ -321,7 +302,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
     // Cast the vote
-    vm.prank(random.addr);
+    vm.prank(user);
     governor.castVoteWithReasonAndParamsBySig(
       proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
     );
