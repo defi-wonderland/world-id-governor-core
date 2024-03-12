@@ -9,6 +9,21 @@ import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/Governo
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
 
 interface IMockGovernorDemocraticForTest {
+  function forTest_castVote(
+    uint256 _proposalId,
+    address _account,
+    uint8 _support,
+    string memory _reason
+  ) external returns (uint256);
+
+  function forTest_castVote(
+    uint256 _proposalId,
+    address _account,
+    uint8 _support,
+    string memory _reason,
+    bytes memory _params
+  ) external returns (uint256);
+
   function forTest_getVotes(
     address _account,
     uint256 _timepoint,
@@ -33,6 +48,25 @@ contract MockGovernorDemocratic is
     GovernorVotesQuorumFraction(4)
     GovernorDemocratic(_groupID, _worldIdRouter, _appId, _actionId, 'Governor')
   {}
+
+  function forTest_castVote(
+    uint256 _proposalId,
+    address _account,
+    uint8 _support,
+    string memory _reason
+  ) public returns (uint256) {
+    return _castVote(_proposalId, _account, _support, _reason);
+  }
+
+  function forTest_castVote(
+    uint256 _proposalId,
+    address _account,
+    uint8 _support,
+    string memory _reason,
+    bytes memory _params
+  ) public returns (uint256) {
+    return _castVote(_proposalId, _account, _support, _reason, _params);
+  }
 
   function forTest_getVotes(
     address _account,
@@ -90,7 +124,7 @@ contract MockGovernorDemocratic is
     address _account,
     uint256 _timepoint,
     bytes memory _params
-  ) internal view virtual override(Governor, GovernorDemocratic, GovernorVotes) returns (uint256) {
+  ) internal view virtual override(Governor, GovernorVotes, GovernorDemocratic) returns (uint256) {
     return super._getVotes(_account, _timepoint, _params);
   }
 }

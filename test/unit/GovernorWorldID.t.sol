@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
 import {IMockGovernorWorldIdForTest, MockGovernorWorldId} from '../mocks/MockGovernorWorldId.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
+import {UnitUtils} from './UnitUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
@@ -13,7 +14,7 @@ import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
-abstract contract Base is Test {
+abstract contract Base is Test, UnitUtils {
   uint8 public constant SUPPORT = 1;
   uint256 public constant GROUP_ID = 1;
   string public constant REASON = '';
@@ -74,41 +75,6 @@ abstract contract Base is Test {
     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr);
     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
     signature = abi.encodePacked(_r, _s, _v);
-  }
-
-  /**
-   * @notice Sets up a mock and expects a call to it*
-   * @param _receiver The address to have a mock on
-   * @param _calldata The calldata to mock and expect
-   * @param _returned The data to return from the mocked call
-   */
-  function _mockAndExpect(address _receiver, bytes memory _calldata, bytes memory _returned) internal {
-    vm.mockCall(_receiver, _calldata, _returned);
-    vm.expectCall(_receiver, _calldata);
-  }
-
-  /**
-   * @notice Mocks the WorldID contract calls to `latestRoot` and `verifyRoot` and expects them to be called
-   * @param _root The root to mock and expect
-   * @param _nullifierHash The nullifier hash to mock and expect
-   * @param _proof The proof to mock and expect
-   * @return _params The encoded parameters to mock and expect
-   */
-  function _mockWorlIDCalls(
-    uint256 _root,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) internal returns (bytes memory _params) {
-    vm.assume(_root != 0);
-
-    // Set the current root
-    _mockAndExpect(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
-
-    // Encode the parameters
-    _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Mock
-    _mockAndExpect(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(true));
   }
 }
 
@@ -227,7 +193,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
    * @notice Test that the function calls the verifyProof function from the WorldID contract
    */
   function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(_root, _nullifierHash, _proof);
+    bytes memory _params = _mockWorlIDCalls(worldID, _root, _nullifierHash, _proof);
 
     // Cast the vote
     vm.prank(user);
@@ -238,7 +204,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
    * @notice Test that the latest root is stored
    */
   function test_storeLatestRootPerVoter(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(_root, _nullifierHash, _proof);
+    bytes memory _params = _mockWorlIDCalls(worldID, _root, _nullifierHash, _proof);
 
     // Cast the vote
     vm.prank(user);
@@ -255,7 +221,7 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(_root, _nullifierHash, _proof);
+    bytes memory _params = _mockWorlIDCalls(worldID, _root, _nullifierHash, _proof);
 
     vm.expectEmit(true, true, true, true);
     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
@@ -271,7 +237,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(_root, _nullifierHash, _proof);
+    bytes memory _params = _mockWorlIDCalls(worldID, _root, _nullifierHash, _proof);
 
     vm.expectEmit(true, true, true, true);
     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
@@ -291,7 +257,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     uint256 _nullifierHash,
     uint256[8] memory _proof
   ) public {
-    bytes memory _params = _mockWorlIDCalls(_root, _nullifierHash, _proof);
+    bytes memory _params = _mockWorlIDCalls(worldID, _root, _nullifierHash, _proof);
 
     // Sign
     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
