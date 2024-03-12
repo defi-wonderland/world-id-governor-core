@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
+import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 
 interface IGovernorWorldID is IGovernor {
   /// @notice Thrown when attempting to call a non supported function
