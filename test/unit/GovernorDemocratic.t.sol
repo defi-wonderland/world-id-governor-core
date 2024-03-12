@@ -3,12 +3,12 @@ pragma solidity 0.8.23;
 
 import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
 import {IMockGovernorDemocraticForTest, MockGovernorDemocratic} from '../mocks/MockGovernorDemocratic.sol';
-import {Test} from 'forge-std/Test.sol';
 import {UnitUtils} from './UnitUtils.sol';
-import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
+import {Test} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
+import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
