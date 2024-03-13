@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
 import {IMockDemocraticGovernanceForTest, MockDemocraticGovernance} from '../mocks/MockDemocraticGovernance.sol';
+import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
