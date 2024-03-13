@@ -21,7 +21,7 @@ abstract contract GovernorWorldID is Governor, IGovernorWorldID {
   uint256 public immutable EXTERNAL_NULLIFIER;
 
   /// @dev The latest root verifier for each voter
-  mapping(address => uint256) public latestRootPerVoter;
+  mapping(address voter => uint256 latestRoot) public latestRootPerVoter;
 
   /// @param _groupID The WorldID group ID, 1 for orb verification level
   /// @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
