@@ -38,8 +38,8 @@ contract MockDemocraticGovernance is DemocraticGovernance {
     IWorldIDRouter _worldIdRouter,
     string memory _appId,
     string memory _actionId,
-    IVotes _token
-  ) DemocraticGovernance(_groupID, _worldIdRouter, _appId, _actionId, _token) {}
+    uint256 _quorum
+  ) DemocraticGovernance(_groupID, _worldIdRouter, _appId, _actionId, _quorum) {}
 
   function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) public {
     latestRootPerVoter[_account] = _latestRoot;

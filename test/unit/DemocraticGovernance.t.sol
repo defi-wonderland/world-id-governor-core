@@ -19,6 +19,7 @@ abstract contract Base is Test, UnitUtils {
   uint256 public constant GROUP_ID = 1;
   string public constant REASON = '';
   uint256 public constant WEIGHT = 1;
+  uint256 public constant QUORUM = 5;
   uint256 public constant ONE = 1;
   string public constant APP_ID = 'appId';
   string public constant ACTION_ID = 'actionId';
@@ -57,8 +58,7 @@ abstract contract Base is Test, UnitUtils {
     );
 
     // Deploy governor
-    governor =
-      IGovernorWorldID(new MockDemocraticGovernance(GROUP_ID, worldIDRouter, APP_ID, ACTION_ID, IVotes(address(token))));
+    governor = IGovernorWorldID(new MockDemocraticGovernance(GROUP_ID, worldIDRouter, APP_ID, ACTION_ID, QUORUM));
 
     // Deploy sigUtils
     sigUtils = new GovernorSigUtils(address(governor), 'DemocraticGovernor');
