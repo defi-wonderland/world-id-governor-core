@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {GovernorDemocratic} from 'contracts/GovernorDemocratic.sol';
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
@@ -8,7 +9,6 @@ import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.s
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
 import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/GovernorVotes.sol';
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
-import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 
 /**
  * @title DemocraticGovernance

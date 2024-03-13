@@ -22,13 +22,8 @@ contract DeploySepolia is Script {
     IWorldIDRouter _worldIdRouter = IWorldIDRouter(address(0x469449f251692E0779667583026b5A1E99512157));
     string memory _appId = '';
     string memory _actionId = '';
-    DemocraticGovernance _democraticGovernance = new DemocraticGovernance(
-      _groupID,
-      _worldIdRouter,
-      _appId,
-      _actionId,
-      IVotes(address(_token))
-    );
+    DemocraticGovernance _democraticGovernance =
+      new DemocraticGovernance(_groupID, _worldIdRouter, _appId, _actionId, IVotes(address(_token)));
     console.log('Democratic Governance deployed at:', address(_democraticGovernance));
 
     vm.stopBroadcast();
