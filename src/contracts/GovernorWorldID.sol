@@ -14,20 +14,28 @@ import {Governor} from 'open-zeppelin/governance/Governor.sol';
 abstract contract GovernorWorldID is Governor, IGovernorWorldID {
   using ByteHasher for bytes;
 
-  /// @dev The World ID instance that will be used for verifying proofs
+  /**
+   * @dev The World ID instance that will be used for verifying proofs
+   */
   IWorldID public immutable WORLD_ID;
 
-  /// @dev The contract's external nullifier hash. It's composed by the `appId` and `actionId` and is used to verify the proofs.
+  /**
+   * @dev The contract's external nullifier hash. It's composed by the `appId` and `actionId` and is used to verify the proofs.
+   */
   uint256 public immutable EXTERNAL_NULLIFIER;
 
-  /// @dev The latest root verifier for each voter
+  /**
+   * @dev The latest root verifier for each voter
+   */
   mapping(address voter => uint256 latestRoot) public latestRootPerVoter;
 
-  /// @param _groupID The WorldID group ID, 1 for orb verification level
-  /// @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
-  /// @param _appId The World ID app ID
-  /// @param _actionId The World ID action ID
-  /// @param _name The governor name
+  /**
+   * @param _groupID The WorldID group ID, 1 for orb verification level
+   * @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
+   * @param _appId The World ID app ID
+   * @param _actionId The World ID action ID
+   * @param _name The governor name
+   */
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
