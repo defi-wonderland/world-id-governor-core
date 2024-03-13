@@ -8,6 +8,11 @@ import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 
 contract DeploySepolia is Script {
+  uint256 public constant GROUP_ID = 1;
+  IWorldIDRouter public constant WORLD_ID_ROUTER = IWorldIDRouter(0x469449f251692E0779667583026b5A1E99512157);
+  string public constant APP_ID = '';
+  string public constant ACTION_ID = '';
+
   address public deployer = vm.rememberKey(vm.envUint('DEPLOYER_SEPOLIA_PRIVATE_KEY'));
 
   function run() public {
@@ -18,12 +23,8 @@ contract DeploySepolia is Script {
     console.log('Token deployed at:', address(_token));
 
     // Deploy DemocraticGovernance
-    uint256 _groupID = 1;
-    IWorldIDRouter _worldIdRouter = IWorldIDRouter(address(0x469449f251692E0779667583026b5A1E99512157));
-    string memory _appId = '';
-    string memory _actionId = '';
     DemocraticGovernance _democraticGovernance =
-      new DemocraticGovernance(_groupID, _worldIdRouter, _appId, _actionId, IVotes(address(_token)));
+      new DemocraticGovernance(GROUP_ID, WORLD_ID_ROUTER, APP_ID, ACTION_ID, IVotes(address(_token)));
     console.log('Democratic Governance deployed at:', address(_democraticGovernance));
 
     vm.stopBroadcast();
