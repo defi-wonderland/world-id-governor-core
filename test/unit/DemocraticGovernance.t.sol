@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
-import {IMockGovernorWorldIdForTest, MockGovernorWorldId} from '../mocks/MockGovernorWorldId.sol';
+import {IMockDemocraticGovernanceForTest, MockDemocraticGovernance} from '../mocks/MockDemocraticGovernance.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
@@ -18,7 +18,8 @@ abstract contract Base is Test, UnitUtils {
   uint8 public constant SUPPORT = 1;
   uint256 public constant GROUP_ID = 1;
   string public constant REASON = '';
-  uint256 public constant WEIGHT = 0;
+  uint256 public constant WEIGHT = 1;
+  uint256 public constant ONE = 1;
   string public constant APP_ID = 'appId';
   string public constant ACTION_ID = 'actionId';
 
@@ -56,10 +57,11 @@ abstract contract Base is Test, UnitUtils {
     );
 
     // Deploy governor
-    governor = new MockGovernorWorldId(GROUP_ID, worldIDRouter, APP_ID, ACTION_ID, IVotes(address(token)));
+    governor =
+      IGovernorWorldID(new MockDemocraticGovernance(GROUP_ID, worldIDRouter, APP_ID, ACTION_ID, IVotes(address(token))));
 
     // Deploy sigUtils
-    sigUtils = new GovernorSigUtils(address(governor), 'Governor');
+    sigUtils = new GovernorSigUtils(address(governor), 'DemocraticGovernor');
 
     // Create proposal
     string memory _description = '0xDescription';
@@ -76,7 +78,7 @@ abstract contract Base is Test, UnitUtils {
   }
 }
 
-contract GovernorWorldId_Unit_WORLD_ID is Base {
+contract DemocraticGovernance_Unit_WORLD_ID is Base {
   /**
    * @notice Test that the function returns the WorldID instance
    */
@@ -85,7 +87,7 @@ contract GovernorWorldId_Unit_WORLD_ID is Base {
   }
 }
 
-contract GovernorWorldId_Unit_EXTERNAL_NULLIFIER is Base {
+contract DemocraticGovernance_Unit_EXTERNAL_NULLIFIER is Base {
   using ByteHasher for bytes;
 
   /**
@@ -98,7 +100,7 @@ contract GovernorWorldId_Unit_EXTERNAL_NULLIFIER is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CastVote_WithoutParams is Base {
+contract DemocraticGovernance_Unit_CastVote_WithoutParams is Base {
   /**
    * @notice Check that the function is disabled and reverts
    */
@@ -109,7 +111,7 @@ contract GovernorWorldID_Unit_CastVote_WithoutParams is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CastVoteWithReason is Base {
+contract DemocraticGovernance_Unit_CastVoteWithReason is Base {
   /**
    * @notice Check that the function is disabled and reverts
    */
@@ -120,7 +122,7 @@ contract GovernorWorldID_Unit_CastVoteWithReason is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CastVoteBySig is Base {
+contract DemocraticGovernance_Unit_CastVoteBySig is Base {
   /**
    * @notice Check that the function is disabled and reverts
    */
@@ -131,7 +133,7 @@ contract GovernorWorldID_Unit_CastVoteBySig is Base {
   }
 }
 
-contract GovernorWorldID_Unit_IsHuman is Base {
+contract DemocraticGovernance_Unit_IsHuman is Base {
   /**
    * @notice Test that the function returns if the root is already verified
    */
@@ -141,7 +143,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
     uint256[8] memory _proof
   ) public {
     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
-    IMockGovernorWorldIdForTest(address(governor)).forTest_setLatestRootPerVoter(user, _root);
+    IMockDemocraticGovernanceForTest(address(governor)).forTest_setLatestRootPerVoter(user, _root);
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
     // Since the function returns, no call is expected to `verifyProof`
@@ -149,7 +151,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
     vm.expectCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), _methodCallsCounter);
 
     vm.prank(user);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
+    IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
   }
 
   /**
@@ -162,7 +164,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NoProofData.selector);
     vm.prank(user);
     bytes memory _emptyProofParams = '';
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _emptyProofParams);
+    IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _emptyProofParams);
   }
 
   /**
@@ -184,7 +186,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
     vm.prank(user);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
+    IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
   }
 
   /**
@@ -195,7 +197,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
 
     // Cast the vote
     vm.prank(user);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
+    IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
   }
 
   /**
@@ -206,7 +208,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
 
     // Cast the vote
     vm.prank(user);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
+    IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
 
     // Check that the latest root is stored
     uint256 _latestRootStored = governor.latestRootPerVoter(user);
@@ -214,7 +216,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CastVote_WithParams is Base {
+contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
   /**
    * @notice Check that the function works as expected
    */
@@ -226,11 +228,11 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
 
     // Cast the vote
     vm.prank(user);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+    IMockDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
   }
 }
 
-contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
+contract DemocraticGovernance_Unit_CastVoteWithReasonAndParams is Base {
   /**
    * @notice Check that the function works as expected
    */
@@ -246,7 +248,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
+contract DemocraticGovernance_Unit_CastVoteWithReasonAndParamsBySig is Base {
   /**
    * @notice Check that the function works as expected
    */
@@ -270,5 +272,16 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     governor.castVoteWithReasonAndParamsBySig(
       proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
     );
+  }
+}
+
+contract DemocraticGovernance_Unit_GetVotes is Base {
+  /**
+   * @notice Check that the voting weight is 1
+   */
+  function test_returnsOne(address _account, uint256 _timepoint, bytes memory _params) public {
+    uint256 _votingWeight =
+      IMockDemocraticGovernanceForTest(address(governor)).forTest_getVotes(_account, _timepoint, _params);
+    assertEq(_votingWeight, ONE);
   }
 }

@@ -11,8 +11,8 @@ contract GovernorSigUtils {
   bytes32 public immutable DOMAIN_SEPARATOR;
   uint256 public nonce; // NOTE: hardcoding the nonce to 0
 
-  constructor(address _governorAddress) {
-    bytes32 _hashedName = keccak256(bytes('Governor'));
+  constructor(address _governorAddress, string memory _governorName) {
+    bytes32 _hashedName = keccak256(bytes(_governorName));
     bytes32 _hashedVersion = keccak256(bytes('1'));
     DOMAIN_SEPARATOR = keccak256(abi.encode(TYPE_HASH, _hashedName, _hashedVersion, block.chainid, _governorAddress));
   }
