@@ -33,9 +33,7 @@ abstract contract Base is Test, UnitUtils {
   Vm.Wallet public signer;
   address public user;
 
-  function setUp() public virtual {
-    vm.clearMockedCalls();
-
+  function setUp() public {
     signer = vm.createWallet('signer');
     user = makeAddr('user');
 
