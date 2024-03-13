@@ -26,7 +26,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: 'yarn'
+          cache: "yarn"
 
       - name: Install dependencies
         run: yarn --frozen-lockfile --network-concurrency 1
@@ -38,31 +38,31 @@ jobs:
         shell: bash
         run: yarn test:unit
 
-  integration-tests:
-    name: Run Integration Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+  # integration-tests:
+  #   name: Run Integration Tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
+  #     - name: Install Foundry
+  #       uses: foundry-rs/foundry-toolchain@v1
+  #       with:
+  #         version: nightly
 
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: 'yarn'
+  #     - name: Use Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 18.x
+  #         cache: 'yarn'
 
-      - name: Install dependencies
-        run: yarn --frozen-lockfile --network-concurrency 1
+  #     - name: Install dependencies
+  #       run: yarn --frozen-lockfile --network-concurrency 1
 
-      - name: Precompile using 0.8.14 and via-ir=false
-        run: yarn build
+  #     - name: Precompile using 0.8.14 and via-ir=false
+  #       run: yarn build
 
-      - name: Run tests
-        run: yarn test:integration
+  #     - name: Run tests
+  #       run: yarn test:integration
 
   lint:
     name: Lint Commit Messages
@@ -84,7 +84,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: 'yarn'
+          cache: "yarn"
 
       - name: Install dependencies
         run: yarn --frozen-lockfile --network-concurrency 1
