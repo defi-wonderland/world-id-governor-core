@@ -24,6 +24,8 @@ interface IMockDemocraticGovernanceForTest {
     string memory _reason
   ) external returns (uint256);
 
+  function forTest_countVote(uint256 _proposalId, address _account, uint8 _support, uint256 _weight) external;
+
   function forTest_getVotes(
     address _account,
     uint256 _timepoint,
@@ -67,6 +69,10 @@ contract MockDemocraticGovernance is DemocraticGovernance {
     string memory _reason
   ) public returns (uint256) {
     return _castVote(_proposalId, _account, _support, _reason);
+  }
+
+  function forTest_countVote(uint256 _proposalId, address _account, uint8 _support, uint256 _weight) public {
+    _countVote(_proposalId, _account, _support, _weight, bytes(''));
   }
 
   function forTest_getVotes(

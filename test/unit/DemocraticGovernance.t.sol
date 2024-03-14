@@ -342,7 +342,26 @@ contract DemocraticGovernance_Unit_Propose is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_SetQuorum is Base {}
+contract DemocraticGovernance_Unit_SetQuorum is Base {
+  /**
+   * @notice Check that only the owner can set the quorum
+   */
+  function test_revertWithNotOwner(uint256 _quorum) public {
+    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
+    vm.prank(user);
+    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_setQuorum(uint256 _quorum) public {
+    vm.prank(signer.addr);
+    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
+    uint256 _quorumFromGovernor = IDemocraticGovernance(address(governor)).quorum(block.number);
+    assertEq(_quorumFromGovernor, _quorum);
+  }
+}
 
 contract DemocraticGovernance_Unit_Quorum is Base {
   /**
@@ -392,4 +411,53 @@ contract DemocraticGovernance_Unit_VotingPeriod is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_QuorumReached is Base {}
+contract DemocraticGovernance_Unit_QuorumReached is Base {
+  /**
+   * @notice Test that the function returns if the quorum is reached
+   */
+  function test_reachedQuorum(string memory _description) public {
+    // Propose and vote
+    uint256 _proposalId = _proposeAndVote(signer.addr, _description, QUORUM + 1);
+
+    // Check that the quorum is reached
+    assertTrue(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+  }
+
+  /**
+   * @notice Test that the function returns if the quorum is not reached
+   */
+  function test_notReachedQuorum(string memory _description) public {
+    // Propose and vote
+    uint256 _proposalId = _proposeAndVote(signer.addr, _description, QUORUM - 1);
+
+    // Check that the quorum is reached
+    assertFalse(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+  }
+
+  /**
+   * @dev Propose a new proposal, and generate random accounts to vote on it the desired number of votes
+   */
+  function _proposeAndVote(
+    address _owner,
+    string memory _description,
+    uint256 _votesRequired
+  ) internal returns (uint256 _proposalId) {
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    bytes[] memory _calldatas = new bytes[](1);
+
+    vm.prank(_owner);
+    _proposalId = governor.propose(_targets, _values, _calldatas, _description);
+
+    // Advance time assuming 1 block == 1 second (this will make the proposal active)
+    vm.warp(block.timestamp + governor.votingDelay() + 1);
+    vm.roll(block.number + governor.votingDelay() + 1);
+
+    // Vote
+    for (uint256 i = 0; i < _votesRequired; i++) {
+      address _randomVoter = vm.addr(uint256(keccak256(abi.encodePacked(i, _description))));
+      vm.prank(_randomVoter);
+      IMockDemocraticGovernanceForTest(address(governor)).forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
+    }
+  }
+}
