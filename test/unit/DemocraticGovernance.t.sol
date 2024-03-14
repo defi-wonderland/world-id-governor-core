@@ -36,10 +36,12 @@ abstract contract Base is Test, UnitUtils {
   bytes public signature;
   Vm.Wallet public signer;
   address public user;
+  address public owner;
 
   function setUp() public {
     signer = vm.createWallet('signer');
     user = makeAddr('user');
+    owner = makeAddr('owner');
 
     // Deploy token
     token = new MockERC20Votes();
@@ -60,14 +62,14 @@ abstract contract Base is Test, UnitUtils {
     );
 
     // Deploy governor
-    vm.prank(signer.addr);
+    vm.prank(owner);
     governor = IGovernorWorldID(new MockDemocraticGovernance(GROUP_ID, worldIDRouter, APP_ID, ACTION_ID, QUORUM));
 
     // Deploy sigUtils
     sigUtils = new GovernorSigUtils(address(governor), 'DemocraticGovernor');
 
     // Create proposal
-    vm.prank(signer.addr);
+    vm.prank(owner);
     proposalId = governor.propose(new address[](1), new uint256[](1), new bytes[](1), DESCRIPTION);
 
     // Advance time assuming 1 block == 1 second (this will make the proposal active)
@@ -307,7 +309,7 @@ contract DemocraticGovernance_Unit_Propose is Base {
 
     uint256 _quorumBeforePropose = IDemocraticGovernance(address(governor)).quorum(block.number);
 
-    vm.prank(signer.addr);
+    vm.prank(owner);
     uint256 _proposalId =
       IDemocraticGovernance(address(governor)).propose(new address[](1), new uint256[](1), new bytes[](1), _description);
 
@@ -331,7 +333,7 @@ contract DemocraticGovernance_Unit_Propose is Base {
     uint256 snapshot = governor.clock() + governor.votingDelay();
     emit IGovernor.ProposalCreated(
       _proposalId,
-      signer.addr,
+      owner,
       _targets,
       _values,
       new string[](_targets.length),
@@ -341,7 +343,7 @@ contract DemocraticGovernance_Unit_Propose is Base {
       _description
     );
 
-    vm.prank(signer.addr);
+    vm.prank(owner);
     governor.propose(_targets, _values, _calldatas, _description);
   }
 }
@@ -360,10 +362,21 @@ contract DemocraticGovernance_Unit_SetQuorum is Base {
    * @notice Check that the function works as expected
    */
   function test_setQuorum(uint256 _quorum) public {
-    vm.prank(signer.addr);
+    vm.prank(owner);
     IDemocraticGovernance(address(governor)).setQuorum(_quorum);
     uint256 _quorumFromGovernor = IDemocraticGovernance(address(governor)).quorum(block.number);
     assertEq(_quorumFromGovernor, _quorum);
+  }
+
+  /**
+   * @notice Check that the function emits the QuorumSet event
+   */
+  function test_emitQuorumSet(uint256 _quorum) public {
+    vm.expectEmit(true, true, true, true);
+    emit IDemocraticGovernance.QuorumSet(_quorum);
+
+    vm.prank(owner);
+    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
   }
 }
 
@@ -390,7 +403,7 @@ contract DemocraticGovernance_Unit_CLOCK_MODE is Base {
    * @notice Test that the function returns the clock mode
    */
   function test_returnClockMode() public {
-    string memory _mode = 'mode=timestamp&from=default';
+    string memory _mode = 'mode=blocktimestamp&from=default';
     assertEq(governor.CLOCK_MODE(), _mode);
   }
 }
@@ -423,7 +436,7 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
     vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
 
     // Propose and vote
-    uint256 _proposalId = _proposeAndVote(signer.addr, _description, QUORUM + 1);
+    uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM + 1);
 
     // Check that the quorum is reached
     assertTrue(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
@@ -436,7 +449,7 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
     vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
 
     // Propose and vote
-    uint256 _proposalId = _proposeAndVote(signer.addr, _description, QUORUM - 1);
+    uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM - 1);
 
     // Check that the quorum is reached
     assertFalse(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));

@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {GovernorDemocratic} from 'contracts/GovernorDemocratic.sol';
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
+import {IDemocraticGovernance} from 'interfaces/IDemocraticGovernance.sol';
 import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
@@ -14,7 +15,7 @@ import {Time} from 'open-zeppelin/utils/types/Time.sol';
  * @notice Implementation of the DemocraticGovernance contract, with 1 vote per voter that is verified on WorldID.
  * @dev For this specific case only the owner can propose.
  */
-contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocratic {
+contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocratic, IDemocraticGovernance {
   /**
    * @notice The quorum threshold for the democratic governance
    */
@@ -69,6 +70,8 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
    */
   function setQuorum(uint256 _quorumThreshold) public onlyOwner {
     quorumThreshold = _quorumThreshold;
+
+    emit QuorumSet(_quorumThreshold);
   }
 
   /**
@@ -84,7 +87,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
    * @return _clock The block number
    * @dev Follows the Open Zeppelin implementation when the token does not implement EIP-6372, but using timestamp instead
    */
-  function clock() public view override(Governor, IERC6372) returns (uint48 _clock) {
+  function clock() public view override(Governor, IERC6372, IDemocraticGovernance) returns (uint48 _clock) {
     _clock = Time.timestamp();
   }
 
@@ -94,8 +97,8 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
    * @dev Follows the Open Zeppelin implementation when the token does not implement EIP-6372, but using timestamp instead
    */
   // solhint-disable-next-line func-name-mixedcase
-  function CLOCK_MODE() public pure override(Governor, IERC6372) returns (string memory _mode) {
-    _mode = 'mode=timestamp&from=default';
+  function CLOCK_MODE() public pure override(Governor, IERC6372, IDemocraticGovernance) returns (string memory _mode) {
+    _mode = 'mode=blocktimestamp&from=default';
   }
 
   /**
