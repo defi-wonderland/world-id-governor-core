@@ -72,10 +72,27 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
 
   /**
    * @notice Minimum number of cast voted required for a proposal to be successful.
-   * @return _quorum The current minimum number of cast votes required for a proposal to be successful
+   * @param _proposalId The ID of the proposal
+   * @return _quorumThreshold The current minimum number of cast votes required for a proposal to be successful
    */
-  function quorum(uint256) public view override(Governor, IGovernor) returns (uint256 _quorum) {
-    _quorum = quorumThreshold;
+  function quorum(uint256 _proposalId) public view override(Governor, IGovernor) returns (uint256 _quorumThreshold) {
+    _quorumThreshold = proposalsQuorumThreshold[_proposalId];
+  }
+
+  /**
+   * @dev See {Governor-_quorumReached}.
+   */
+  function _quorumReached(uint256 proposalId)
+    internal
+    view
+    virtual
+    override(Governor, GovernorCountingSimple)
+    returns (bool _reached)
+  {
+    (, uint256 _forVotes, uint256 _abstainVotes) = proposalVotes(proposalId);
+    uint256 _quorum = quorum(proposalId);
+
+    _reached = _quorum <= (_forVotes + _abstainVotes);
   }
 
   /**
