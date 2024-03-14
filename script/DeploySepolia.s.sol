@@ -2,10 +2,8 @@
 pragma solidity 0.8.23;
 
 import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
-import {DemocraticToken} from 'contracts/DemocraticToken.sol';
 import {Script, console} from 'forge-std/Script.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
-import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 
 contract DeploySepolia is Script {
   uint256 public constant GROUP_ID = 1;
@@ -18,10 +16,6 @@ contract DeploySepolia is Script {
 
   function run() public {
     vm.startBroadcast(deployer);
-
-    // Deploy Token
-    DemocraticToken _token = new DemocraticToken();
-    console.log('Token deployed at:', address(_token));
 
     // Deploy DemocraticGovernance
     DemocraticGovernance _democraticGovernance =

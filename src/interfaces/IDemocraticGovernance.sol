@@ -12,5 +12,6 @@ interface IDemocraticGovernance is IGovernorWorldID {
 
   function clock() external view returns (uint48);
 
+  // solhint-disable-next-line func-name-mixedcase
   function CLOCK_MODE() external view returns (string memory);
 }

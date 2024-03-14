@@ -11,7 +11,6 @@ import {IWorldID} from 'interfaces/IWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
-import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
 abstract contract Base is Test, UnitUtils {
