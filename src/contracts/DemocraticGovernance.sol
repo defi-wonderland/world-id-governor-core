@@ -79,22 +79,6 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
-   * @dev See {Governor-_quorumReached}.
-   */
-  function _quorumReached(uint256 proposalId)
-    internal
-    view
-    virtual
-    override(Governor, GovernorCountingSimple)
-    returns (bool _reached)
-  {
-    (, uint256 _forVotes, uint256 _abstainVotes) = proposalVotes(proposalId);
-    uint256 _quorum = proposalsQuorumThreshold[proposalId];
-
-    _reached = _quorum <= (_forVotes + _abstainVotes);
-  }
-
-  /**
    * @notice Clock used for flagging checkpoints
    * @return _clock The block number
    * @dev Follows the Open Zeppelin implementation when the token does not implement EIP-6372, but using timestamp instead
@@ -163,6 +147,22 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     bytes memory _params
   ) internal override(Governor, GovernorWorldID) returns (uint256 _votingWeight) {
     _votingWeight = super._castVote(_proposalId, _account, _support, _reason, _params);
+  }
+
+  /**
+   * @dev See {Governor-_quorumReached}.
+   */
+  function _quorumReached(uint256 proposalId)
+    internal
+    view
+    virtual
+    override(Governor, GovernorCountingSimple)
+    returns (bool _reached)
+  {
+    (, uint256 _forVotes, uint256 _abstainVotes) = proposalVotes(proposalId);
+    uint256 _quorum = proposalsQuorumThreshold[proposalId];
+
+    _reached = _quorum <= (_forVotes + _abstainVotes);
   }
 
   /**
