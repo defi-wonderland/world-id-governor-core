@@ -3,8 +3,8 @@ pragma solidity 0.8.23;
 
 import {GovernorDemocratic} from 'contracts/GovernorDemocratic.sol';
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
-import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {IDemocraticGovernance} from 'interfaces/IDemocraticGovernance.sol';
+import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
