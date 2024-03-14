@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
-import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 
 interface IMockDemocraticGovernanceForTest {
   function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) external;
@@ -38,8 +37,8 @@ contract MockDemocraticGovernance is DemocraticGovernance {
     IWorldIDRouter _worldIdRouter,
     string memory _appId,
     string memory _actionId,
-    IVotes _token
-  ) DemocraticGovernance(_groupID, _worldIdRouter, _appId, _actionId, _token) {}
+    uint256 _quorum
+  ) DemocraticGovernance(_groupID, _worldIdRouter, _appId, _actionId, _quorum) {}
 
   function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) public {
     latestRootPerVoter[_account] = _latestRoot;
