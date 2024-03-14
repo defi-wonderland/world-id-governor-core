@@ -29,6 +29,8 @@ interface IMockDemocraticGovernanceForTest {
     uint256 _timepoint,
     bytes memory _params
   ) external view returns (uint256 _votingWeight);
+
+  function forTest_quorumReached(uint256 _proposalId) external view returns (bool _reached);
 }
 
 contract MockDemocraticGovernance is DemocraticGovernance {
@@ -73,5 +75,9 @@ contract MockDemocraticGovernance is DemocraticGovernance {
     bytes memory _params
   ) public view returns (uint256 _votingWeight) {
     return _getVotes(_account, _timepoint, _params);
+  }
+
+  function forTest_quorumReached(uint256 _proposalId) public view returns (bool _reached) {
+    return _quorumReached(_proposalId);
   }
 }

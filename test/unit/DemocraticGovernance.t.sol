@@ -7,9 +7,11 @@ import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
+import {IDemocraticGovernance} from 'interfaces/IDemocraticGovernance.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
+import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
@@ -57,6 +59,7 @@ abstract contract Base is Test, UnitUtils {
     );
 
     // Deploy governor
+    vm.prank(signer.addr);
     governor = IGovernorWorldID(new MockDemocraticGovernance(GROUP_ID, worldIDRouter, APP_ID, ACTION_ID, QUORUM));
 
     // Deploy sigUtils
@@ -64,6 +67,7 @@ abstract contract Base is Test, UnitUtils {
 
     // Create proposal
     string memory _description = '0xDescription';
+    vm.prank(signer.addr);
     proposalId = governor.propose(new address[](1), new uint256[](1), new bytes[](1), _description);
 
     // Advance time assuming 1 block == 1 second (this will make the proposal active)
@@ -284,3 +288,108 @@ contract DemocraticGovernance_Unit_GetVotes is Base {
     assertEq(_votingWeight, ONE);
   }
 }
+
+contract DemocraticGovernance_Unit_Propose is Base {
+  /**
+   * @notice Check that only the owner can propose
+   */
+  function test_revertWithNotOwner(string memory _description) public {
+    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
+    vm.prank(user);
+    governor.propose(new address[](1), new uint256[](1), new bytes[](1), _description);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_proposalsQuorumThreshold(string memory _description) public {
+    uint256 _quorumBeforePropose = IDemocraticGovernance(address(governor)).quorum(block.number);
+
+    vm.prank(signer.addr);
+    uint256 _proposalId =
+      IDemocraticGovernance(address(governor)).propose(new address[](1), new uint256[](1), new bytes[](1), _description);
+
+    uint256 _quorumFromProposal = IDemocraticGovernance(address(governor)).proposalsQuorumThreshold(_proposalId);
+    assertEq(_quorumFromProposal, _quorumBeforePropose);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_propose(string memory _description) public {
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    bytes[] memory _calldatas = new bytes[](1);
+    bytes32 _descriptionHash = keccak256(bytes(_description));
+    uint256 _proposalId = governor.hashProposal(_targets, _values, _calldatas, _descriptionHash);
+
+    vm.expectEmit(true, true, true, true);
+    uint256 snapshot = governor.clock() + governor.votingDelay();
+    emit IGovernor.ProposalCreated(
+      _proposalId,
+      signer.addr,
+      _targets,
+      _values,
+      new string[](_targets.length),
+      _calldatas,
+      snapshot,
+      snapshot + governor.votingPeriod(),
+      _description
+    );
+
+    vm.prank(signer.addr);
+    governor.propose(_targets, _values, _calldatas, _description);
+  }
+}
+
+contract DemocraticGovernance_Unit_SetQuorum is Base {}
+
+contract DemocraticGovernance_Unit_Quorum is Base {
+  /**
+   * @notice Test that the function returns the quorum
+   */
+  function test_returnQuorum() public {
+    assertEq(governor.quorum(block.number), QUORUM);
+  }
+}
+
+contract DemocraticGovernance_Unit_Clock is Base {
+  /**
+   * @notice Test that the function returns the clock
+   */
+  function test_returnClock() public {
+    assertEq(governor.clock(), block.timestamp);
+  }
+}
+
+contract DemocraticGovernance_Unit_CLOCK_MODE is Base {
+  /**
+   * @notice Test that the function returns the clock mode
+   */
+  function test_returnClockMode() public {
+    string memory _mode = 'mode=timestamp&from=default';
+    assertEq(governor.CLOCK_MODE(), _mode);
+  }
+}
+
+contract DemocraticGovernance_Unit_VotingDelay is Base {
+  /**
+   * @notice Test that the function returns the voting delay
+   */
+  function test_returnVotingDelay() public {
+    uint256 _delay = 1 days;
+    assertEq(governor.votingDelay(), _delay);
+  }
+}
+
+contract DemocraticGovernance_Unit_VotingPeriod is Base {
+  /**
+   * @notice Test that the function returns the voting period
+   */
+  function test_returnVotingPeriod() public {
+    uint256 _duration = 1 weeks;
+    assertEq(governor.votingPeriod(), _duration);
+  }
+}
+
+contract DemocraticGovernance_Unit_QuorumReached is Base {}
