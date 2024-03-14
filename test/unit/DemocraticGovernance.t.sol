@@ -24,6 +24,7 @@ abstract contract Base is Test, UnitUtils {
   uint256 public constant ONE = 1;
   string public constant APP_ID = 'appId';
   string public constant ACTION_ID = 'actionId';
+  string public constant DESCRIPTION = '0xDescription';
 
   IERC20 public token;
   IGovernorWorldID public governor;
@@ -66,9 +67,8 @@ abstract contract Base is Test, UnitUtils {
     sigUtils = new GovernorSigUtils(address(governor), 'DemocraticGovernor');
 
     // Create proposal
-    string memory _description = '0xDescription';
     vm.prank(signer.addr);
-    proposalId = governor.propose(new address[](1), new uint256[](1), new bytes[](1), _description);
+    proposalId = governor.propose(new address[](1), new uint256[](1), new bytes[](1), DESCRIPTION);
 
     // Advance time assuming 1 block == 1 second (this will make the proposal active)
     vm.warp(block.timestamp + governor.votingDelay() + 1);
@@ -303,6 +303,8 @@ contract DemocraticGovernance_Unit_Propose is Base {
    * @notice Check that the function works as expected
    */
   function test_proposalsQuorumThreshold(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
     uint256 _quorumBeforePropose = IDemocraticGovernance(address(governor)).quorum(block.number);
 
     vm.prank(signer.addr);
@@ -317,6 +319,8 @@ contract DemocraticGovernance_Unit_Propose is Base {
    * @notice Check that the function works as expected
    */
   function test_propose(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
     address[] memory _targets = new address[](1);
     uint256[] memory _values = new uint256[](1);
     bytes[] memory _calldatas = new bytes[](1);
@@ -416,6 +420,8 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
    * @notice Test that the function returns if the quorum is reached
    */
   function test_reachedQuorum(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
     // Propose and vote
     uint256 _proposalId = _proposeAndVote(signer.addr, _description, QUORUM + 1);
 
@@ -427,6 +433,8 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
    * @notice Test that the function returns if the quorum is not reached
    */
   function test_notReachedQuorum(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
     // Propose and vote
     uint256 _proposalId = _proposeAndVote(signer.addr, _description, QUORUM - 1);
 
