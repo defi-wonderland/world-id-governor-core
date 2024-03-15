@@ -17,12 +17,12 @@ import {Time} from 'open-zeppelin/utils/types/Time.sol';
  */
 contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocratic, IDemocraticGovernance {
   /**
-   * @notice The quorum threshold for the democratic governance
+   * @inheritdoc IDemocraticGovernance
    */
   uint256 public quorumThreshold;
 
   /**
-   * @notice The mapping of the proposal ID to the quorum threshold
+   * @inheritdoc IDemocraticGovernance
    */
   mapping(uint256 proposalId => uint256 quorumThreshold) public proposalsQuorumThreshold;
 
@@ -44,13 +44,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
-   * @notice Propose a new proposal for the democratic governance
-   * @dev Only the owner can propose
-   * @param _targets The addresses of the contracts to be called
-   * @param _values The values to be sent to the contracts
-   * @param _calldatas The calldatas to be sent to the contracts
-   * @param _description The description of the proposal
-   * @return _proposalId The ID of the proposal
+   * @inheritdoc IGovernor
    */
   function propose(
     address[] memory _targets,
@@ -64,9 +58,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
-   * @notice Set the quorum for the democratic governance
-   * @dev Only the governance can set the quorum
-   * @param _quorumThreshold The new quorum
+   * @inheritdoc IDemocraticGovernance
    */
   function setQuorum(uint256 _quorumThreshold) public onlyOwner {
     quorumThreshold = _quorumThreshold;
@@ -75,26 +67,21 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
-   * @notice Minimum number of cast voted required for a proposal to be successful.
-   * @return _quorumThreshold The current minimum number of cast votes required for a proposal to be successful
+   * @inheritdoc IGovernor
    */
   function quorum(uint256) public view override(Governor, IGovernor) returns (uint256 _quorumThreshold) {
     _quorumThreshold = quorumThreshold;
   }
 
   /**
-   * @notice Clock used for flagging checkpoints
-   * @return _clock The block number
-   * @dev Follows the Open Zeppelin implementation when the token does not implement EIP-6372, but using timestamp instead
+   * @inheritdoc IDemocraticGovernance
    */
   function clock() public view override(Governor, IERC6372, IDemocraticGovernance) returns (uint48 _clock) {
     _clock = Time.timestamp();
   }
 
   /**
-   * @notice Description of the clock mode
-   * @return _mode The description of the clock mode
-   * @dev Follows the Open Zeppelin implementation when the token does not implement EIP-6372, but using timestamp instead
+   * @inheritdoc IDemocraticGovernance
    */
   // solhint-disable-next-line func-name-mixedcase
   function CLOCK_MODE() public pure override(Governor, IERC6372, IDemocraticGovernance) returns (string memory _mode) {
@@ -102,28 +89,21 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
-   * @notice The delay before voting starts for a proposal
-   * @return _delay The delay before voting starts for a proposal
+   * @inheritdoc IGovernor
    */
   function votingDelay() public pure override(Governor, IGovernor) returns (uint256 _delay) {
     _delay = 1 days;
   }
 
   /**
-   * @notice The duration of the voting period for a proposal
-   * @return _duration The duration of the voting period for a proposal
+   * @inheritdoc IGovernor
    */
   function votingPeriod() public pure override(Governor, IGovernor) returns (uint256 _duration) {
     _duration = 1 weeks;
   }
 
   /**
-   * @notice Cast a vote for a proposal without extra params
-   * @param _proposalId The ID of the proposal
-   * @param _account The account that is casting the vote
-   * @param _support The support value of the vote
-   * @param _reason The reason for the vote
-   * @return _votingWeight The voting weight of the voter
+   * @inheritdoc GovernorWorldID
    */
   function _castVote(
     uint256 _proposalId,
@@ -135,13 +115,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
-   * @notice Cast a vote for a proposal with extra params
-   * @param _proposalId The ID of the proposal
-   * @param _account The account that is casting the vote
-   * @param _support The support value of the vote
-   * @param _reason The reason for the vote
-   * @param _params The extra params for the vote
-   * @return _votingWeight The voting weight of the voter
+   * @inheritdoc GovernorWorldID
    */
   function _castVote(
     uint256 _proposalId,
@@ -154,7 +128,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
-   * @dev See {Governor-_quorumReached}.
+   * @inheritdoc GovernorCountingSimple
    */
   function _quorumReached(uint256 proposalId)
     internal
@@ -170,11 +144,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
-   * @notice Get the voting weight of a voter
-   * @param _account The account to get the voting weight
-   * @param _timepoint The timepoint to get the voting weight
-   * @param _params The extra params for the vote
-   * @return _votingWeight The voting weight of the voter
+   * @inheritdoc GovernorDemocratic
    */
   function _getVotes(
     address _account,

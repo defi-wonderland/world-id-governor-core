@@ -382,10 +382,10 @@ contract DemocraticGovernance_Unit_SetQuorum is Base {
 
 contract DemocraticGovernance_Unit_Quorum is Base {
   /**
-   * @notice Test that the function returns the quorum
+   * @notice Test that the function returns the current quorum, independently of the given argument
    */
-  function test_returnQuorum() public {
-    assertEq(governor.quorum(block.number), QUORUM);
+  function test_returnQuorum(uint256 _randomNumber) public {
+    assertEq(governor.quorum(_randomNumber), QUORUM);
   }
 }
 
