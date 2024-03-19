@@ -15,17 +15,17 @@ abstract contract GovernorWorldID is Governor, IGovernorWorldID {
   using ByteHasher for bytes;
 
   /**
-   * @dev The World ID instance that will be used for verifying proofs
+   * @inheritdoc IGovernorWorldID
    */
   IWorldID public immutable WORLD_ID;
 
   /**
-   * @dev The contract's external nullifier hash. It's composed by the `appId` and `actionId` and is used to verify the proofs.
+   * @inheritdoc IGovernorWorldID
    */
   uint256 public immutable EXTERNAL_NULLIFIER;
 
   /**
-   * @dev The latest root verifier for each voter
+   * @inheritdoc IGovernorWorldID
    */
   mapping(address voter => uint256 latestRoot) public latestRootPerVoter;
 
