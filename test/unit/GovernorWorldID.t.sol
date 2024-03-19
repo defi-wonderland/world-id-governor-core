@@ -59,7 +59,7 @@ abstract contract Base is Test, UnitUtils {
     governor = new MockGovernorWorldId(GROUP_ID, worldIDRouter, APP_ID, ACTION_ID, IVotes(address(token)));
 
     // Deploy sigUtils
-    sigUtils = new GovernorSigUtils(address(governor));
+    sigUtils = new GovernorSigUtils(address(governor), 'Governor');
 
     // Create proposal
     string memory _description = '0xDescription';
