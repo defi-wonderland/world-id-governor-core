@@ -54,7 +54,6 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   ) public virtual override(Governor, IGovernor) onlyOwner returns (uint256 _proposalId) {
     _proposalId = super.propose(_targets, _values, _calldatas, _description);
     proposalsQuorumThreshold[_proposalId] = quorumThreshold;
-    return _proposalId;
   }
 
   /**
