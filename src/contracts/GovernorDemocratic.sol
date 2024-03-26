@@ -2,11 +2,12 @@
 pragma solidity 0.8.23;
 
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
+import {IGovernorDemocratic} from 'interfaces/IGovernorDemocratic.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
-abstract contract GovernorDemocratic is GovernorWorldID {
+abstract contract GovernorDemocratic is GovernorWorldID, IGovernorDemocratic {
   /**
-   * @notice The constant holding the votes for every voter (1 since it's a democratic system)
+   * @inheritdoc IGovernorDemocratic
    */
   uint256 public constant ONE_VOTE = 1;
 
