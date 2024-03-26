@@ -318,6 +318,24 @@ contract DemocraticGovernance_Unit_Propose is Base {
   }
 
   /**
+   * @notice Check that the function returns the correct proposalId
+   */
+  function test_returnsCorrectProposalId(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    bytes[] memory _calldatas = new bytes[](1);
+    bytes32 _descriptionHash = keccak256(bytes(_description));
+    uint256 _proposalId = governor.hashProposal(_targets, _values, _calldatas, _descriptionHash);
+
+    vm.prank(owner);
+    uint256 _proposalIdCreated = governor.propose(_targets, _values, _calldatas, _description);
+
+    assertEq(_proposalId, _proposalIdCreated);
+  }
+
+  /**
    * @notice Check that the function works as expected
    */
   function test_propose(string memory _description) public {
