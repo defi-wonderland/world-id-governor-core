@@ -16,16 +16,27 @@ abstract contract GovernorDemocratic is GovernorWorldID, IGovernorDemocratic {
    * @param _groupID The WorldID group ID, 1 for orb verification level
    * @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
    * @param _appId The World ID app ID
-   * @param _actionId The World ID action ID
    * @param _name The governor name
    */
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
-    string memory _appId,
-    string memory _actionId,
-    string memory _name
-  ) GovernorWorldID(_groupID, _worldIdRouter, _appId, _actionId, _name) {}
+    bytes memory _appId,
+    string memory _name,
+    uint48 _initialVotingDelay,
+    uint32 _initialVotingPeriod,
+    uint256 _initialProposalThreshold
+  )
+    GovernorWorldID(
+      _groupID,
+      _worldIdRouter,
+      _appId,
+      _name,
+      _initialVotingDelay,
+      _initialVotingPeriod,
+      _initialProposalThreshold
+    )
+  {}
 
   /**
    * @notice Returns 1 as the voting weight for the voter

@@ -9,8 +9,6 @@ import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/Governo
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
 
 interface IMockGovernorWorldIdForTest {
-  function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) external;
-
   function forTest_castVote(
     uint256 _proposalId,
     address _account,
@@ -19,25 +17,31 @@ interface IMockGovernorWorldIdForTest {
     bytes memory _params
   ) external;
 
-  function forTest_isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) external;
+  function forTest_validateUniqueVote(uint8 _support, uint256 _proposalId, bytes memory _proofData) external;
 }
 
-contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction {
+contract MockGovernorWorldId is GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorWorldID {
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
-    string memory _appId,
-    string memory _actionId,
-    IVotes _token
+    bytes memory _appId,
+    IVotes _token,
+    uint48 _initialVotingDelay,
+    uint32 _initialVotingPeriod,
+    uint256 _initialProposalThreshold
   )
-    GovernorWorldID(_groupID, _worldIdRouter, _appId, _actionId, 'Governor')
+    GovernorWorldID(
+      _groupID,
+      _worldIdRouter,
+      _appId,
+      'Governor',
+      _initialVotingDelay,
+      _initialVotingPeriod,
+      _initialProposalThreshold
+    )
     GovernorVotes(_token)
     GovernorVotesQuorumFraction(4)
   {}
-
-  function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) public {
-    latestRootPerVoter[_account] = _latestRoot;
-  }
 
   function forTest_castVote(
     uint256 _proposalId,
@@ -49,8 +53,8 @@ contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, Governo
     _castVote(_proposalId, _account, _support, _reason, _params);
   }
 
-  function forTest_isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) public {
-    _isHuman(_voter, _proposalId, _proofData);
+  function forTest_validateUniqueVote(uint8 _support, uint256 _proposalId, bytes memory _proofData) public {
+    _validateUniqueVote(_support, _proposalId, _proofData);
   }
 
   function quorum(uint256 blockNumber)
@@ -71,12 +75,16 @@ contract MockGovernorWorldId is GovernorWorldID, GovernorCountingSimple, Governo
     return super.clock();
   }
 
-  function votingDelay() public pure override(Governor, IGovernor) returns (uint256) {
-    return 7200; // 1 day
+  function votingDelay() public view virtual override(Governor, GovernorWorldID) returns (uint256) {
+    return super.votingDelay();
   }
 
-  function votingPeriod() public pure override(Governor, IGovernor) returns (uint256) {
-    return 50_400; // 1 week
+  function votingPeriod() public view virtual override(Governor, GovernorWorldID) returns (uint256) {
+    return super.votingPeriod();
+  }
+
+  function proposalThreshold() public view virtual override(Governor, GovernorWorldID) returns (uint256) {
+    return super.proposalThreshold();
   }
 
   function _castVote(

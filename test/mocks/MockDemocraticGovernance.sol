@@ -3,11 +3,11 @@ pragma solidity 0.8.23;
 
 import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
+import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
+import {Governor, IGovernor} from 'open-zeppelin/governance/Governor.sol';
 
 interface IMockDemocraticGovernanceForTest {
-  function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) external;
-
-  function forTest_isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) external;
+  function forTest_validateUniqueVote(uint8 _support, uint256 _proposalId, bytes memory _proofData) external;
 
   function forTest_castVote(
     uint256 _proposalId,
@@ -39,17 +39,25 @@ contract MockDemocraticGovernance is DemocraticGovernance {
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
-    string memory _appId,
-    string memory _actionId,
-    uint256 _quorum
-  ) DemocraticGovernance(_groupID, _worldIdRouter, _appId, _actionId, _quorum) {}
+    bytes memory _appId,
+    uint256 _quorum,
+    uint48 _initialVotingDelay,
+    uint32 _initialVotingPeriod,
+    uint256 _initialProposalThreshold
+  )
+    DemocraticGovernance(
+      _groupID,
+      _worldIdRouter,
+      _appId,
+      _quorum,
+      _initialVotingDelay,
+      _initialVotingPeriod,
+      _initialProposalThreshold
+    )
+  {}
 
-  function forTest_setLatestRootPerVoter(address _account, uint256 _latestRoot) public {
-    latestRootPerVoter[_account] = _latestRoot;
-  }
-
-  function forTest_isHuman(address _voter, uint256 _proposalId, bytes memory _proofData) public {
-    _isHuman(_voter, _proposalId, _proofData);
+  function forTest_validateUniqueVote(uint8 _support, uint256 _proposalId, bytes memory _proofData) public {
+    _validateUniqueVote(_support, _proposalId, _proofData);
   }
 
   function forTest_castVote(

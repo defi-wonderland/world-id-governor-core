@@ -31,15 +31,27 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
    * @param _groupID The WorldID group ID, 1 for orb verification level
    * @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
    * @param _appId The World ID app ID
-   * @param _actionId The World ID action ID
    */
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
-    string memory _appId,
-    string memory _actionId,
-    uint256 _quorumThreshold
-  ) Ownable(msg.sender) GovernorDemocratic(_groupID, _worldIdRouter, _appId, _actionId, 'DemocraticGovernor') {
+    bytes memory _appId,
+    uint256 _quorumThreshold,
+    uint48 _initialVotingDelay,
+    uint32 _initialVotingPeriod,
+    uint256 _initialProposalThreshold
+  )
+    Ownable(msg.sender)
+    GovernorDemocratic(
+      _groupID,
+      _worldIdRouter,
+      _appId,
+      'DemocraticGovernor',
+      _initialVotingDelay,
+      _initialVotingPeriod,
+      _initialProposalThreshold
+    )
+  {
     quorumThreshold = _quorumThreshold;
   }
 
@@ -87,18 +99,16 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     _mode = 'mode=blocktimestamp&from=default';
   }
 
-  /**
-   * @inheritdoc IGovernor
-   */
-  function votingDelay() public pure override(Governor, IGovernor) returns (uint256 _delay) {
-    _delay = 1 days;
+  function votingDelay() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
+    return super.votingDelay();
   }
 
-  /**
-   * @inheritdoc IGovernor
-   */
-  function votingPeriod() public pure override(Governor, IGovernor) returns (uint256 _duration) {
-    _duration = 1 weeks;
+  function votingPeriod() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
+    return super.votingPeriod();
+  }
+
+  function proposalThreshold() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
+    return super.proposalThreshold();
   }
 
   /**

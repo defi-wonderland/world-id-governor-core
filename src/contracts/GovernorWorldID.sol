@@ -1,79 +1,139 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldID} from 'interfaces/IWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
+import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {Governor} from 'open-zeppelin/governance/Governor.sol';
 
 /**
  * @title GovernorWorldID
  * @notice Governor contract that checks if the voter is a real human before proceeding with the vote.
  */
-abstract contract GovernorWorldID is Governor, IGovernorWorldID {
+abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldID {
   using ByteHasher for bytes;
 
   /**
    * @inheritdoc IGovernorWorldID
    */
-  IWorldID public immutable WORLD_ID;
+  IWorldIDRouter public immutable WORLD_ID;
 
   /**
    * @inheritdoc IGovernorWorldID
    */
-  uint256 public immutable EXTERNAL_NULLIFIER;
+  uint256 public immutable GROUP_ID;
 
   /**
    * @inheritdoc IGovernorWorldID
    */
-  mapping(address voter => uint256 latestRoot) public latestRootPerVoter;
+  uint256 public immutable APP_ID;
+
+  /**
+   * @inheritdoc IGovernorWorldID
+   */
+  uint256 public resetGracePeriod;
+
+  /**
+   * @inheritdoc IGovernorWorldID
+   */
+  uint256 public rootExpirationThreshold;
+
+  /**
+   * @inheritdoc IGovernorWorldID
+   */
+  mapping(uint256 nullifier => bool isUsed) public nullifierHashes;
 
   /**
    * @param _groupID The WorldID group ID, 1 for orb verification level
    * @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
    * @param _appId The World ID app ID
-   * @param _actionId The World ID action ID
    * @param _name The governor name
    */
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
-    string memory _appId,
-    string memory _actionId,
-    string memory _name
-  ) Governor(_name) {
-    WORLD_ID = IWorldID(_worldIdRouter.routeFor(_groupID));
-    EXTERNAL_NULLIFIER = abi.encodePacked(abi.encodePacked(_appId).hashToField(), _actionId).hashToField();
+    bytes memory _appId,
+    string memory _name,
+    uint48 _initialVotingDelay,
+    uint32 _initialVotingPeriod,
+    uint256 _initialProposalThreshold
+  ) Governor(_name) GovernorSettings(_initialVotingDelay, _initialVotingPeriod, _initialProposalThreshold) {
+    WORLD_ID = _worldIdRouter;
+    GROUP_ID = _groupID;
+    APP_ID = abi.encodePacked(_appId).hashToField();
+
+    resetGracePeriod = 14 days;
+
+    IWorldID _identityManager = IWorldID(WORLD_ID.routeFor(_groupID));
+    rootExpirationThreshold = _identityManager.getRootHistoryExpiry();
   }
 
   /**
-   * @notice Check if the voter is a real human
-   * @param _account The account of the voter address
+   * @inheritdoc IGovernorWorldID
+   */
+  function setRootExpirationThreshold(uint256 _rootExpirationThreshold) external onlyGovernance {
+    IWorldID _identityManager = IWorldID(WORLD_ID.routeFor(GROUP_ID));
+    if (_identityManager.getRootHistoryExpiry() < _rootExpirationThreshold) {
+      revert GovernorWorldID_InvalidRootExpirationThreshold();
+    }
+
+    uint256 _oldRootExpirationThreshold = rootExpirationThreshold;
+    rootExpirationThreshold = _rootExpirationThreshold;
+
+    emit RootExpirationThresholdUpdated(_rootExpirationThreshold, _oldRootExpirationThreshold);
+  }
+
+  /**
+   * @inheritdoc IGovernorWorldID
+   */
+  function setResetGracePeriod(uint256 _resetGracePeriod) external onlyGovernance {
+    uint256 _oldResetGracePeriod = resetGracePeriod;
+    resetGracePeriod = _resetGracePeriod;
+
+    emit ResetGracePeriodUpdated(_resetGracePeriod, _oldResetGracePeriod);
+  }
+
+  /**
+   * @inheritdoc GovernorSettings
+   */
+  function _setVotingPeriod(uint32 _votingPeriod) internal virtual override {
+    // TODO: if rootExpirationThreshold > resetGracePeriod will fail with arithmetic error, how to proceed there?
+    if (_votingPeriod > resetGracePeriod - rootExpirationThreshold) revert GovernorWorldID_InvalidVotingPeriod();
+
+    super._setVotingPeriod(_votingPeriod);
+  }
+
+  /**
+   * @notice Check if the voter is a real human and the vote is valid
+   * @param _support The support for the proposal
    * @param _proposalId The proposal id
    * @param _proofData The proof data
    */
-  function _isHuman(address _account, uint256 _proposalId, bytes memory _proofData) internal virtual {
-    // Get the current root
-    uint256 _currentRoot = WORLD_ID.latestRoot();
-
-    // If the user has already verified himself on the latest root, skip the verification
-    if (latestRootPerVoter[_account] == _currentRoot) return;
-
-    if (_proofData.length == 0) revert GovernorWorldID_NoProofData();
-
+  function _validateUniqueVote(uint8 _support, uint256 _proposalId, bytes memory _proofData) internal virtual {
     // Decode the parameters
     (uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
       abi.decode(_proofData, (uint256, uint256, uint256[8]));
 
-    if (_root != _currentRoot) revert GovernorWorldID_OutdatedRoot();
+    if (nullifierHashes[_nullifierHash]) revert GovernorWorldID_NullifierHashAlreadyUsed();
+
+    IWorldID _identityManager = IWorldID(WORLD_ID.routeFor((GROUP_ID)));
+
+    // Query and validate root information
+    IWorldID.RootInfo memory _rootInfo = _identityManager.queryRoot(_root);
+    if (block.timestamp - rootExpirationThreshold > _rootInfo.supersededTimestamp) {
+      revert GovernorWorldID_OutdatedRoot();
+    }
 
     // Verify the provided proof
-    uint256 _signal = abi.encodePacked(_proposalId, _account).hashToField();
-    WORLD_ID.verifyProof(_root, _signal, _nullifierHash, EXTERNAL_NULLIFIER, _proof);
+    uint256 _signal = uint256(_support);
+    uint256 _externalNullifier = abi.encodePacked(APP_ID, _proposalId).hashToField();
+    _identityManager.verifyProof(_root, _signal, _nullifierHash, _externalNullifier, _proof);
 
-    // Save the latest root for the user
-    latestRootPerVoter[_account] = _currentRoot;
+    // Save the nullifier hash as used
+    nullifierHashes[_nullifierHash] = true;
   }
 
   /**
@@ -93,8 +153,7 @@ abstract contract GovernorWorldID is Governor, IGovernorWorldID {
     string memory _reason,
     bytes memory _params
   ) internal virtual override returns (uint256 _votingWeight) {
-    // Check if the voter is a registered human
-    _isHuman(_account, _proposalId, _params);
+    _validateUniqueVote(_support, _proposalId, _params);
 
     return super._castVote(_proposalId, _account, _support, _reason, _params);
   }
@@ -104,5 +163,17 @@ abstract contract GovernorWorldID is Governor, IGovernorWorldID {
    */
   function _castVote(uint256, address, uint8, string memory) internal virtual override returns (uint256) {
     revert GovernorWorldID_NotSupportedFunction();
+  }
+
+  function votingDelay() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+    return super.votingDelay();
+  }
+
+  function votingPeriod() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+    return super.votingPeriod();
+  }
+
+  function proposalThreshold() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+    return super.proposalThreshold();
   }
 }

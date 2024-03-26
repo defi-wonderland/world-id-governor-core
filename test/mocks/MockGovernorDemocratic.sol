@@ -32,22 +32,25 @@ interface IMockGovernorDemocraticForTest {
   ) external view returns (uint256 _votingWeight);
 }
 
-contract MockGovernorDemocratic is
-  GovernorVotes,
-  GovernorCountingSimple,
-  GovernorVotesQuorumFraction,
-  GovernorDemocratic
-{
+contract MockGovernorDemocratic is GovernorCountingSimple, GovernorDemocratic {
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
-    string memory _appId,
-    string memory _actionId,
-    IVotes _token
+    bytes memory _appId,
+    IVotes _token,
+    uint48 _initialVotingDelay,
+    uint32 _initialVotingPeriod,
+    uint256 _initialProposalThreshold
   )
-    GovernorVotes(_token)
-    GovernorVotesQuorumFraction(4)
-    GovernorDemocratic(_groupID, _worldIdRouter, _appId, _actionId, 'Governor')
+    GovernorDemocratic(
+      _groupID,
+      _worldIdRouter,
+      _appId,
+      'Governor',
+      _initialVotingDelay,
+      _initialVotingPeriod,
+      _initialProposalThreshold
+    )
   {}
 
   function forTest_getVotes(
@@ -58,29 +61,28 @@ contract MockGovernorDemocratic is
     return _getVotes(_account, _timepoint, _params);
   }
 
-  function quorum(uint256 blockNumber)
-    public
-    view
-    override(Governor, IGovernor, GovernorVotesQuorumFraction)
-    returns (uint256)
-  {
-    return super.quorum(blockNumber);
+  function quorum(uint256 blockNumber) public view override(Governor, IGovernor) returns (uint256) {
+    return quorum(blockNumber);
   }
 
-  function CLOCK_MODE() public view override(Governor, GovernorVotes, IERC6372) returns (string memory) {
-    return super.CLOCK_MODE();
+  function CLOCK_MODE() public view override(Governor, IERC6372) returns (string memory) {
+    return CLOCK_MODE();
   }
 
-  function clock() public view override(Governor, GovernorVotes, IERC6372) returns (uint48) {
-    return super.clock();
+  function clock() public view override(Governor, IERC6372) returns (uint48) {
+    return clock();
   }
 
-  function votingDelay() public pure override(Governor, IGovernor) returns (uint256) {
-    return 7200; // 1 day
+  function votingDelay() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
+    return super.votingDelay();
   }
 
-  function votingPeriod() public pure override(Governor, IGovernor) returns (uint256) {
-    return 50_400; // 1 week
+  function votingPeriod() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
+    return super.votingPeriod();
+  }
+
+  function proposalThreshold() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
+    return super.proposalThreshold();
   }
 
   function _castVote(
@@ -106,7 +108,7 @@ contract MockGovernorDemocratic is
     address _account,
     uint256 _timepoint,
     bytes memory _params
-  ) internal view virtual override(Governor, GovernorVotes, GovernorDemocratic) returns (uint256) {
+  ) internal view virtual override(Governor, GovernorDemocratic) returns (uint256) {
     return super._getVotes(_account, _timepoint, _params);
   }
 }
