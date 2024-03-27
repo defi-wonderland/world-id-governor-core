@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
-import {IWorldID} from 'interfaces/IWorldID.sol';
+import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
@@ -19,7 +19,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   /**
    * @inheritdoc IGovernorWorldID
    */
-  IWorldIDRouter public immutable WORLD_ID;
+  IWorldIDRouter public immutable WORLD_ID_ROUTER;
 
   /**
    * @inheritdoc IGovernorWorldID
@@ -64,13 +64,13 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     uint32 _initialVotingPeriod,
     uint256 _initialProposalThreshold
   ) Governor(_name) GovernorSettings(_initialVotingDelay, _initialVotingPeriod, _initialProposalThreshold) {
-    WORLD_ID = _worldIdRouter;
+    WORLD_ID_ROUTER = _worldIdRouter;
     GROUP_ID = _groupID;
     APP_ID = abi.encodePacked(_appId).hashToField();
 
     resetGracePeriod = 14 days;
 
-    IWorldID _identityManager = IWorldID(WORLD_ID.routeFor(_groupID));
+    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(_groupID));
     rootExpirationThreshold = _identityManager.getRootHistoryExpiry();
   }
 
@@ -78,7 +78,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @inheritdoc IGovernorWorldID
    */
   function setRootExpirationThreshold(uint256 _rootExpirationThreshold) external onlyGovernance {
-    IWorldID _identityManager = IWorldID(WORLD_ID.routeFor(GROUP_ID));
+    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
     if (_identityManager.getRootHistoryExpiry() < _rootExpirationThreshold) {
       revert GovernorWorldID_InvalidRootExpirationThreshold();
     }
@@ -122,10 +122,10 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
 
     if (nullifierHashes[_nullifierHash]) revert GovernorWorldID_NullifierHashAlreadyUsed();
 
-    IWorldID _identityManager = IWorldID(WORLD_ID.routeFor((GROUP_ID)));
+    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor((GROUP_ID)));
 
     // Query and validate root information
-    IWorldID.RootInfo memory _rootInfo = _identityManager.queryRoot(_root);
+    IWorldIDIdentityManager.RootInfo memory _rootInfo = _identityManager.queryRoot(_root);
     if (block.timestamp - rootExpirationThreshold > _rootInfo.supersededTimestamp) {
       revert GovernorWorldID_OutdatedRoot();
     }

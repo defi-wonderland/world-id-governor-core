@@ -45,7 +45,7 @@ interface IGovernorWorldID is IGovernor {
    * @return _worldId The World ID instance
    */
   // solhint-disable-next-line func-name-mixedcase
-  function WORLD_ID() external view returns (IWorldIDRouter _worldId);
+  function WORLD_ID_ROUTER() external view returns (IWorldIDRouter _worldId);
 
   /**
    * @notice The group ID used to verify the proofs

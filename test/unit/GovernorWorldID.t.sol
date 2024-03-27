@@ -7,7 +7,7 @@ import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
-import {IWorldID} from 'interfaces/IWorldID.sol';
+import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
@@ -27,7 +27,7 @@ abstract contract Base is Test, UnitUtils {
   IERC20 public token;
   IGovernorWorldID public governor;
   IWorldIDRouter public worldIDRouter;
-  IWorldID public worldID;
+  IWorldIDIdentityManager public worldIDIdentityManager;
   GovernorSigUtils public sigUtils;
 
   uint256 public proposalId;
@@ -46,15 +46,15 @@ abstract contract Base is Test, UnitUtils {
     worldIDRouter = IWorldIDRouter(makeAddr('worldIDRouter'));
     vm.etch(address(worldIDRouter), new bytes(0x1));
 
-    // Deploy mock worldID
-    worldID = IWorldID(makeAddr('worldID'));
-    vm.etch(address(worldID), new bytes(0x1));
+    // Deploy mock worldIDIdentityManager
+    worldIDIdentityManager = IWorldIDIdentityManager(makeAddr('worldIDIdentityManager'));
+    vm.etch(address(worldIDIdentityManager), new bytes(0x1));
 
     // Mock the routeFor function
     vm.mockCall(
       address(worldIDRouter),
       abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
-      abi.encode(address(worldID))
+      abi.encode(address(worldIDIdentityManager))
     );
 
     // Deploy governor
@@ -79,12 +79,12 @@ abstract contract Base is Test, UnitUtils {
   }
 }
 
-contract GovernorWorldId_Unit_WORLD_ID is Base {
+contract GovernorWorldId_Unit_WORLD_ID_ROUTER is Base {
   /**
-   * @notice Test that the function returns the WorldID instance
+   * @notice Test that the function returns the WorldIDRouter instance
    */
   function test_returnWorldIDInstance() public {
-    assertEq(address(governor.WORLD_ID()), address(worldID));
+    assertEq(address(governor.WORLD_ID_ROUTER()), address(worldIDRouter));
   }
 }
 
@@ -130,13 +130,13 @@ contract GovernorWorldID_Unit_IsHuman is Base {
   //     uint256 _nullifierHash,
   //     uint256[8] memory _proof
   //   ) public {
-  //     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
+  //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_root));
   //     IMockGovernorWorldIdForTest(address(governor)).forTest_setLatestRootPerVoter(user, _root);
   //     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
   //     // Since the function returns, no call is expected to `verifyProof`
   //     uint64 _methodCallsCounter = 0;
-  //     vm.expectCall(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), _methodCallsCounter);
+  //     vm.expectCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.verifyProof.selector), _methodCallsCounter);
 
   //     vm.prank(user);
   //     IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
@@ -155,7 +155,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
   //     vm.assume(_currentRoot != _root);
 
   //     // Set the current root
-  //     vm.mockCall(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_currentRoot));
+  //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_currentRoot));
 
   //     // Try to cast a vote with an outdated root
   //     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
@@ -168,7 +168,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
    * @notice Test that the function calls the verifyProof function from the WorldID contract
    */
   function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(worldID, _root, _nullifierHash, _proof);
+    bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
 
     // Cast the vote
     vm.prank(user);
@@ -179,7 +179,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
   //    * @notice Test that the latest root is stored
   //    */
   //   function test_storeLatestRootPerVoter(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-  //     bytes memory _params = _mockWorlIDCalls(worldID, _root, _nullifierHash, _proof);
+  //     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
 
   //     // Cast the vote
   //     vm.prank(user);
@@ -196,7 +196,7 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(worldID, _root, _nullifierHash, _proof);
+    bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
 
     vm.expectEmit(true, true, true, true);
     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
@@ -212,7 +212,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(worldID, _root, _nullifierHash, _proof);
+    bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
 
     vm.expectEmit(true, true, true, true);
     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
@@ -232,7 +232,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     uint256 _nullifierHash,
     uint256[8] memory _proof
   ) public {
-    bytes memory _params = _mockWorlIDCalls(worldID, _root, _nullifierHash, _proof);
+    bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
 
     // Sign
     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);

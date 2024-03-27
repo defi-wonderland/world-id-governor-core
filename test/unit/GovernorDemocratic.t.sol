@@ -6,7 +6,7 @@ import {IMockGovernorDemocraticForTest, MockGovernorDemocratic} from '../mocks/M
 import {UnitUtils} from './UnitUtils.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
-import {IWorldID} from 'interfaces/IWorldID.sol';
+import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
@@ -21,7 +21,7 @@ abstract contract Base is Test, UnitUtils {
   IERC20 public token;
   IGovernorWorldID public governor;
   IWorldIDRouter public worldIDRouter;
-  IWorldID public worldID;
+  IWorldIDIdentityManager public worldIDIdentityManager;
 
   address public user;
 
@@ -35,15 +35,15 @@ abstract contract Base is Test, UnitUtils {
     worldIDRouter = IWorldIDRouter(makeAddr('worldIDRouter'));
     vm.etch(address(worldIDRouter), new bytes(0x1));
 
-    // Deploy mock worldID
-    worldID = IWorldID(makeAddr('worldID'));
-    vm.etch(address(worldID), new bytes(0x1));
+    // Deploy mock worldIDIdentityManager
+    worldIDIdentityManager = IWorldIDIdentityManager(makeAddr('worldIDIdentityManager'));
+    vm.etch(address(worldIDIdentityManager), new bytes(0x1));
 
     // Mock the routeFor function
     vm.mockCall(
       address(worldIDRouter),
       abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
-      abi.encode(address(worldID))
+      abi.encode(address(worldIDIdentityManager))
     );
 
     // Deploy governor

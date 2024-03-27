@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Test} from 'forge-std/Test.sol';
-import {IWorldID} from 'interfaces/IWorldID.sol';
+import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 
 abstract contract UnitUtils is Test {
   /**
@@ -17,15 +17,15 @@ abstract contract UnitUtils is Test {
   }
 
   /**
-   * @notice Mocks the WorldID contract calls to `latestRoot` and `verifyRoot` and expects them to be called
-   * @param worldID The WorldID contract to mock and expect
+   * @notice Mocks the WorldIDIdentityManager contract calls to `latestRoot` and `verifyRoot` and expects them to be called
+   * @param _worldIDIdentityManager The WorldIDIdentityManager contract to mock and expect
    * @param _root The root to mock and expect
    * @param _nullifierHash The nullifier hash to mock and expect
    * @param _proof The proof to mock and expect
    * @return _params The encoded parameters to mock and expect
    */
   function _mockWorlIDCalls(
-    IWorldID worldID,
+    IWorldIDIdentityManager _worldIDIdentityManager,
     uint256 _root,
     uint256 _nullifierHash,
     uint256[8] memory _proof
@@ -33,12 +33,20 @@ abstract contract UnitUtils is Test {
     vm.assume(_root != 0);
 
     // Set the current root
-    _mockAndExpect(address(worldID), abi.encodeWithSelector(IWorldID.latestRoot.selector), abi.encode(_root));
+    _mockAndExpect(
+      address(_worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector),
+      abi.encode(_root)
+    );
 
     // Encode the parameters
     _params = abi.encode(_root, _nullifierHash, _proof);
 
     // Mock
-    _mockAndExpect(address(worldID), abi.encodeWithSelector(IWorldID.verifyProof.selector), abi.encode(true));
+    _mockAndExpect(
+      address(_worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.verifyProof.selector),
+      abi.encode(true)
+    );
   }
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-interface IWorldID {
+interface IWorldIDIdentityManager {
   /**
    * @notice Provides information about a merkle tree root.
    * @param root The value of the merkle tree root.
