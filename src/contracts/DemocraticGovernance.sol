@@ -31,6 +31,10 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
    * @param _groupID The WorldID group ID, 1 for orb verification level
    * @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
    * @param _appId The World ID app ID
+   * @param _quorumThreshold The quorum threshold for the proposals
+   * @param _initialVotingDelay The initial voting delay for the proposals
+   * @param _initialVotingPeriod The initial voting period for the proposals
+   * @param _initialProposalThreshold The initial proposal threshold for the proposals
    */
   constructor(
     uint256 _groupID,
@@ -99,14 +103,23 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     _mode = 'mode=blocktimestamp&from=default';
   }
 
+  /**
+   * @inheritdoc IGovernor
+   */
   function votingDelay() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
     return super.votingDelay();
   }
 
+  /**
+   * @inheritdoc IGovernor
+   */
   function votingPeriod() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
     return super.votingPeriod();
   }
 
+  /**
+   * @inheritdoc IGovernor
+   */
   function proposalThreshold() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
     return super.proposalThreshold();
   }

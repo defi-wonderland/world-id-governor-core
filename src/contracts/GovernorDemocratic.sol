@@ -17,6 +17,9 @@ abstract contract GovernorDemocratic is GovernorWorldID, IGovernorDemocratic {
    * @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
    * @param _appId The World ID app ID
    * @param _name The governor name
+   * @param _initialVotingDelay The initial voting delay for the proposals
+   * @param _initialVotingPeriod The initial voting period for the proposals
+   * @param _initialProposalThreshold The initial proposal threshold for the proposals
    */
   constructor(
     uint256 _groupID,
