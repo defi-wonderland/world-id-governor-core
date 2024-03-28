@@ -22,31 +22,41 @@ abstract contract UnitUtils is Test {
    * @param _root The root to mock and expect
    * @param _nullifierHash The nullifier hash to mock and expect
    * @param _proof The proof to mock and expect
+   * @param _rootExpirationThreshold The root expiration threshold to mock and expect
+   * @param _rootTimestamp The root timestamp to mock and expect
    * @return _params The encoded parameters to mock and expect
    */
   function _mockWorlIDCalls(
     IWorldIDIdentityManager _worldIDIdentityManager,
     uint256 _root,
     uint256 _nullifierHash,
-    uint256[8] memory _proof
+    uint256[8] memory _proof,
+    uint256 _rootExpirationThreshold,
+    uint128 _rootTimestamp
   ) internal returns (bytes memory _params) {
     vm.assume(_root != 0);
 
-    // Set the current root
-    _mockAndExpect(
-      address(_worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector),
-      abi.encode(_root)
-    );
+    if (_rootExpirationThreshold == 0) {
+      _mockAndExpect(
+        address(_worldIDIdentityManager),
+        abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector),
+        abi.encode(_root)
+      );
+    } else {
+      _mockAndExpect(
+        address(_worldIDIdentityManager),
+        abi.encodeWithSelector(IWorldIDIdentityManager.rootHistory.selector),
+        abi.encode(_rootTimestamp)
+      );
+    }
 
-    // Encode the parameters
-    _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Mock
     _mockAndExpect(
       address(_worldIDIdentityManager),
       abi.encodeWithSelector(IWorldIDIdentityManager.verifyProof.selector),
       abi.encode(true)
     );
+
+    // Encode the parameters
+    _params = abi.encode(_root, _nullifierHash, _proof);
   }
 }

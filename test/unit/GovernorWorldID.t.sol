@@ -23,6 +23,8 @@ abstract contract Base is Test, UnitUtils {
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
   uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
+  uint256 public rootExpirationThreshold = 0;
+  uint128 public rootTimestamp = uint128(block.timestamp - 1);
 
   IERC20 public token;
   IGovernorWorldID public governor;
@@ -61,7 +63,7 @@ abstract contract Base is Test, UnitUtils {
     vm.mockCall(
       address(worldIDIdentityManager),
       abi.encodeWithSelector(IWorldIDIdentityManager.getRootHistoryExpiry.selector),
-      abi.encode(1 weeks)
+      abi.encode(rootExpirationThreshold)
     );
 
     // Deploy governor
@@ -127,7 +129,7 @@ contract GovernorWorldId_Unit_RootExpirationThreshold is Base {
    * @notice Test that the function returns the correct root expiration threshold
    */
   function test_returnRootExpirationThreshold() public {
-    assertEq(governor.rootExpirationThreshold(), 1 weeks);
+    assertEq(governor.rootExpirationThreshold(), 0);
   }
 }
 
@@ -211,68 +213,78 @@ contract GovernorWorldID_Unit_CastVoteBySig is Base {
 //   }
 // }
 
-// contract GovernorWorldID_Unit_CastVote_WithParams is Base {
-//   /**
-//    * @notice Check that the function stores the nullifier as used
-//    */
-//    function test_nullifierIsStored(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+contract GovernorWorldID_Unit_CastVote_WithParams is Base {
+  /**
+   * @notice Check that the function stores the nullifier as used
+   */
+  function test_nullifierIsStored(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params =
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, rootExpirationThreshold, rootTimestamp);
 
-//    }
+    // Cast the vote
+    vm.prank(user);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
 
-//   /**
-//    * @notice Check that the function works as expected
-//    */
-//   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
+    assertTrue(governor.nullifierHashes(_nullifierHash));
+  }
 
-//     vm.expectEmit(true, true, true, true);
-//     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params =
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, rootExpirationThreshold, rootTimestamp);
 
-//     // Cast the vote
-//     vm.prank(user);
-//     IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
-//   }
-// }
+    vm.expectEmit(true, true, true, true);
+    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
-// contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
-//   /**
-//    * @notice Check that the function works as expected
-//    */
-//   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
+    // Cast the vote
+    vm.prank(user);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+  }
+}
 
-//     vm.expectEmit(true, true, true, true);
-//     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
+contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params =
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, rootExpirationThreshold, rootTimestamp);
 
-//     // Cast the vote
-//     vm.prank(user);
-//     governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
-//   }
-// }
+    vm.expectEmit(true, true, true, true);
+    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
-// contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
-//   /**
-//    * @notice Check that the function works as expected
-//    */
-//   function test_castVoteWithReasonAndParamsBySig(
-//     uint256 _root,
-//     uint256 _nullifierHash,
-//     uint256[8] memory _proof
-//   ) public {
-//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
+    // Cast the vote
+    vm.prank(user);
+    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
+  }
+}
 
-//     // Sign
-//     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
-//     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-//     bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
+contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_castVoteWithReasonAndParamsBySig(
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    bytes memory _params =
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, rootExpirationThreshold, rootTimestamp);
 
-//     vm.expectEmit(true, true, true, true);
-//     emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
+    // Sign
+    bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
+    (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
+    bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
 
-//     // Cast the vote
-//     vm.prank(user);
-//     governor.castVoteWithReasonAndParamsBySig(
-//       proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
-//     );
-//   }
-// }
+    vm.expectEmit(true, true, true, true);
+    emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
+
+    // Cast the vote
+    vm.prank(user);
+    governor.castVoteWithReasonAndParamsBySig(
+      proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
+    );
+  }
+}
