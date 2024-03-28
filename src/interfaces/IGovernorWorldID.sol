@@ -41,32 +41,6 @@ interface IGovernorWorldID is IGovernor {
   error GovernorWorldID_NullifierHashAlreadyUsed();
 
   /**
-   * @notice The World ID instance that will be used for verifying proofs
-   * @return _worldId The World ID instance
-   */
-  // solhint-disable-next-line func-name-mixedcase
-  function WORLD_ID_ROUTER() external view returns (IWorldIDRouter _worldId);
-
-  /**
-   * @notice The group ID used to verify the proofs
-   * @return _groupId The group ID
-   */
-  function GROUP_ID() external view returns (uint256 _groupId);
-
-  /**
-   * @notice The app ID used to verify the proofs
-   * @return _appId The app ID
-   */
-  function APP_ID() external view returns (uint256 _appId);
-
-  /**
-   * @notice The nullifier hashes used to prevent double voting
-   * @param _nullifier The nullifier hash
-   * @return _isUsed True if the nullifier hash is used
-   */
-  function nullifierHashes(uint256 _nullifier) external view returns (bool _isUsed);
-
-  /**
    * @notice Sets a new expiration threshold
    * @param _newRootExpirationThreshold The new expiration threshold
    */
@@ -77,6 +51,34 @@ interface IGovernorWorldID is IGovernor {
    * @param _newResetGracePeriod The new reset grace period
    */
   function setResetGracePeriod(uint256 _newResetGracePeriod) external;
+
+  /**
+   * @notice The World ID instance that will be used for verifying proofs
+   * @return _worldId The World ID instance
+   */
+  // solhint-disable-next-line func-name-mixedcase
+  function WORLD_ID_ROUTER() external view returns (IWorldIDRouter _worldId);
+
+  /**
+   * @notice The group ID used to verify the proofs
+   * @return _groupId The group ID
+   */
+  // solhint-disable-next-line func-name-mixedcase
+  function GROUP_ID() external view returns (uint256 _groupId);
+
+  /**
+   * @notice The app ID used to verify the proofs
+   * @return _appId The app ID
+   */
+  // solhint-disable-next-line func-name-mixedcase
+  function APP_ID() external view returns (uint256 _appId);
+
+  /**
+   * @notice The nullifier hashes used to prevent double voting
+   * @param _nullifier The nullifier hash
+   * @return _isUsed True if the nullifier hash is used
+   */
+  function nullifierHashes(uint256 _nullifier) external view returns (bool _isUsed);
 
   /**
    * @notice Checks the validity of a vote

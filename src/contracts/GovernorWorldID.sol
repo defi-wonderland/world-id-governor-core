@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
-import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {Governor} from 'open-zeppelin/governance/Governor.sol';
+import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
+import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 
 /**
  * @title GovernorWorldID
@@ -113,6 +113,27 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
+   * @inheritdoc IGovernor
+   */
+  function votingDelay() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+    return super.votingDelay();
+  }
+
+  /**
+   * @inheritdoc IGovernor
+   */
+  function votingPeriod() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+    return super.votingPeriod();
+  }
+
+  /**
+   * @inheritdoc IGovernor
+   */
+  function proposalThreshold() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+    return super.proposalThreshold();
+  }
+
+  /**
    * @inheritdoc GovernorSettings
    */
   function _setVotingPeriod(uint32 _votingPeriod) internal virtual override {
@@ -120,41 +141,6 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     // if (_votingPeriod > resetGracePeriod - rootExpirationThreshold) revert GovernorWorldID_InvalidVotingPeriod();
 
     super._setVotingPeriod(_votingPeriod);
-  }
-
-  /**
-   * @notice Check if the voter is a real human and the vote is valid
-   * @param _support The support for the proposal
-   * @param _proposalId The proposal id
-   * @param _proofData The proof data
-   * @return _decodedNullifierHash The decoded nullifier hash
-   */
-  function _checkVoteValidity(
-    uint8 _support,
-    uint256 _proposalId,
-    bytes memory _proofData
-  ) internal view virtual returns (uint256 _decodedNullifierHash) {
-    // Decode the parameters
-    (uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
-      abi.decode(_proofData, (uint256, uint256, uint256[8]));
-
-    if (nullifierHashes[_nullifierHash]) revert GovernorWorldID_NullifierHashAlreadyUsed();
-
-    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor((GROUP_ID)));
-
-    // Query and validate root information
-    IWorldIDIdentityManager.RootInfo memory _rootInfo = _identityManager.queryRoot(_root);
-    if (block.timestamp - rootExpirationThreshold > _rootInfo.supersededTimestamp) {
-      revert GovernorWorldID_OutdatedRoot();
-    }
-
-    // Verify the provided proof
-    uint256 _signal = uint256(_support);
-    uint256 _externalNullifier = abi.encodePacked(APP_ID, _proposalId).hashToField();
-    _identityManager.verifyProof(_root, _signal, _nullifierHash, _externalNullifier, _proof);
-
-    // Return the decoded nullifier hash
-    _decodedNullifierHash = _nullifierHash;
   }
 
   /**
@@ -190,23 +176,37 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
-   * @inheritdoc IGovernor
+   * @notice Check if the voter is a real human and the vote is valid
+   * @param _support The support for the proposal
+   * @param _proposalId The proposal id
+   * @param _proofData The proof data
+   * @return _decodedNullifierHash The decoded nullifier hash
    */
-  function votingDelay() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
-    return super.votingDelay();
-  }
+  function _checkVoteValidity(
+    uint8 _support,
+    uint256 _proposalId,
+    bytes memory _proofData
+  ) internal view virtual returns (uint256 _decodedNullifierHash) {
+    // Decode the parameters
+    (uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
+      abi.decode(_proofData, (uint256, uint256, uint256[8]));
 
-  /**
-   * @inheritdoc IGovernor
-   */
-  function votingPeriod() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
-    return super.votingPeriod();
-  }
+    if (nullifierHashes[_nullifierHash]) revert GovernorWorldID_NullifierHashAlreadyUsed();
 
-  /**
-   * @inheritdoc IGovernor
-   */
-  function proposalThreshold() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
-    return super.proposalThreshold();
+    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor((GROUP_ID)));
+
+    // Query and validate root information
+    IWorldIDIdentityManager.RootInfo memory _rootInfo = _identityManager.queryRoot(_root);
+    if (block.timestamp - rootExpirationThreshold > _rootInfo.supersededTimestamp) {
+      revert GovernorWorldID_OutdatedRoot();
+    }
+
+    // Verify the provided proof
+    uint256 _signal = uint256(_support);
+    uint256 _externalNullifier = abi.encodePacked(APP_ID, _proposalId).hashToField();
+    _identityManager.verifyProof(_root, _signal, _nullifierHash, _externalNullifier, _proof);
+
+    // Return the decoded nullifier hash
+    _decodedNullifierHash = _nullifierHash;
   }
 }

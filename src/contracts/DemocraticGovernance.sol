@@ -96,14 +96,6 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
-   * @inheritdoc IDemocraticGovernance
-   */
-  // solhint-disable-next-line func-name-mixedcase
-  function CLOCK_MODE() public pure override(Governor, IERC6372, IDemocraticGovernance) returns (string memory _mode) {
-    _mode = 'mode=blocktimestamp&from=default';
-  }
-
-  /**
    * @inheritdoc IGovernor
    */
   function votingDelay() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
@@ -122,6 +114,14 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
    */
   function proposalThreshold() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
     return super.proposalThreshold();
+  }
+
+  /**
+   * @inheritdoc IDemocraticGovernance
+   */
+  // solhint-disable-next-line func-name-mixedcase
+  function CLOCK_MODE() public pure override(Governor, IERC6372, IDemocraticGovernance) returns (string memory _mode) {
+    _mode = 'mode=blocktimestamp&from=default';
   }
 
   /**

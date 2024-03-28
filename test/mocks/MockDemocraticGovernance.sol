@@ -3,8 +3,6 @@ pragma solidity 0.8.23;
 
 import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
-import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
-import {Governor, IGovernor} from 'open-zeppelin/governance/Governor.sol';
 
 interface IMockDemocraticGovernanceForTest {
   function forTest_checkVoteValidity(uint8 _support, uint256 _proposalId, bytes memory _proofData) external;
