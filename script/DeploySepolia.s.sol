@@ -13,6 +13,7 @@ contract DeploySepolia is Script {
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
   uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 1;
+  uint256 public constant ROOT_EXPIRATION_THRESHOLD = 0;
 
   address public deployer = vm.rememberKey(vm.envUint('DEPLOYER_SEPOLIA_PRIVATE_KEY'));
 
@@ -21,7 +22,7 @@ contract DeploySepolia is Script {
 
     // Deploy DemocraticGovernance
     DemocraticGovernance _democraticGovernance =
-    new DemocraticGovernance(GROUP_ID, WORLD_ID_ROUTER, APP_ID, QUORUM, INITIAL_VOTING_DELAY, INITIAL_VOTING_PERIOD, INITIAL_PROPOSAL_THRESHOLD);
+    new DemocraticGovernance(GROUP_ID, WORLD_ID_ROUTER, APP_ID, QUORUM, INITIAL_VOTING_DELAY, INITIAL_VOTING_PERIOD, INITIAL_PROPOSAL_THRESHOLD, ROOT_EXPIRATION_THRESHOLD);
     console.log('Democratic Governance deployed at:', address(_democraticGovernance));
 
     vm.stopBroadcast();

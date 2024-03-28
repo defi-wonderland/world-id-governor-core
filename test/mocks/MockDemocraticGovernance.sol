@@ -41,7 +41,8 @@ contract MockDemocraticGovernance is DemocraticGovernance {
     uint256 _quorum,
     uint48 _initialVotingDelay,
     uint32 _initialVotingPeriod,
-    uint256 _initialProposalThreshold
+    uint256 _initialProposalThreshold,
+    uint256 _rootExpirationThreshold
   )
     DemocraticGovernance(
       _groupID,
@@ -50,7 +51,8 @@ contract MockDemocraticGovernance is DemocraticGovernance {
       _quorum,
       _initialVotingDelay,
       _initialVotingPeriod,
-      _initialProposalThreshold
+      _initialProposalThreshold,
+      _rootExpirationThreshold
     )
   {}
 

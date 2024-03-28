@@ -27,6 +27,7 @@ abstract contract Base is Test, UnitUtils {
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
   uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
+  uint256 public constant ROOT_EXPIRATION_THRESHOLD = 0;
 
   IERC20 public token;
   IGovernorWorldID public governor;
@@ -73,7 +74,7 @@ abstract contract Base is Test, UnitUtils {
     // Deploy governor
     vm.prank(owner);
     governor = IGovernorWorldID(
-      new MockDemocraticGovernance(GROUP_ID, worldIDRouter, APP_ID, QUORUM, INITIAL_VOTING_DELAY, INITIAL_VOTING_PERIOD, INITIAL_PROPOSAL_THRESHOLD)
+      new MockDemocraticGovernance(GROUP_ID, worldIDRouter, APP_ID, QUORUM, INITIAL_VOTING_DELAY, INITIAL_VOTING_PERIOD, INITIAL_PROPOSAL_THRESHOLD, ROOT_EXPIRATION_THRESHOLD)
     );
 
     // Deploy sigUtils

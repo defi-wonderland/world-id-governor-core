@@ -21,25 +21,29 @@ interface IMockGovernorWorldIdForTest {
 }
 
 contract MockGovernorWorldId is GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorWorldID {
-  constructor(
-    uint256 _groupID,
-    IWorldIDRouter _worldIdRouter,
-    bytes memory _appId,
-    IVotes _token,
-    uint48 _initialVotingDelay,
-    uint32 _initialVotingPeriod,
-    uint256 _initialProposalThreshold
-  )
+  struct ConstructorArgs {
+    uint256 groupID;
+    IWorldIDRouter worldIdRouter;
+    bytes appId;
+    IVotes token;
+    uint48 initialVotingDelay;
+    uint32 initialVotingPeriod;
+    uint256 initialProposalThreshold;
+    uint256 rootExpirationThreshold;
+  }
+
+  constructor(ConstructorArgs memory _args)
     GovernorWorldID(
-      _groupID,
-      _worldIdRouter,
-      _appId,
+      _args.groupID,
+      _args.worldIdRouter,
+      _args.appId,
       'Governor',
-      _initialVotingDelay,
-      _initialVotingPeriod,
-      _initialProposalThreshold
+      _args.initialVotingDelay,
+      _args.initialVotingPeriod,
+      _args.initialProposalThreshold,
+      _args.rootExpirationThreshold
     )
-    GovernorVotes(_token)
+    GovernorVotes(_args.token)
     GovernorVotesQuorumFraction(4)
   {}
 

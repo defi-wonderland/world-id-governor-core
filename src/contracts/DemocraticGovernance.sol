@@ -35,6 +35,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
    * @param _initialVotingDelay The initial voting delay for the proposals
    * @param _initialVotingPeriod The initial voting period for the proposals
    * @param _initialProposalThreshold The initial proposal threshold for the proposals
+   * @param _rootExpirationThreshold The root expiration threshold
    */
   constructor(
     uint256 _groupID,
@@ -43,7 +44,8 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     uint256 _quorumThreshold,
     uint48 _initialVotingDelay,
     uint32 _initialVotingPeriod,
-    uint256 _initialProposalThreshold
+    uint256 _initialProposalThreshold,
+    uint256 _rootExpirationThreshold
   )
     Ownable(msg.sender)
     GovernorDemocratic(
@@ -53,7 +55,8 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
       'DemocraticGovernor',
       _initialVotingDelay,
       _initialVotingPeriod,
-      _initialProposalThreshold
+      _initialProposalThreshold,
+      _rootExpirationThreshold
     )
   {
     quorumThreshold = _quorumThreshold;

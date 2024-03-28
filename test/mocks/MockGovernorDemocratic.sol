@@ -39,7 +39,8 @@ contract MockGovernorDemocratic is GovernorCountingSimple, GovernorDemocratic {
     IVotes _token,
     uint48 _initialVotingDelay,
     uint32 _initialVotingPeriod,
-    uint256 _initialProposalThreshold
+    uint256 _initialProposalThreshold,
+    uint256 _rootExpirationThreshold
   )
     GovernorDemocratic(
       _groupID,
@@ -48,7 +49,8 @@ contract MockGovernorDemocratic is GovernorCountingSimple, GovernorDemocratic {
       'Governor',
       _initialVotingDelay,
       _initialVotingPeriod,
-      _initialProposalThreshold
+      _initialProposalThreshold,
+      _rootExpirationThreshold
     )
   {}
 

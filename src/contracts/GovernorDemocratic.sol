@@ -20,6 +20,7 @@ abstract contract GovernorDemocratic is GovernorWorldID, IGovernorDemocratic {
    * @param _initialVotingDelay The initial voting delay for the proposals
    * @param _initialVotingPeriod The initial voting period for the proposals
    * @param _initialProposalThreshold The initial proposal threshold for the proposals
+   * @param _rootExpirationThreshold The root expiration threshold
    */
   constructor(
     uint256 _groupID,
@@ -28,7 +29,8 @@ abstract contract GovernorDemocratic is GovernorWorldID, IGovernorDemocratic {
     string memory _name,
     uint48 _initialVotingDelay,
     uint32 _initialVotingPeriod,
-    uint256 _initialProposalThreshold
+    uint256 _initialProposalThreshold,
+    uint256 _rootExpirationThreshold
   )
     GovernorWorldID(
       _groupID,
@@ -37,7 +39,8 @@ abstract contract GovernorDemocratic is GovernorWorldID, IGovernorDemocratic {
       _name,
       _initialVotingDelay,
       _initialVotingPeriod,
-      _initialProposalThreshold
+      _initialProposalThreshold,
+      _rootExpirationThreshold
     )
   {}
 

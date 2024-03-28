@@ -23,7 +23,7 @@ abstract contract Base is Test, UnitUtils {
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
   uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
-  uint256 public rootExpirationThreshold = 0;
+  uint256 public constant ROOT_EXPIRATION_THRESHOLD = 0;
   uint128 public rootTimestamp = uint128(block.timestamp - 1);
 
   IERC20 public token;
@@ -63,12 +63,12 @@ abstract contract Base is Test, UnitUtils {
     vm.mockCall(
       address(worldIDIdentityManager),
       abi.encodeWithSelector(IWorldIDIdentityManager.getRootHistoryExpiry.selector),
-      abi.encode(rootExpirationThreshold)
+      abi.encode(ROOT_EXPIRATION_THRESHOLD)
     );
 
     // Deploy governor
     governor =
-    new MockGovernorWorldId(GROUP_ID, worldIDRouter, APP_ID, IVotes(address(token)), INITIAL_VOTING_DELAY, INITIAL_VOTING_PERIOD, INITIAL_PROPOSAL_THRESHOLD);
+    new MockGovernorWorldId(MockGovernorWorldId.ConstructorArgs(GROUP_ID, worldIDRouter, APP_ID, IVotes(address(token)), INITIAL_VOTING_DELAY, INITIAL_VOTING_PERIOD, INITIAL_PROPOSAL_THRESHOLD, ROOT_EXPIRATION_THRESHOLD));
 
     // Deploy sigUtils
     sigUtils = new GovernorSigUtils(address(governor), 'Governor');
@@ -129,7 +129,7 @@ contract GovernorWorldId_Unit_RootExpirationThreshold is Base {
    * @notice Test that the function returns the correct root expiration threshold
    */
   function test_returnRootExpirationThreshold() public {
-    assertEq(governor.rootExpirationThreshold(), 0);
+    assertEq(governor.rootExpirationThreshold(), ROOT_EXPIRATION_THRESHOLD);
   }
 }
 
@@ -219,7 +219,7 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
    */
   function test_nullifierIsStored(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, rootExpirationThreshold, rootTimestamp);
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
 
     // Cast the vote
     vm.prank(user);
@@ -233,7 +233,7 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, rootExpirationThreshold, rootTimestamp);
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
 
     vm.expectEmit(true, true, true, true);
     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
@@ -250,7 +250,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, rootExpirationThreshold, rootTimestamp);
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
 
     vm.expectEmit(true, true, true, true);
     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
@@ -271,7 +271,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     uint256[8] memory _proof
   ) public {
     bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, rootExpirationThreshold, rootTimestamp);
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
 
     // Sign
     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
