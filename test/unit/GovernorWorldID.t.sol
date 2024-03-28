@@ -172,7 +172,7 @@ contract GovernorWorldID_Unit_IsHuman is Base {
 
     // Cast the vote
     vm.prank(user);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_validateUniqueVote(SUPPORT, proposalId, _params);
+    IMockGovernorWorldIdForTest(address(governor)).forTest_checkVoteValidity(SUPPORT, proposalId, _params);
   }
 
   //   /**

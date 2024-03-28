@@ -193,7 +193,7 @@ contract DemocraticGovernance_Unit_IsHuman is Base {
 
     // Cast the vote
     vm.prank(user);
-    IMockDemocraticGovernanceForTest(address(governor)).forTest_validateUniqueVote(SUPPORT, proposalId, _params);
+    IMockDemocraticGovernanceForTest(address(governor)).forTest_checkVoteValidity(SUPPORT, proposalId, _params);
   }
 
   //   /**

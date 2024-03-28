@@ -78,6 +78,8 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @inheritdoc IGovernorWorldID
    */
   function setRootExpirationThreshold(uint256 _rootExpirationThreshold) external onlyGovernance {
+    if (_rootExpirationThreshold > resetGracePeriod) revert GovernorWorldID_InvalidRootExpirationThreshold();
+
     IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
     if (_identityManager.getRootHistoryExpiry() < _rootExpirationThreshold) {
       revert GovernorWorldID_InvalidRootExpirationThreshold();
@@ -100,10 +102,20 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
+   * @inheritdoc IGovernorWorldID
+   */
+  function checkVoteValidity(
+    uint8 _support,
+    uint256 _proposalId,
+    bytes memory _proofData
+  ) external view override returns (uint256 _decodedNullifierHash) {
+    _decodedNullifierHash = _checkVoteValidity(_support, _proposalId, _proofData);
+  }
+
+  /**
    * @inheritdoc GovernorSettings
    */
   function _setVotingPeriod(uint32 _votingPeriod) internal virtual override {
-    // TODO: if rootExpirationThreshold > resetGracePeriod will fail with arithmetic error, how to proceed there?
     if (_votingPeriod > resetGracePeriod - rootExpirationThreshold) revert GovernorWorldID_InvalidVotingPeriod();
 
     super._setVotingPeriod(_votingPeriod);
@@ -114,8 +126,13 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @param _support The support for the proposal
    * @param _proposalId The proposal id
    * @param _proofData The proof data
+   * @return _decodedNullifierHash The decoded nullifier hash
    */
-  function _validateUniqueVote(uint8 _support, uint256 _proposalId, bytes memory _proofData) internal virtual {
+  function _checkVoteValidity(
+    uint8 _support,
+    uint256 _proposalId,
+    bytes memory _proofData
+  ) internal view virtual returns (uint256 _decodedNullifierHash) {
     // Decode the parameters
     (uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
       abi.decode(_proofData, (uint256, uint256, uint256[8]));
@@ -135,8 +152,8 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     uint256 _externalNullifier = abi.encodePacked(APP_ID, _proposalId).hashToField();
     _identityManager.verifyProof(_root, _signal, _nullifierHash, _externalNullifier, _proof);
 
-    // Save the nullifier hash as used
-    nullifierHashes[_nullifierHash] = true;
+    // Return the decoded nullifier hash
+    _decodedNullifierHash = _nullifierHash;
   }
 
   /**
@@ -156,7 +173,10 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     string memory _reason,
     bytes memory _params
   ) internal virtual override returns (uint256 _votingWeight) {
-    _validateUniqueVote(_support, _proposalId, _params);
+    uint256 _nullifierHash = _checkVoteValidity(_support, _proposalId, _params);
+
+    // Save the nullifier hash as used
+    nullifierHashes[_nullifierHash] = true;
 
     return super._castVote(_proposalId, _account, _support, _reason, _params);
   }

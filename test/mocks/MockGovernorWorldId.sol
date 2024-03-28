@@ -17,7 +17,7 @@ interface IMockGovernorWorldIdForTest {
     bytes memory _params
   ) external;
 
-  function forTest_validateUniqueVote(uint8 _support, uint256 _proposalId, bytes memory _proofData) external;
+  function forTest_checkVoteValidity(uint8 _support, uint256 _proposalId, bytes memory _proofData) external;
 }
 
 contract MockGovernorWorldId is GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorWorldID {
@@ -53,8 +53,8 @@ contract MockGovernorWorldId is GovernorCountingSimple, GovernorVotes, GovernorV
     _castVote(_proposalId, _account, _support, _reason, _params);
   }
 
-  function forTest_validateUniqueVote(uint8 _support, uint256 _proposalId, bytes memory _proofData) public {
-    _validateUniqueVote(_support, _proposalId, _proofData);
+  function forTest_checkVoteValidity(uint8 _support, uint256 _proposalId, bytes memory _proofData) public {
+    _checkVoteValidity(_support, _proposalId, _proofData);
   }
 
   function quorum(uint256 blockNumber)

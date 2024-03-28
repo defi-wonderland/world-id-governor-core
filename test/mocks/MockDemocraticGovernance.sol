@@ -7,7 +7,7 @@ import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {Governor, IGovernor} from 'open-zeppelin/governance/Governor.sol';
 
 interface IMockDemocraticGovernanceForTest {
-  function forTest_validateUniqueVote(uint8 _support, uint256 _proposalId, bytes memory _proofData) external;
+  function forTest_checkVoteValidity(uint8 _support, uint256 _proposalId, bytes memory _proofData) external;
 
   function forTest_castVote(
     uint256 _proposalId,
@@ -56,8 +56,8 @@ contract MockDemocraticGovernance is DemocraticGovernance {
     )
   {}
 
-  function forTest_validateUniqueVote(uint8 _support, uint256 _proposalId, bytes memory _proofData) public {
-    _validateUniqueVote(_support, _proposalId, _proofData);
+  function forTest_checkVoteValidity(uint8 _support, uint256 _proposalId, bytes memory _proofData) public {
+    _checkVoteValidity(_support, _proposalId, _proofData);
   }
 
   function forTest_castVote(
