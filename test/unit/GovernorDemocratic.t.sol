@@ -46,6 +46,13 @@ abstract contract Base is Test, UnitUtils {
       abi.encode(address(worldIDIdentityManager))
     );
 
+    // Mock the getRootHistoryExpiry function
+    vm.mockCall(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.getRootHistoryExpiry.selector),
+      abi.encode(1 weeks)
+    );
+
     // Deploy governor
     bytes memory _appId = 'appId';
     governor =
