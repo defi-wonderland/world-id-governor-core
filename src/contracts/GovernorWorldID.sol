@@ -54,6 +54,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @param _initialVotingDelay The initial voting delay for the proposals
    * @param _initialVotingPeriod The initial voting period for the proposals
    * @param _initialProposalThreshold The initial proposal threshold
+   * @param _rootExpirationThreshold The root expiration threshold
    */
   constructor(
     uint256 _groupID,
