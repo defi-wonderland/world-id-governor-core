@@ -69,8 +69,17 @@ abstract contract Base is Test, UnitUtils {
     );
 
     // Deploy governor
-    governor =
-    new MockGovernorWorldId(MockGovernorWorldId.ConstructorArgs(GROUP_ID, worldIDRouter, APP_ID, IVotes(address(token)), INITIAL_VOTING_DELAY, INITIAL_VOTING_PERIOD, INITIAL_PROPOSAL_THRESHOLD, ROOT_EXPIRATION_THRESHOLD));
+    MockGovernorWorldId.ConstructorArgs memory _cArgs = MockGovernorWorldId.ConstructorArgs(
+      GROUP_ID,
+      worldIDRouter,
+      APP_ID,
+      IVotes(address(token)),
+      INITIAL_VOTING_DELAY,
+      INITIAL_VOTING_PERIOD,
+      INITIAL_PROPOSAL_THRESHOLD,
+      ROOT_EXPIRATION_THRESHOLD
+    );
+    governor = new MockGovernorWorldId(_cArgs);
 
     // Deploy sigUtils
     sigUtils = new GovernorSigUtils(address(governor), 'Governor');
@@ -375,19 +384,25 @@ contract GovernorWorldID_Unit_VotingDelay is Base {
   /**
    * @notice Check that the function works as expected
    */
-  function test_VotingDelay() public {}
+  function test_VotingDelay() public {
+    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
+  }
 }
 
 contract GovernorWorldID_Unit_VotingPeriod is Base {
   /**
    * @notice Check that the function works as expected
    */
-  function test_VotingPeriod() public {}
+  function test_VotingPeriod() public {
+    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
+  }
 }
 
 contract GovernorWorldID_Unit_ProposalThreshold is Base {
   /**
    * @notice Check that the function works as expected
    */
-  function test_ProposalThreshold() public {}
+  function test_ProposalThreshold() public {
+    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
+  }
 }
