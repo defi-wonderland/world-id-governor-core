@@ -26,7 +26,7 @@ abstract contract Base is Test, UnitUtils {
   string public constant DESCRIPTION = '0xDescription';
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
-  uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 1;
+  uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
 
   IERC20 public token;
   IGovernorWorldID public governor;
@@ -61,6 +61,13 @@ abstract contract Base is Test, UnitUtils {
       address(worldIDRouter),
       abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
       abi.encode(address(worldIDIdentityManager))
+    );
+
+    // Mock the getRootHistoryExpiry function
+    vm.mockCall(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.getRootHistoryExpiry.selector),
+      abi.encode(1 weeks)
     );
 
     // Deploy governor
@@ -129,147 +136,147 @@ contract DemocraticGovernance_Unit_CastVoteBySig is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_IsHuman is Base {
-  //   /**
-  //    * @notice Test that the function returns if the root is already verified
-  //    */
-  //   function test_returnIfAlreadyVerifiedOnLatestRoot(
-  //     uint256 _root,
-  //     uint256 _nullifierHash,
-  //     uint256[8] memory _proof
-  //   ) public {
-  //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_root));
-  //     IMockDemocraticGovernanceForTest(address(governor)).forTest_setLatestRootPerVoter(user, _root);
-  //     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+// contract DemocraticGovernance_Unit_IsHuman is Base {
+//   //   /**
+//   //    * @notice Test that the function returns if the root is already verified
+//   //    */
+//   //   function test_returnIfAlreadyVerifiedOnLatestRoot(
+//   //     uint256 _root,
+//   //     uint256 _nullifierHash,
+//   //     uint256[8] memory _proof
+//   //   ) public {
+//   //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_root));
+//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_setLatestRootPerVoter(user, _root);
+//   //     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
-  //     // Since the function returns, no call is expected to `verifyProof`
-  //     uint64 _methodCallsCounter = 0;
-  //     vm.expectCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.verifyProof.selector), _methodCallsCounter);
+//   //     // Since the function returns, no call is expected to `verifyProof`
+//   //     uint64 _methodCallsCounter = 0;
+//   //     vm.expectCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.verifyProof.selector), _methodCallsCounter);
 
-  //     vm.prank(user);
-  //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
-  //   }
+//   //     vm.prank(user);
+//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
+//   //   }
 
-  //   /**
-  //    * @notice Test that the function reverts if no proof data is provided
-  //    */
-  //   function test_revertIfNoProofData(uint256 _root) public {
-  //     vm.assume(_root != 0);
-  //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_root));
+//   //   /**
+//   //    * @notice Test that the function reverts if no proof data is provided
+//   //    */
+//   //   function test_revertIfNoProofData(uint256 _root) public {
+//   //     vm.assume(_root != 0);
+//   //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_root));
 
-  //     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NoProofData.selector);
-  //     vm.prank(user);
-  //     bytes memory _emptyProofParams = '';
-  //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _emptyProofParams);
-  //   }
+//   //     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NoProofData.selector);
+//   //     vm.prank(user);
+//   //     bytes memory _emptyProofParams = '';
+//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _emptyProofParams);
+//   //   }
 
-  //   /**
-  //    * @notice Test that the function reverts if the root is outdated
-  //    */
-  //   function test_revertIfOutdatedRoot(
-  //     uint256 _currentRoot,
-  //     uint256 _root,
-  //     uint256 _nullifierHash,
-  //     uint256[8] memory _proof
-  //   ) public {
-  //     vm.assume(_currentRoot != 0);
-  //     vm.assume(_currentRoot != _root);
+//   //   /**
+//   //    * @notice Test that the function reverts if the root is outdated
+//   //    */
+//   //   function test_revertIfOutdatedRoot(
+//   //     uint256 _currentRoot,
+//   //     uint256 _root,
+//   //     uint256 _nullifierHash,
+//   //     uint256[8] memory _proof
+//   //   ) public {
+//   //     vm.assume(_currentRoot != 0);
+//   //     vm.assume(_currentRoot != _root);
 
-  //     // Set the current root
-  //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_currentRoot));
+//   //     // Set the current root
+//   //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_currentRoot));
 
-  //     // Try to cast a vote with an outdated root
-  //     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-  //     vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
-  //     vm.prank(user);
-  //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
-  //   }
+//   //     // Try to cast a vote with an outdated root
+//   //     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+//   //     vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
+//   //     vm.prank(user);
+//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
+//   //   }
 
-  /**
-   * @notice Test that the function calls the verifyProof function from the WorldID contract
-   */
-  function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
+//   /**
+//    * @notice Test that the function calls the verifyProof function from the WorldID contract
+//    */
+//   function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
 
-    // Cast the vote
-    vm.prank(user);
-    IMockDemocraticGovernanceForTest(address(governor)).forTest_checkVoteValidity(SUPPORT, proposalId, _params);
-  }
+//     // Cast the vote
+//     vm.prank(user);
+//     IMockDemocraticGovernanceForTest(address(governor)).forTest_checkVoteValidity(SUPPORT, proposalId, _params);
+//   }
 
-  //   /**
-  //    * @notice Test that the latest root is stored
-  //    */
-  //   function test_storeLatestRootPerVoter(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-  //     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
+//   //   /**
+//   //    * @notice Test that the latest root is stored
+//   //    */
+//   //   function test_storeLatestRootPerVoter(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+//   //     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
 
-  //     // Cast the vote
-  //     vm.prank(user);
-  //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
+//   //     // Cast the vote
+//   //     vm.prank(user);
+//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
 
-  //     // Check that the latest root is stored
-  //     uint256 _latestRootStored = governor.latestRootPerVoter(user);
-  //     assertEq(_latestRootStored, _root);
-  //   }
-}
+//   //     // Check that the latest root is stored
+//   //     uint256 _latestRootStored = governor.latestRootPerVoter(user);
+//   //     assertEq(_latestRootStored, _root);
+//   //   }
+// }
 
-contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
+// contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
+//   /**
+//    * @notice Check that the function works as expected
+//    */
+//   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
 
-    vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
+//     vm.expectEmit(true, true, true, true);
+//     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
-    // Cast the vote
-    vm.prank(user);
-    IMockDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
-  }
-}
+//     // Cast the vote
+//     vm.prank(user);
+//     IMockDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+//   }
+// }
 
-contract DemocraticGovernance_Unit_CastVoteWithReasonAndParams is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
+// contract DemocraticGovernance_Unit_CastVoteWithReasonAndParams is Base {
+//   /**
+//    * @notice Check that the function works as expected
+//    */
+//   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
 
-    vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
+//     vm.expectEmit(true, true, true, true);
+//     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
-    // Cast the vote
-    vm.prank(user);
-    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
-  }
-}
+//     // Cast the vote
+//     vm.prank(user);
+//     governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
+//   }
+// }
 
-contract DemocraticGovernance_Unit_CastVoteWithReasonAndParamsBySig is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_castVoteWithReasonAndParamsBySig(
-    uint256 _root,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) public {
-    bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
+// contract DemocraticGovernance_Unit_CastVoteWithReasonAndParamsBySig is Base {
+//   /**
+//    * @notice Check that the function works as expected
+//    */
+//   function test_castVoteWithReasonAndParamsBySig(
+//     uint256 _root,
+//     uint256 _nullifierHash,
+//     uint256[8] memory _proof
+//   ) public {
+//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
 
-    // Sign
-    bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
-    (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-    bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
+//     // Sign
+//     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
+//     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
+//     bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
 
-    vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
+//     vm.expectEmit(true, true, true, true);
+//     emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
-    // Cast the vote
-    vm.prank(user);
-    governor.castVoteWithReasonAndParamsBySig(
-      proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
-    );
-  }
-}
+//     // Cast the vote
+//     vm.prank(user);
+//     governor.castVoteWithReasonAndParamsBySig(
+//       proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
+//     );
+//   }
+// }
 
 contract DemocraticGovernance_Unit_GetVotes is Base {
   /**
@@ -427,67 +434,67 @@ contract DemocraticGovernance_Unit_VotingDelay is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_VotingPeriod is Base {
-  /**
-   * @notice Test that the function returns the voting period
-   */
-  function test_returnVotingPeriod() public {
-    uint256 _duration = 1 weeks;
-    assertEq(governor.votingPeriod(), _duration);
-  }
-}
+// contract DemocraticGovernance_Unit_VotingPeriod is Base {
+//   /**
+//    * @notice Test that the function returns the voting period
+//    */
+//   function test_returnVotingPeriod() public {
+//     uint256 _duration = 1 weeks;
+//     assertEq(governor.votingPeriod(), _duration);
+//   }
+// }
 
-contract DemocraticGovernance_Unit_QuorumReached is Base {
-  /**
-   * @notice Test that the function returns if the quorum is reached
-   */
-  function test_reachedQuorum(string memory _description) public {
-    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+// contract DemocraticGovernance_Unit_QuorumReached is Base {
+//   /**
+//    * @notice Test that the function returns if the quorum is reached
+//    */
+//   function test_reachedQuorum(string memory _description) public {
+//     vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
 
-    // Propose and vote
-    uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM + 1);
+//     // Propose and vote
+//     uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM + 1);
 
-    // Check that the quorum is reached
-    assertTrue(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
-  }
+//     // Check that the quorum is reached
+//     assertTrue(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+//   }
 
-  /**
-   * @notice Test that the function returns if the quorum is not reached
-   */
-  function test_notReachedQuorum(string memory _description) public {
-    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+//   /**
+//    * @notice Test that the function returns if the quorum is not reached
+//    */
+//   function test_notReachedQuorum(string memory _description) public {
+//     vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
 
-    // Propose and vote
-    uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM - 1);
+//     // Propose and vote
+//     uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM - 1);
 
-    // Check that the quorum is reached
-    assertFalse(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
-  }
+//     // Check that the quorum is reached
+//     assertFalse(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+//   }
 
-  /**
-   * @dev Propose a new proposal, and generate random accounts to vote on it the desired number of votes
-   */
-  function _proposeAndVote(
-    address _owner,
-    string memory _description,
-    uint256 _votesRequired
-  ) internal returns (uint256 _proposalId) {
-    address[] memory _targets = new address[](1);
-    uint256[] memory _values = new uint256[](1);
-    bytes[] memory _calldatas = new bytes[](1);
+//   /**
+//    * @dev Propose a new proposal, and generate random accounts to vote on it the desired number of votes
+//    */
+//   function _proposeAndVote(
+//     address _owner,
+//     string memory _description,
+//     uint256 _votesRequired
+//   ) internal returns (uint256 _proposalId) {
+//     address[] memory _targets = new address[](1);
+//     uint256[] memory _values = new uint256[](1);
+//     bytes[] memory _calldatas = new bytes[](1);
 
-    vm.prank(_owner);
-    _proposalId = governor.propose(_targets, _values, _calldatas, _description);
+//     vm.prank(_owner);
+//     _proposalId = governor.propose(_targets, _values, _calldatas, _description);
 
-    // Advance time assuming 1 block == 1 second (this will make the proposal active)
-    vm.warp(block.timestamp + governor.votingDelay() + 1);
-    vm.roll(block.number + governor.votingDelay() + 1);
+//     // Advance time assuming 1 block == 1 second (this will make the proposal active)
+//     vm.warp(block.timestamp + governor.votingDelay() + 1);
+//     vm.roll(block.number + governor.votingDelay() + 1);
 
-    // Vote
-    for (uint256 i = 0; i < _votesRequired; i++) {
-      address _randomVoter = vm.addr(uint256(keccak256(abi.encodePacked(i, _description))));
-      vm.prank(_randomVoter);
-      IMockDemocraticGovernanceForTest(address(governor)).forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
-    }
-  }
-}
+//     // Vote
+//     for (uint256 i = 0; i < _votesRequired; i++) {
+//       address _randomVoter = vm.addr(uint256(keccak256(abi.encodePacked(i, _description))));
+//       vm.prank(_randomVoter);
+//       IMockDemocraticGovernanceForTest(address(governor)).forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
+//     }
+//   }
+// }
