@@ -83,7 +83,7 @@ abstract contract Base is Test, UnitUtils {
         INITIAL_VOTING_PERIOD, 
         INITIAL_PROPOSAL_THRESHOLD, 
         ROOT_EXPIRATION_THRESHOLD
-        )
+      )
     );
 
     // Deploy sigUtils

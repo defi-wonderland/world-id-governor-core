@@ -30,7 +30,7 @@ contract DeploySepolia is Script {
       INITIAL_VOTING_PERIOD, 
       INITIAL_PROPOSAL_THRESHOLD, 
       ROOT_EXPIRATION_THRESHOLD
-      );
+    );
     console.log('Democratic Governance deployed at:', address(_democraticGovernance));
 
     vm.stopBroadcast();
