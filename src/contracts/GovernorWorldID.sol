@@ -203,12 +203,12 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
 
     IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
 
-    if (rootExpirationThreshold == 0) {
-      _root = _identityManager.latestRoot();
-    } else {
+    if (rootExpirationThreshold > 0) {
       // Query and validate root information
       uint128 _rootTimestamp = _identityManager.rootHistory(_root);
       if (block.timestamp - rootExpirationThreshold > _rootTimestamp) revert GovernorWorldID_OutdatedRoot();
+    } else {
+      _root = _identityManager.latestRoot();
     }
 
     // Verify the provided proof
