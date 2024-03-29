@@ -5,8 +5,6 @@ import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
 interface IMockDemocraticGovernanceForTest {
-  function forTest_checkVoteValidity(uint8 _support, uint256 _proposalId, bytes memory _proofData) external;
-
   function forTest_castVote(
     uint256 _proposalId,
     address _account,
@@ -55,10 +53,6 @@ contract MockDemocraticGovernance is DemocraticGovernance {
       _rootExpirationThreshold
     )
   {}
-
-  function forTest_checkVoteValidity(uint8 _support, uint256 _proposalId, bytes memory _proofData) public {
-    _checkVoteValidity(_support, _proposalId, _proofData);
-  }
 
   function forTest_castVote(
     uint256 _proposalId,
