@@ -22,13 +22,13 @@ contract DeploySepolia is Script {
 
     // Deploy DemocraticGovernance
     DemocraticGovernance _democraticGovernance = new DemocraticGovernance(
-      GROUP_ID, 
-      WORLD_ID_ROUTER, 
-      APP_ID, 
-      QUORUM, 
-      INITIAL_VOTING_DELAY, 
-      INITIAL_VOTING_PERIOD, 
-      INITIAL_PROPOSAL_THRESHOLD, 
+      GROUP_ID,
+      WORLD_ID_ROUTER,
+      APP_ID,
+      QUORUM,
+      INITIAL_VOTING_DELAY,
+      INITIAL_VOTING_PERIOD,
+      INITIAL_PROPOSAL_THRESHOLD,
       ROOT_EXPIRATION_THRESHOLD
     );
     console.log('Democratic Governance deployed at:', address(_democraticGovernance));

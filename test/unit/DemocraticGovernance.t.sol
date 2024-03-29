@@ -75,13 +75,13 @@ abstract contract Base is Test, UnitUtils {
     vm.prank(owner);
     governor = IGovernorWorldID(
       new MockDemocraticGovernance(
-        GROUP_ID, 
-        worldIDRouter, 
-        APP_ID, 
-        QUORUM, 
-        INITIAL_VOTING_DELAY, 
-        INITIAL_VOTING_PERIOD, 
-        INITIAL_PROPOSAL_THRESHOLD, 
+        GROUP_ID,
+        worldIDRouter,
+        APP_ID,
+        QUORUM,
+        INITIAL_VOTING_DELAY,
+        INITIAL_VOTING_PERIOD,
+        INITIAL_PROPOSAL_THRESHOLD,
         ROOT_EXPIRATION_THRESHOLD
       )
     );
