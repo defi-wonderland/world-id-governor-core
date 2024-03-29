@@ -6,11 +6,13 @@ import {IMockGovernorWorldIdForTest, MockGovernorWorldId} from '../mocks/MockGov
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
 import {Test, Vm, console} from 'forge-std/Test.sol';
+import {IGovernorSettings} from 'interfaces/IGovernorSettings.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
+import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
@@ -466,12 +468,27 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   /**
    * @notice Check that the function reverts if invalid voting period
    */
-  function test_revertIfInvalidVotingPeriod(uint256 _votingPeriod) public {}
+  function test_revertIfInvalidVotingPeriod(uint32 _votingPeriod) public {
+    vm.assume(_votingPeriod > RESET_GRACE_PERIOD - ROOT_EXPIRATION_THRESHOLD);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
+    vm.prank(address(governor));
+    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
+  }
 
   /**
    * @notice Check that the function works as expected
    */
-  function test_setVotingPeriod(uint256 _votingPeriod) public {}
+  function test_setVotingPeriod(uint256 _votingPeriod) public {
+    vm.assume(_votingPeriod != 0);
+    vm.assume(_votingPeriod < RESET_GRACE_PERIOD - ROOT_EXPIRATION_THRESHOLD);
+
+    vm.expectEmit(true, true, true, true);
+    emit GovernorSettings.VotingPeriodSet(INITIAL_VOTING_PERIOD, _votingPeriod);
+
+    vm.prank(address(governor));
+    IGovernorSettings(address(governor)).setVotingPeriod(uint32(_votingPeriod));
+  }
 }
 
 contract GovernorWorldID_Unit_VotingDelay is Base {

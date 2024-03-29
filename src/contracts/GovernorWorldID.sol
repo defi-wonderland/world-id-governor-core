@@ -34,7 +34,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   /**
    * @inheritdoc IGovernorWorldID
    */
-  uint256 public resetGracePeriod;
+  uint256 public resetGracePeriod = 14 days;
 
   /**
    * @inheritdoc IGovernorWorldID
@@ -69,8 +69,6 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     WORLD_ID_ROUTER = _worldIdRouter;
     GROUP_ID = _groupID;
     APP_ID = abi.encodePacked(_appId).hashToField();
-
-    resetGracePeriod = 14 days;
 
     IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(_groupID));
 
@@ -142,8 +140,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @inheritdoc GovernorSettings
    */
   function _setVotingPeriod(uint32 _votingPeriod) internal virtual override {
-    // TODO: re-enable this
-    // if (_votingPeriod > resetGracePeriod - rootExpirationThreshold) revert GovernorWorldID_InvalidVotingPeriod();
+    if (_votingPeriod > resetGracePeriod - rootExpirationThreshold) revert GovernorWorldID_InvalidVotingPeriod();
 
     super._setVotingPeriod(_votingPeriod);
   }
