@@ -177,52 +177,146 @@ contract GovernorWorldID_Unit_CastVoteBySig is Base {
   }
 }
 
-// contract GovernorWorldID_Unit_CheckVoteValidity is Base {
+contract GovernorWorldID_Unit_CheckVoteValidity is Base {
+  /**
+   * @notice Test that the function reverts if the nullifier is already used
+   */
+  function test_revertIfNullifierAlreadyUsed(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
-//   /**
-//      * @notice Test that the function reverts if the nullifier is already used
-//      */
-//     function test_revertIfNullifierAlreadyUsed(
-//       uint256 _currentRoot,
-//       uint256 _root,
-//       uint256 _nullifierHash,
-//       uint256[8] memory _proof
-//     ) public {
-//     }
+    IMockGovernorWorldIdForTest(address(governor)).forTest_setNullifierHash(_nullifierHash, true);
 
-//     /**
-//      * @notice Test that the function reverts if the root is outdated
-//      */
-//     function test_revertIfOutdatedRoot(
-//       uint256 _currentRoot,
-//       uint256 _root,
-//       uint256 _nullifierHash,
-//       uint256[8] memory _proof
-//     ) public {
-//       // vm.assume(_currentRoot != 0);
-//       // vm.assume(_currentRoot != _root);
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
 
-//       // // Set the current root
-//       // vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_currentRoot));
+  /**
+   * @notice Test that the function calls the latestRoot function from the Router contract
+   */
+  function test_callRouteFor(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params =
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
 
-//       // // Try to cast a vote with an outdated root
-//       // bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-//       // vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
-//       // vm.prank(user);
-//       // IMockGovernorWorldIdForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
-//     }
+    _mockAndExpect(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector),
+      abi.encode(address(worldIDIdentityManager))
+    );
 
-//   /**
-//    * @notice Test that the function calls the verifyProof function from the WorldID contract
-//    */
-//   function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
 
-//     // Cast the vote
-//     vm.prank(user);
-//     IMockGovernorWorldIdForTest(address(governor)).forTest_checkVoteValidity(SUPPORT, proposalId, _params);
-//   }
-// }
+  /**
+   * @notice Test that the function calls the latestRoot function from the IdentityManager contract
+   */
+  function test_callLatestRoot(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params =
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function calls the rootHistory function from the IdentityManager contract
+   */
+  function test_callRootHistory(
+    uint128 _rootTimestamp,
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    vm.warp(1_000_000);
+    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
+
+    vm.assume(_rootTimestamp > block.timestamp - _rootExpirationThreshold);
+
+    bytes memory _params =
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, _rootExpirationThreshold, _rootTimestamp);
+
+    // Deploy governor again with a root expiration threshold more than zero
+    MockGovernorWorldId.ConstructorArgs memory _cArgs = MockGovernorWorldId.ConstructorArgs(
+      GROUP_ID,
+      worldIDRouter,
+      APP_ID,
+      IVotes(address(token)),
+      INITIAL_VOTING_DELAY,
+      INITIAL_VOTING_PERIOD,
+      INITIAL_PROPOSAL_THRESHOLD,
+      _rootExpirationThreshold
+    );
+    governor = new MockGovernorWorldId(_cArgs);
+
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function reverts if the root is outdated
+   */
+  function test_revertIfOutdatedRoot(
+    uint128 _rootTimestamp,
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    vm.warp(1_000_000);
+    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
+
+    vm.assume(_rootTimestamp < block.timestamp - _rootExpirationThreshold);
+
+    _mockAndExpect(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistory.selector),
+      abi.encode(_rootTimestamp)
+    );
+
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // Deploy governor again with a root expiration threshold more than zero
+    MockGovernorWorldId.ConstructorArgs memory _cArgs = MockGovernorWorldId.ConstructorArgs(
+      GROUP_ID,
+      worldIDRouter,
+      APP_ID,
+      IVotes(address(token)),
+      INITIAL_VOTING_DELAY,
+      INITIAL_VOTING_PERIOD,
+      INITIAL_PROPOSAL_THRESHOLD,
+      _rootExpirationThreshold
+    );
+    governor = new MockGovernorWorldId(_cArgs);
+
+    // Try to cast a vote with an outdated root
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function calls the verifyProof function from the WorldID contract
+   */
+  function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params =
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function returns the nullifier hash
+   */
+  function test_returnNullifierHash(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params =
+      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+
+    vm.prank(user);
+    uint256 _returnedNullifierHash = governor.checkVoteValidity(SUPPORT, proposalId, _params);
+    assertEq(_returnedNullifierHash, _nullifierHash);
+  }
+}
 
 contract GovernorWorldID_Unit_CastVote_WithParams is Base {
   /**

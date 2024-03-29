@@ -17,7 +17,7 @@ interface IMockGovernorWorldIdForTest {
     bytes memory _params
   ) external;
 
-  function forTest_checkVoteValidity(uint8 _support, uint256 _proposalId, bytes memory _proofData) external;
+  function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) external;
 }
 
 contract MockGovernorWorldId is GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorWorldID {
@@ -57,8 +57,8 @@ contract MockGovernorWorldId is GovernorCountingSimple, GovernorVotes, GovernorV
     _castVote(_proposalId, _account, _support, _reason, _params);
   }
 
-  function forTest_checkVoteValidity(uint8 _support, uint256 _proposalId, bytes memory _proofData) public {
-    _checkVoteValidity(_support, _proposalId, _proofData);
+  function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) public {
+    nullifierHashes[_nullifierHash] = _isUsed;
   }
 
   function quorum(uint256 blockNumber)
