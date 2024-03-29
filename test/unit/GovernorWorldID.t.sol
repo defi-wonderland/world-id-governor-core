@@ -300,9 +300,18 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
   /**
    * @notice Test that the function calls the latestRoot function from the IdentityManager contract
    */
-  function test_callLatestRoot(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+  function test_callLatestRoot(
+    uint256 _root,
+    uint256 _latestRoot,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    // Encode the parameters
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    _mockWorlIDCalls(
+      worldIDIdentityManager, _latestRoot, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
     vm.prank(user);
     governor.checkVoteValidity(SUPPORT, proposalId, _params);
@@ -446,6 +455,9 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
     IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
   }
 
+  /**
+   * @notice Check that the function reverts if invalid voting period
+   */
   function test_revertIfInvalidVotingPeriodWhenThresholdMoreThanZero(uint32 _votingPeriod) public {
     uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
 

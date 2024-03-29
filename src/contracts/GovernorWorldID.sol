@@ -199,7 +199,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
 
     if (nullifierHashes[_nullifierHash]) revert GovernorWorldID_NullifierHashAlreadyUsed();
 
-    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor((GROUP_ID)));
+    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
 
     if (rootExpirationThreshold == 0) {
       _root = _identityManager.latestRoot();
