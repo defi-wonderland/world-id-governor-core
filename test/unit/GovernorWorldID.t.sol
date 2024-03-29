@@ -120,11 +120,13 @@ contract GovernorWorldId_Unit_GROUP_ID is Base {
 }
 
 contract GovernorWorldId_Unit_APP_ID is Base {
+  using ByteHasher for bytes;
+
   /**
    * @notice Test that the function returns the app ID
    */
   function test_returnAppId() public {
-    // assertEq(governor.APP_ID(), APP_ID);
+    assert(governor.APP_ID() == abi.encodePacked(APP_ID).hashToField());
   }
 }
 
@@ -133,7 +135,7 @@ contract GovernorWorldId_Unit_ResetGracePeriod is Base {
    * @notice Test that the function returns the correct reset grace period
    */
   function test_returnResetGracePeriod() public {
-    assertEq(governor.resetGracePeriod(), 14 days);
+    assertEq(governor.resetGracePeriod(), RESET_GRACE_PERIOD);
   }
 }
 

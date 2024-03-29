@@ -68,6 +68,7 @@ interface IGovernorWorldID is IGovernor {
 
   /**
    * @notice The app ID used to verify the proofs
+   * @dev Since immutable variables can not be `bytes`, the app ID is stored as hash in type `uint`
    * @return _appId The app ID
    */
   // solhint-disable-next-line func-name-mixedcase

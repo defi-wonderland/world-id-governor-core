@@ -39,9 +39,21 @@ interface IWorldIDIdentityManager {
    */
   function latestRoot() external view returns (uint256 _latestRoot);
 
+  /**
+   * @notice Returns the timestamp of the desired root
+   * @return _timestamp The timestamp of the root
+   */
   function rootHistory(uint256 _root) external view returns (uint128 _timestamp);
 
+  /**
+   * @notice Returns the root information
+   * @return _rootInfo The root information
+   */
   function queryRoot(uint256 _root) external view returns (RootInfo memory _rootInfo);
 
+  /**
+   * @notice Returns the expiry time of the root history
+   * @return _rootHistoryExpiry The expiry time of the root history
+   */
   function getRootHistoryExpiry() external view returns (uint256 _rootHistoryExpiry);
 }
