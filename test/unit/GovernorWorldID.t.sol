@@ -5,7 +5,7 @@ import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
 import {IMockGovernorWorldIdForTest, MockGovernorWorldId} from '../mocks/MockGovernorWorldId.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
-import {Test, Vm, console} from 'forge-std/Test.sol';
+import {Test, Vm} from 'forge-std/Test.sol';
 import {IGovernorSettings} from 'interfaces/IGovernorSettings.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
@@ -125,7 +125,7 @@ contract GovernorWorldId_Unit_APP_ID is Base {
   /**
    * @notice Test that the function returns the app ID
    */
-  function test_returnAppId() public {
+  function test_returnAppId() public view {
     assert(governor.APP_ID() == abi.encodePacked(APP_ID).hashToField());
   }
 }
@@ -388,8 +388,31 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   /**
    * @notice Check that the function reverts if invalid voting period
    */
-  function test_revertIfInvalidVotingPeriod(uint32 _votingPeriod) public {
-    vm.assume(_votingPeriod > RESET_GRACE_PERIOD - ROOT_EXPIRATION_THRESHOLD);
+  function test_revertIfInvalidVotingPeriodWhenThresholdZero(uint32 _votingPeriod) public {
+    vm.assume(_votingPeriod > RESET_GRACE_PERIOD - 2 hours);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
+    vm.prank(address(governor));
+    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
+  }
+
+  function test_revertIfInvalidVotingPeriodWhenThresholdMoreThanZero(uint32 _votingPeriod) public {
+    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
+
+    vm.assume(_votingPeriod > RESET_GRACE_PERIOD - _rootExpirationThreshold);
+
+    // Deploy governor again with a root expiration threshold more than zero
+    MockGovernorWorldId.ConstructorArgs memory _cArgs = MockGovernorWorldId.ConstructorArgs(
+      GROUP_ID,
+      worldIDRouter,
+      APP_ID,
+      IVotes(address(token)),
+      INITIAL_VOTING_DELAY,
+      INITIAL_VOTING_PERIOD,
+      INITIAL_PROPOSAL_THRESHOLD,
+      _rootExpirationThreshold
+    );
+    governor = new MockGovernorWorldId(_cArgs);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
     vm.prank(address(governor));

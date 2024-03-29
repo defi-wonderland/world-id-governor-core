@@ -140,7 +140,11 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @inheritdoc GovernorSettings
    */
   function _setVotingPeriod(uint32 _votingPeriod) internal virtual override {
-    if (_votingPeriod > resetGracePeriod - rootExpirationThreshold) revert GovernorWorldID_InvalidVotingPeriod();
+    if (rootExpirationThreshold == 0) {
+      if (_votingPeriod > resetGracePeriod - 2 hours) revert GovernorWorldID_InvalidVotingPeriod();
+    } else {
+      if (_votingPeriod > resetGracePeriod - rootExpirationThreshold) revert GovernorWorldID_InvalidVotingPeriod();
+    }
 
     super._setVotingPeriod(_votingPeriod);
   }
