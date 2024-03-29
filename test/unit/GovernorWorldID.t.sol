@@ -101,6 +101,52 @@ abstract contract Base is Test, UnitUtils {
   }
 }
 
+contract GovernorWorldId_Unit_Constructor is Base {
+  /**
+   * @notice Check that the constructor reverts if the root expiration threshold is bigger than the reset grace period
+   */
+  function test_revertIfThresholdBiggerThanResetGracePeriod(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold > RESET_GRACE_PERIOD);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
+    vm.prank(address(governor));
+    governor = new MockGovernorWorldId(
+      MockGovernorWorldId.ConstructorArgs(
+        GROUP_ID,
+        worldIDRouter,
+        APP_ID,
+        IVotes(address(token)),
+        INITIAL_VOTING_DELAY,
+        INITIAL_VOTING_PERIOD,
+        INITIAL_PROPOSAL_THRESHOLD,
+        _rootExpirationThreshold
+      )
+    );
+  }
+
+  /**
+   * @notice Check that the constructor reverts if the root expiration threshold is bigger than the root history expiry
+   */
+  function test_revertIfThresholdBiggerThanRootHistoryExpiry(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold > ROOT_HISTORY_EXPIRY);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
+    vm.prank(address(governor));
+    governor = new MockGovernorWorldId(
+      MockGovernorWorldId.ConstructorArgs(
+        GROUP_ID,
+        worldIDRouter,
+        APP_ID,
+        IVotes(address(token)),
+        INITIAL_VOTING_DELAY,
+        INITIAL_VOTING_PERIOD,
+        INITIAL_PROPOSAL_THRESHOLD,
+        _rootExpirationThreshold
+      )
+    );
+  }
+}
+
 contract GovernorWorldId_Unit_WORLD_ID_ROUTER is Base {
   /**
    * @notice Test that the function returns the WorldIDRouter instance
@@ -164,19 +210,23 @@ contract GovernorWorldID_Unit_SetRootExpirationThreshold is Base {
   /**
    * @notice Check that the function reverts if the new root expiration threshold is bigger than the reset grace period
    */
-  function test_revertIfBiggerThanResetGracePeriod() public {
+  function test_revertIfBiggerThanResetGracePeriod(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold > RESET_GRACE_PERIOD);
+
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
     vm.prank(address(governor));
-    governor.setRootExpirationThreshold(RESET_GRACE_PERIOD + 1);
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   /**
    * @notice Check that the function reverts if the new root expiration threshold is bigger than the reset grace period
    */
-  function test_revertIfBiggerThanRootHistoryExpiry() public {
+  function test_revertIfBiggerThanRootHistoryExpiry(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold > ROOT_HISTORY_EXPIRY);
+
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
     vm.prank(address(governor));
-    governor.setRootExpirationThreshold(ROOT_HISTORY_EXPIRY + 1);
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   /**
