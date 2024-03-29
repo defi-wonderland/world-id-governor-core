@@ -146,36 +146,71 @@ contract GovernorWorldId_Unit_RootExpirationThreshold is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CastVote_WithoutParams is Base {
+contract GovernorWorldID_Unit_SetRootExpirationThreshold is Base {
   /**
-   * @notice Check that the function is disabled and reverts
+   * @notice Check that the function reverts if called by non-governance
    */
-  function test_revertWithNotSupportedFunction() public {
+  function test_revertIfCalledByNonGovernance(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
+    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
+
+    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
     vm.prank(user);
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
-    governor.castVote(proposalId, SUPPORT);
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
+  }
+
+  /**
+   * @notice Check that the function reverts if the new root expiration threshold is bigger than the reset grace period
+   */
+  function test_revertIfBiggerThanResetGracePeriod() public {
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(RESET_GRACE_PERIOD + 1);
+  }
+
+  /**
+   * @notice Check that the function reverts if the new root expiration threshold is bigger than the reset grace period
+   */
+  function test_revertIfBiggerThanRootHistoryExpiry() public {
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(ROOT_HISTORY_EXPIRY + 1);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_setRootExpirationThreshold(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
+    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
+
+    vm.expectEmit(true, true, true, true);
+    emit IGovernorWorldID.RootExpirationThresholdUpdated(_rootExpirationThreshold, ROOT_EXPIRATION_THRESHOLD);
+
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
   }
 }
 
-contract GovernorWorldID_Unit_CastVoteWithReason is Base {
+contract GovernorWorldID_Unit_SetResetGracePeriod is Base {
   /**
-   * @notice Check that the function is disabled and reverts
+   * @notice Check that the function reverts if called by non-governance
    */
-  function test_revertWithNotSupportedFunction() public {
+  function test_revertIfCalledByNonGovernance(uint256 _resetGracePeriod) public {
+    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
     vm.prank(user);
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
-    governor.castVoteWithReason(proposalId, SUPPORT, REASON);
+    governor.setResetGracePeriod(_resetGracePeriod);
   }
-}
 
-contract GovernorWorldID_Unit_CastVoteBySig is Base {
   /**
-   * @notice Check that the function is disabled and reverts
+   * @notice Check that the function works as expected
    */
-  function test_revertWithNotSupportedFunction() public {
-    vm.prank(signer.addr);
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
-    governor.castVoteBySig(proposalId, SUPPORT, signer.addr, signature);
+  function test_setResetGracePeriod(uint256 _resetGracePeriod) public {
+    vm.expectEmit(true, true, true, true);
+    emit IGovernorWorldID.ResetGracePeriodUpdated(_resetGracePeriod, RESET_GRACE_PERIOD);
+
+    vm.prank(address(governor));
+    governor.setResetGracePeriod(_resetGracePeriod);
   }
 }
 
@@ -320,6 +355,93 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
   }
 }
 
+contract GovernorWorldID_Unit_VotingDelay is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_VotingDelay() public {
+    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
+  }
+}
+
+contract GovernorWorldID_Unit_VotingPeriod is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_VotingPeriod() public {
+    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
+  }
+}
+
+contract GovernorWorldID_Unit_ProposalThreshold is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_ProposalThreshold() public {
+    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
+  }
+}
+
+contract GovernorWorldID_Unit_SetVotingPeriod is Base {
+  /**
+   * @notice Check that the function reverts if invalid voting period
+   */
+  function test_revertIfInvalidVotingPeriod(uint32 _votingPeriod) public {
+    vm.assume(_votingPeriod > RESET_GRACE_PERIOD - ROOT_EXPIRATION_THRESHOLD);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
+    vm.prank(address(governor));
+    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_setVotingPeriod(uint256 _votingPeriod) public {
+    vm.assume(_votingPeriod != 0);
+    vm.assume(_votingPeriod < RESET_GRACE_PERIOD - ROOT_EXPIRATION_THRESHOLD);
+
+    vm.expectEmit(true, true, true, true);
+    emit GovernorSettings.VotingPeriodSet(INITIAL_VOTING_PERIOD, _votingPeriod);
+
+    vm.prank(address(governor));
+    IGovernorSettings(address(governor)).setVotingPeriod(uint32(_votingPeriod));
+  }
+}
+
+contract GovernorWorldID_Unit_CastVote_WithoutParams is Base {
+  /**
+   * @notice Check that the function is disabled and reverts
+   */
+  function test_revertWithNotSupportedFunction() public {
+    vm.prank(user);
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
+    governor.castVote(proposalId, SUPPORT);
+  }
+}
+
+contract GovernorWorldID_Unit_CastVoteWithReason is Base {
+  /**
+   * @notice Check that the function is disabled and reverts
+   */
+  function test_revertWithNotSupportedFunction() public {
+    vm.prank(user);
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
+    governor.castVoteWithReason(proposalId, SUPPORT, REASON);
+  }
+}
+
+contract GovernorWorldID_Unit_CastVoteBySig is Base {
+  /**
+   * @notice Check that the function is disabled and reverts
+   */
+  function test_revertWithNotSupportedFunction() public {
+    vm.prank(signer.addr);
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
+    governor.castVoteBySig(proposalId, SUPPORT, signer.addr, signature);
+  }
+}
+
 contract GovernorWorldID_Unit_CastVote_WithParams is Base {
   /**
    * @notice Check that the function stores the nullifier as used
@@ -393,127 +515,5 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     governor.castVoteWithReasonAndParamsBySig(
       proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
     );
-  }
-}
-
-contract GovernorWorldID_Unit_SetRootExpirationThreshold is Base {
-  /**
-   * @notice Check that the function reverts if called by non-governance
-   */
-  function test_revertIfCalledByNonGovernance(uint256 _rootExpirationThreshold) public {
-    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
-    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
-
-    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
-    vm.prank(user);
-    governor.setRootExpirationThreshold(_rootExpirationThreshold);
-  }
-
-  /**
-   * @notice Check that the function reverts if the new root expiration threshold is bigger than the reset grace period
-   */
-  function test_revertIfBiggerThanResetGracePeriod() public {
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    vm.prank(address(governor));
-    governor.setRootExpirationThreshold(RESET_GRACE_PERIOD + 1);
-  }
-
-  /**
-   * @notice Check that the function reverts if the new root expiration threshold is bigger than the reset grace period
-   */
-  function test_revertIfBiggerThanRootHistoryExpiry() public {
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    vm.prank(address(governor));
-    governor.setRootExpirationThreshold(ROOT_HISTORY_EXPIRY + 1);
-  }
-
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_setRootExpirationThreshold(uint256 _rootExpirationThreshold) public {
-    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
-    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
-
-    vm.expectEmit(true, true, true, true);
-    emit IGovernorWorldID.RootExpirationThresholdUpdated(_rootExpirationThreshold, ROOT_EXPIRATION_THRESHOLD);
-
-    vm.prank(address(governor));
-    governor.setRootExpirationThreshold(_rootExpirationThreshold);
-  }
-}
-
-contract GovernorWorldID_Unit_SetResetGracePeriod is Base {
-  /**
-   * @notice Check that the function reverts if called by non-governance
-   */
-  function test_revertIfCalledByNonGovernance(uint256 _resetGracePeriod) public {
-    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
-    vm.prank(user);
-    governor.setResetGracePeriod(_resetGracePeriod);
-  }
-
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_setResetGracePeriod(uint256 _resetGracePeriod) public {
-    vm.expectEmit(true, true, true, true);
-    emit IGovernorWorldID.ResetGracePeriodUpdated(_resetGracePeriod, RESET_GRACE_PERIOD);
-
-    vm.prank(address(governor));
-    governor.setResetGracePeriod(_resetGracePeriod);
-  }
-}
-
-contract GovernorWorldID_Unit_SetVotingPeriod is Base {
-  /**
-   * @notice Check that the function reverts if invalid voting period
-   */
-  function test_revertIfInvalidVotingPeriod(uint32 _votingPeriod) public {
-    vm.assume(_votingPeriod > RESET_GRACE_PERIOD - ROOT_EXPIRATION_THRESHOLD);
-
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
-    vm.prank(address(governor));
-    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
-  }
-
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_setVotingPeriod(uint256 _votingPeriod) public {
-    vm.assume(_votingPeriod != 0);
-    vm.assume(_votingPeriod < RESET_GRACE_PERIOD - ROOT_EXPIRATION_THRESHOLD);
-
-    vm.expectEmit(true, true, true, true);
-    emit GovernorSettings.VotingPeriodSet(INITIAL_VOTING_PERIOD, _votingPeriod);
-
-    vm.prank(address(governor));
-    IGovernorSettings(address(governor)).setVotingPeriod(uint32(_votingPeriod));
-  }
-}
-
-contract GovernorWorldID_Unit_VotingDelay is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_VotingDelay() public {
-    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
-  }
-}
-
-contract GovernorWorldID_Unit_VotingPeriod is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_VotingPeriod() public {
-    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
-  }
-}
-
-contract GovernorWorldID_Unit_ProposalThreshold is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_ProposalThreshold() public {
-    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
   }
 }
