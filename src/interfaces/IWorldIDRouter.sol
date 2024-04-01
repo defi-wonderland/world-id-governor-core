@@ -3,13 +3,6 @@ pragma solidity 0.8.23;
 
 interface IWorldIDRouter {
   /**
-   * @notice Returns the contract address for a given group ID
-   * @param _groupId The group ID
-   * @return _contractAddress The contract address
-   */
-  function routeFor(uint256 _groupId) external view returns (address _contractAddress);
-
-  /**
    * @notice Reverts if the zero-knowledge proof is invalid.
    * @param _root The root of the Merkle tree
    * @param _groupID The group ID
@@ -27,4 +20,11 @@ interface IWorldIDRouter {
     uint256 _externalNullifierHash,
     uint256[8] calldata _proof
   ) external;
+
+  /**
+   * @notice Returns the contract address for a given group ID
+   * @param _groupId The group ID
+   * @return _contractAddress The contract address
+   */
+  function routeFor(uint256 _groupId) external view returns (address _contractAddress);
 }

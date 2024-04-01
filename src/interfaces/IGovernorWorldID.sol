@@ -53,6 +53,19 @@ interface IGovernorWorldID is IGovernor {
   function setResetGracePeriod(uint256 _newResetGracePeriod) external;
 
   /**
+   * @notice Checks the validity of a vote
+   * @param _support The support for the proposal
+   * @param _proposalId The proposal id
+   * @param _proofData The proof data containing the Merkle root, the nullifier hash and the zkProof
+   * @return _decodedNullifierHash The decoded nullifier hash
+   */
+  function checkVoteValidity(
+    uint8 _support,
+    uint256 _proposalId,
+    bytes memory _proofData
+  ) external returns (uint256 _decodedNullifierHash);
+
+  /**
    * @notice The World ID instance that will be used for verifying proofs
    * @return _worldId The World ID instance
    */
@@ -79,19 +92,6 @@ interface IGovernorWorldID is IGovernor {
    * @return _isUsed True if the nullifier hash is used
    */
   function nullifierHashes(uint256 _nullifierHash) external view returns (bool _isUsed);
-
-  /**
-   * @notice Checks the validity of a vote
-   * @param _support The support for the proposal
-   * @param _proposalId The proposal id
-   * @param _proofData The proof data containing the Merkle root, the nullifier hash and the zkProof
-   * @return _decodedNullifierHash The decoded nullifier hash
-   */
-  function checkVoteValidity(
-    uint8 _support,
-    uint256 _proposalId,
-    bytes memory _proofData
-  ) external returns (uint256 _decodedNullifierHash);
 
   /**
    * @notice The current World ID reset grace period before inserting the user into the Merkle tree again. The current period is 14 days, and it has a setter function to be updated by the governance if it changes.

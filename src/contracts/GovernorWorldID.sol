@@ -145,21 +145,6 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
-   * Check if the root expiration threshold is valid
-   * @dev If zero, it will not check the root expiration threshold. If not zero, it will check if it is less than the reset grace period and the root history expiry
-   * @param _rootExpirationThreshold The root expiration threshold
-   */
-  function _checkExpirationThresholdValidity(uint256 _rootExpirationThreshold) internal view {
-    if (_rootExpirationThreshold == 0) return;
-
-    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
-    if (_rootExpirationThreshold > resetGracePeriod || _rootExpirationThreshold > _identityManager.rootHistoryExpiry())
-    {
-      revert GovernorWorldID_InvalidRootExpirationThreshold();
-    }
-  }
-
-  /**
    * @notice Cast a vote for a proposal
    * @dev It checks if the voter is a real human before proceeding with the vote
    * @param _proposalId The proposal id
@@ -226,5 +211,20 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
 
     // Return the decoded nullifier hash
     _decodedNullifierHash = _nullifierHash;
+  }
+
+  /**
+   * Check if the root expiration threshold is valid
+   * @dev If zero, it will not check the root expiration threshold. If not zero, it will check if it is less than the reset grace period and the root history expiry
+   * @param _rootExpirationThreshold The root expiration threshold
+   */
+  function _checkExpirationThresholdValidity(uint256 _rootExpirationThreshold) internal view {
+    if (_rootExpirationThreshold == 0) return;
+
+    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
+    if (_rootExpirationThreshold > resetGracePeriod || _rootExpirationThreshold > _identityManager.rootHistoryExpiry())
+    {
+      revert GovernorWorldID_InvalidRootExpirationThreshold();
+    }
   }
 }
