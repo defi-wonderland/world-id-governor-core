@@ -153,9 +153,10 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     if (_rootExpirationThreshold == 0) return;
 
     IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
-    if (
-      _rootExpirationThreshold > resetGracePeriod || _rootExpirationThreshold > _identityManager.getRootHistoryExpiry()
-    ) revert GovernorWorldID_InvalidRootExpirationThreshold();
+    if (_rootExpirationThreshold > resetGracePeriod || _rootExpirationThreshold > _identityManager.rootHistoryExpiry())
+    {
+      revert GovernorWorldID_InvalidRootExpirationThreshold();
+    }
   }
 
   /**

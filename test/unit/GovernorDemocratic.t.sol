@@ -47,10 +47,10 @@ abstract contract Base is Test, UnitUtils {
       abi.encode(address(worldIDIdentityManager))
     );
 
-    // Mock the getRootHistoryExpiry function
+    // Mock the rootHistoryExpiry function
     vm.mockCall(
       address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.getRootHistoryExpiry.selector),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
       abi.encode(1 weeks)
     );
 

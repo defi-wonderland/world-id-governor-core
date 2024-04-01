@@ -55,5 +55,5 @@ interface IWorldIDIdentityManager {
    * @notice Returns the expiry time of the root history
    * @return _rootHistoryExpiry The expiry time of the root history
    */
-  function getRootHistoryExpiry() external view returns (uint256 _rootHistoryExpiry);
+  function rootHistoryExpiry() external view returns (uint256 _rootHistoryExpiry);
 }
