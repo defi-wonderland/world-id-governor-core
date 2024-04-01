@@ -70,11 +70,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     GROUP_ID = _groupID;
     APP_ID = abi.encodePacked(_appId).hashToField();
 
-    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(_groupID));
-
-    if (
-      _rootExpirationThreshold > resetGracePeriod || _rootExpirationThreshold > _identityManager.getRootHistoryExpiry()
-    ) revert GovernorWorldID_InvalidRootExpirationThreshold();
+    _checkExpirationThresholdValidity(_rootExpirationThreshold);
 
     rootExpirationThreshold = _rootExpirationThreshold;
   }
@@ -83,10 +79,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @inheritdoc IGovernorWorldID
    */
   function setRootExpirationThreshold(uint256 _rootExpirationThreshold) external onlyGovernance {
-    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
-    if (
-      _rootExpirationThreshold > resetGracePeriod || _rootExpirationThreshold > _identityManager.getRootHistoryExpiry()
-    ) revert GovernorWorldID_InvalidRootExpirationThreshold();
+    _checkExpirationThresholdValidity(_rootExpirationThreshold);
 
     uint256 _oldRootExpirationThreshold = rootExpirationThreshold;
     rootExpirationThreshold = _rootExpirationThreshold;
@@ -149,6 +142,20 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     }
 
     super._setVotingPeriod(_votingPeriod);
+  }
+
+  /**
+   * Check if the root expiration threshold is valid
+   * @dev If zero, it will not check the root expiration threshold. If not zero, it will check if it is less than the reset grace period and the root history expiry
+   * @param _rootExpirationThreshold The root expiration threshold
+   */
+  function _checkExpirationThresholdValidity(uint256 _rootExpirationThreshold) internal view {
+    if (_rootExpirationThreshold == 0) return;
+
+    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
+    if (
+      _rootExpirationThreshold > resetGracePeriod || _rootExpirationThreshold > _identityManager.getRootHistoryExpiry()
+    ) revert GovernorWorldID_InvalidRootExpirationThreshold();
   }
 
   /**
