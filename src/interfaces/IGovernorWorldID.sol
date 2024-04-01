@@ -68,7 +68,6 @@ interface IGovernorWorldID is IGovernor {
 
   /**
    * @notice The app ID used to verify the proofs
-   * @dev Since immutable variables can not be `bytes`, the app ID is stored as hash in type `uint`
    * @return _appId The app ID
    */
   // solhint-disable-next-line func-name-mixedcase
@@ -76,16 +75,16 @@ interface IGovernorWorldID is IGovernor {
 
   /**
    * @notice The nullifier hashes used to prevent double voting
-   * @param _nullifier The nullifier hash
+   * @param _nullifierHash The nullifier hash
    * @return _isUsed True if the nullifier hash is used
    */
-  function nullifierHashes(uint256 _nullifier) external view returns (bool _isUsed);
+  function nullifierHashes(uint256 _nullifierHash) external view returns (bool _isUsed);
 
   /**
    * @notice Checks the validity of a vote
    * @param _support The support for the proposal
    * @param _proposalId The proposal id
-   * @param _proofData The proof data
+   * @param _proofData The proof data containing the Merkle root, the nullifier hash and the zkProof
    * @return _decodedNullifierHash The decoded nullifier hash
    */
   function checkVoteValidity(
@@ -95,13 +94,15 @@ interface IGovernorWorldID is IGovernor {
   ) external view returns (uint256 _decodedNullifierHash);
 
   /**
-   * @notice The current World ID reset grace period before inserting the user into the Merkle tree again. The current period is 14 days, and it has a setter function to be updated by the governance if needed.
+   * @notice The current World ID reset grace period before inserting the user into the Merkle tree again. The current period is 14 days, and it has a setter function to be updated by the governance if it changes.
    * @return _resetGracePeriod The grace period
    */
   function resetGracePeriod() external view returns (uint256 _resetGracePeriod);
 
   /**
    * @notice The expiration threshold used to define how old a root must be to be considered valid or invalid.
+   * @dev If set to 0, the proof can only be verified using the latest root.
+   * @dev If deploying this contract on mainnet, the value must be 0.
    * @return _rootExpirationThreshold The expiration threshold
    */
   function rootExpirationThreshold() external view returns (uint256 _rootExpirationThreshold);
