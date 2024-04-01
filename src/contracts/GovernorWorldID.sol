@@ -111,7 +111,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     uint8 _support,
     uint256 _proposalId,
     bytes memory _proofData
-  ) external view override returns (uint256 _decodedNullifierHash) {
+  ) external override returns (uint256 _decodedNullifierHash) {
     _decodedNullifierHash = _checkVoteValidity(_support, _proposalId, _proofData);
   }
 
@@ -194,7 +194,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     uint8 _support,
     uint256 _proposalId,
     bytes memory _proofData
-  ) internal view virtual returns (uint256 _decodedNullifierHash) {
+  ) internal virtual returns (uint256 _decodedNullifierHash) {
     // Decode the parameters
     (uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
       abi.decode(_proofData, (uint256, uint256, uint256[8]));
@@ -214,7 +214,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     // Verify the provided proof
     uint256 _signal = abi.encodePacked(_support).hashToField();
     uint256 _externalNullifier = abi.encodePacked(APP_ID, _proposalId).hashToField();
-    _identityManager.verifyProof(_root, _signal, _nullifierHash, _externalNullifier, _proof);
+    WORLD_ID_ROUTER.verifyProof(_root, GROUP_ID, _signal, _nullifierHash, _externalNullifier, _proof);
 
     // Return the decoded nullifier hash
     _decodedNullifierHash = _nullifierHash;

@@ -2,7 +2,9 @@
 pragma solidity 0.8.23;
 
 import {Test} from 'forge-std/Test.sol';
+
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
+import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
 abstract contract UnitUtils is Test {
   /**
@@ -18,6 +20,7 @@ abstract contract UnitUtils is Test {
 
   /**
    * @notice Mocks the WorldIDIdentityManager contract calls to `latestRoot` and `verifyRoot` and expects them to be called
+   * @param _worldIDRouter The WorldIDRouter contract to mock and expect
    * @param _worldIDIdentityManager The WorldIDIdentityManager contract to mock and expect
    * @param _root The root to mock and expect
    * @param _nullifierHash The nullifier hash to mock and expect
@@ -27,6 +30,7 @@ abstract contract UnitUtils is Test {
    * @return _params The encoded parameters to mock and expect
    */
   function _mockWorlIDCalls(
+    IWorldIDRouter _worldIDRouter,
     IWorldIDIdentityManager _worldIDIdentityManager,
     uint256 _root,
     uint256 _nullifierHash,
@@ -51,9 +55,7 @@ abstract contract UnitUtils is Test {
     }
 
     _mockAndExpect(
-      address(_worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.verifyProof.selector),
-      abi.encode(true)
+      address(_worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.verifyProof.selector), abi.encode(true)
     );
 
     // Encode the parameters

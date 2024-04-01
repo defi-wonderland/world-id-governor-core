@@ -284,8 +284,9 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
    * @notice Test that the function calls the latestRoot function from the Router contract
    */
   function test_callRouteFor(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
     _mockAndExpect(
       address(worldIDRouter),
@@ -310,7 +311,13 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
     _mockWorlIDCalls(
-      worldIDIdentityManager, _latestRoot, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+      worldIDRouter,
+      worldIDIdentityManager,
+      _latestRoot,
+      _nullifierHash,
+      _proof,
+      ROOT_EXPIRATION_THRESHOLD,
+      rootTimestamp
     );
 
     vm.prank(user);
@@ -331,8 +338,9 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
 
     vm.assume(_rootTimestamp > block.timestamp - _rootExpirationThreshold);
 
-    bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, _rootExpirationThreshold, _rootTimestamp);
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, _rootExpirationThreshold, _rootTimestamp
+    );
 
     // Deploy governor again with a root expiration threshold more than zero
     MockGovernorWorldId.ConstructorArgs memory _cArgs = MockGovernorWorldId.ConstructorArgs(
@@ -396,8 +404,9 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
    * @notice Test that the function calls the verifyProof function from the WorldID contract
    */
   function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
     vm.prank(user);
     governor.checkVoteValidity(SUPPORT, proposalId, _params);
@@ -407,8 +416,9 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
    * @notice Test that the function returns the nullifier hash
    */
   function test_returnNullifierHash(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
     vm.prank(user);
     uint256 _returnedNullifierHash = governor.checkVoteValidity(SUPPORT, proposalId, _params);
@@ -486,7 +496,7 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
    */
   function test_setVotingPeriod(uint32 _votingPeriod) public {
     vm.assume(_votingPeriod != 0);
-    vm.assume(_votingPeriod < RESET_GRACE_PERIOD - ROOT_EXPIRATION_THRESHOLD);
+    vm.assume(_votingPeriod < RESET_GRACE_PERIOD - 2 hours);
 
     vm.expectEmit(true, true, true, true);
     emit GovernorSettings.VotingPeriodSet(INITIAL_VOTING_PERIOD, _votingPeriod);
@@ -534,8 +544,9 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
    * @notice Check that the function stores the nullifier as used
    */
   function test_nullifierIsStored(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
     // Cast the vote
     vm.prank(user);
@@ -548,8 +559,9 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
     vm.expectEmit(true, true, true, true);
     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
@@ -565,8 +577,9 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
     vm.expectEmit(true, true, true, true);
     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
@@ -586,8 +599,9 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     uint256 _nullifierHash,
     uint256[8] memory _proof
   ) public {
-    bytes memory _params =
-      _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
     // Sign
     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);

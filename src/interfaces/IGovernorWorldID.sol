@@ -91,7 +91,7 @@ interface IGovernorWorldID is IGovernor {
     uint8 _support,
     uint256 _proposalId,
     bytes memory _proofData
-  ) external view returns (uint256 _decodedNullifierHash);
+  ) external returns (uint256 _decodedNullifierHash);
 
   /**
    * @notice The current World ID reset grace period before inserting the user into the Merkle tree again. The current period is 14 days, and it has a setter function to be updated by the governance if it changes.
