@@ -484,7 +484,7 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   /**
    * @notice Check that the function works as expected
    */
-  function test_setVotingPeriod(uint256 _votingPeriod) public {
+  function test_setVotingPeriod(uint32 _votingPeriod) public {
     vm.assume(_votingPeriod != 0);
     vm.assume(_votingPeriod < RESET_GRACE_PERIOD - ROOT_EXPIRATION_THRESHOLD);
 
@@ -492,7 +492,7 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
     emit GovernorSettings.VotingPeriodSet(INITIAL_VOTING_PERIOD, _votingPeriod);
 
     vm.prank(address(governor));
-    IGovernorSettings(address(governor)).setVotingPeriod(uint32(_votingPeriod));
+    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
   }
 }
 

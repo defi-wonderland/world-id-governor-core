@@ -212,7 +212,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     }
 
     // Verify the provided proof
-    uint256 _signal = uint256(_support);
+    uint256 _signal = abi.encodePacked(_support).hashToField();
     uint256 _externalNullifier = abi.encodePacked(APP_ID, _proposalId).hashToField();
     _identityManager.verifyProof(_root, _signal, _nullifierHash, _externalNullifier, _proof);
 
