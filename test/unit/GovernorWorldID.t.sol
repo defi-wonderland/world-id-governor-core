@@ -102,6 +102,8 @@ abstract contract Base is Test, UnitUtils {
 }
 
 contract GovernorWorldId_Unit_Constructor is Base {
+  using ByteHasher for bytes;
+
   /**
    * @notice Check that the constructor reverts if the root expiration threshold is bigger than the reset grace period
    */
@@ -167,51 +169,15 @@ contract GovernorWorldId_Unit_Constructor is Base {
       )
     );
   }
-}
 
-contract GovernorWorldId_Unit_WORLD_ID_ROUTER is Base {
   /**
-   * @notice Test that the function returns the WorldIDRouter instance
+   * @notice Check that the constructor sets the correct variables
    */
-  function test_returnWorldIDInstance() public {
+  function test_variables() public {
     assertEq(address(governor.WORLD_ID_ROUTER()), address(worldIDRouter));
-  }
-}
-
-contract GovernorWorldId_Unit_GROUP_ID is Base {
-  /**
-   * @notice Test that the function returns the group ID
-   */
-  function test_returnGroupId() public {
     assertEq(governor.GROUP_ID(), GROUP_ID);
-  }
-}
-
-contract GovernorWorldId_Unit_APP_ID is Base {
-  using ByteHasher for bytes;
-
-  /**
-   * @notice Test that the function returns the app ID
-   */
-  function test_returnAppId() public view {
-    assert(governor.APP_ID() == abi.encodePacked(APP_ID).hashToField());
-  }
-}
-
-contract GovernorWorldId_Unit_ResetGracePeriod is Base {
-  /**
-   * @notice Test that the function returns the correct reset grace period
-   */
-  function test_returnResetGracePeriod() public {
+    assertEq(governor.APP_ID(), abi.encodePacked(APP_ID).hashToField());
     assertEq(governor.resetGracePeriod(), RESET_GRACE_PERIOD);
-  }
-}
-
-contract GovernorWorldId_Unit_RootExpirationThreshold is Base {
-  /**
-   * @notice Test that the function returns the correct root expiration threshold
-   */
-  function test_returnRootExpirationThreshold() public {
     assertEq(governor.rootExpirationThreshold(), ROOT_EXPIRATION_THRESHOLD);
   }
 }
