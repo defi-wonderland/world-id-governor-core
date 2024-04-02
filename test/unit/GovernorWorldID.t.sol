@@ -26,7 +26,7 @@ abstract contract Base is Test, UnitUtils {
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
   uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
   uint256 public constant ROOT_EXPIRATION_THRESHOLD = 0;
-  uint256 public constant RESET_GRACE_PERIOD = 14 days;
+  uint256 public constant RESET_GRACE_PERIOD = 13 days + 22 hours;
   uint256 public constant ROOT_HISTORY_EXPIRY = 1 weeks;
   uint128 public rootTimestamp = uint128(block.timestamp - 1);
 
@@ -462,7 +462,7 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
    * @notice Check that the function reverts if invalid voting period
    */
   function test_revertIfInvalidPeriodWhenZeroThreshold(uint32 _votingPeriod) public {
-    vm.assume(_votingPeriod > RESET_GRACE_PERIOD - 2 hours);
+    vm.assume(_votingPeriod > RESET_GRACE_PERIOD);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
     vm.prank(address(governor));
@@ -491,7 +491,7 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
    */
   function test_setVotingPeriod(uint32 _votingPeriod) public {
     vm.assume(_votingPeriod != 0);
-    vm.assume(_votingPeriod < RESET_GRACE_PERIOD - 2 hours);
+    vm.assume(_votingPeriod < RESET_GRACE_PERIOD);
 
     vm.expectEmit(true, true, true, true);
     emit GovernorSettings.VotingPeriodSet(INITIAL_VOTING_PERIOD, _votingPeriod);

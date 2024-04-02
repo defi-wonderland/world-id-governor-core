@@ -34,7 +34,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   /**
    * @inheritdoc IGovernorWorldID
    */
-  uint256 public resetGracePeriod = 14 days;
+  uint256 public resetGracePeriod = 13 days + 22 hours;
 
   /**
    * @inheritdoc IGovernorWorldID
@@ -156,11 +156,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @param _votingPeriod The voting period
    */
   function _setVotingPeriod(uint32 _votingPeriod) internal virtual override {
-    if (rootExpirationThreshold == 0 && _votingPeriod > resetGracePeriod - 2 hours) {
-      revert GovernorWorldID_InvalidVotingPeriod();
-    }
-
-    if (rootExpirationThreshold > 0 && _votingPeriod > resetGracePeriod - rootExpirationThreshold) {
+    if (_votingPeriod > resetGracePeriod - rootExpirationThreshold) {
       revert GovernorWorldID_InvalidVotingPeriod();
     }
 

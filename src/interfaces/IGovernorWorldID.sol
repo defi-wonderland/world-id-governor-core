@@ -48,6 +48,7 @@ interface IGovernorWorldID is IGovernor {
 
   /**
    * @notice Sets a new reset grace period
+   * @dev It is recommended to set this value minus 2 hours as an extra security measure
    * @param _newResetGracePeriod The new reset grace period
    */
   function setResetGracePeriod(uint256 _newResetGracePeriod) external;
