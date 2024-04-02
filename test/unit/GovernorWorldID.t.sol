@@ -145,6 +145,28 @@ contract GovernorWorldId_Unit_Constructor is Base {
       )
     );
   }
+
+  /**
+   * @notice Check that the constructor works as expected
+   */
+  function test_correctDeploy(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
+    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
+
+    vm.prank(address(governor));
+    governor = new MockGovernorWorldId(
+      MockGovernorWorldId.ConstructorArgs(
+        GROUP_ID,
+        worldIDRouter,
+        APP_ID,
+        IVotes(address(token)),
+        INITIAL_VOTING_DELAY,
+        INITIAL_VOTING_PERIOD,
+        INITIAL_PROPOSAL_THRESHOLD,
+        _rootExpirationThreshold
+      )
+    );
+  }
 }
 
 contract GovernorWorldId_Unit_WORLD_ID_ROUTER is Base {
@@ -316,18 +338,9 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
       worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, _rootExpirationThreshold, _rootTimestamp
     );
 
-    // Deploy governor again with a root expiration threshold more than zero
-    MockGovernorWorldId.ConstructorArgs memory _cArgs = MockGovernorWorldId.ConstructorArgs(
-      GROUP_ID,
-      worldIDRouter,
-      APP_ID,
-      IVotes(address(token)),
-      INITIAL_VOTING_DELAY,
-      INITIAL_VOTING_PERIOD,
-      INITIAL_PROPOSAL_THRESHOLD,
-      _rootExpirationThreshold
-    );
-    governor = new MockGovernorWorldId(_cArgs);
+    // Set a new root expiration threshold
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
 
     vm.prank(user);
     governor.checkVoteValidity(SUPPORT, proposalId, _params);
@@ -355,18 +368,9 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
 
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
-    // Deploy governor again with a root expiration threshold more than zero
-    MockGovernorWorldId.ConstructorArgs memory _cArgs = MockGovernorWorldId.ConstructorArgs(
-      GROUP_ID,
-      worldIDRouter,
-      APP_ID,
-      IVotes(address(token)),
-      INITIAL_VOTING_DELAY,
-      INITIAL_VOTING_PERIOD,
-      INITIAL_PROPOSAL_THRESHOLD,
-      _rootExpirationThreshold
-    );
-    governor = new MockGovernorWorldId(_cArgs);
+    // Set a new root expiration threshold
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
 
     // Try to cast a vote with an outdated root
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
@@ -473,18 +477,9 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
 
     vm.assume(_votingPeriod > RESET_GRACE_PERIOD - _rootExpirationThreshold);
 
-    // Deploy governor again with a root expiration threshold more than zero
-    MockGovernorWorldId.ConstructorArgs memory _cArgs = MockGovernorWorldId.ConstructorArgs(
-      GROUP_ID,
-      worldIDRouter,
-      APP_ID,
-      IVotes(address(token)),
-      INITIAL_VOTING_DELAY,
-      INITIAL_VOTING_PERIOD,
-      INITIAL_PROPOSAL_THRESHOLD,
-      _rootExpirationThreshold
-    );
-    governor = new MockGovernorWorldId(_cArgs);
+    // Set a new root expiration threshold
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
     vm.prank(address(governor));
