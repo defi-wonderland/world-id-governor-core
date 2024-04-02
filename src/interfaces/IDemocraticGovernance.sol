@@ -32,14 +32,16 @@ interface IDemocraticGovernance is IGovernorWorldID {
   /**
    * @notice Clock used for flagging checkpoints
    * @return _clock The block number
-   * @dev Follows the Open Zeppelin implementation when the token does not implement EIP-6372, but using timestamp instead
+   * @dev Follows the Open Zeppelin implementation when the token does not implement EIP-6372,
+   *  but using timestamp instead
    */
   function clock() external view returns (uint48);
 
   /**
    * @notice Description of the clock mode
    * @return _mode The description of the clock mode
-   * @dev Follows the Open Zeppelin implementation when the token does not implement EIP-6372, but using timestamp instead
+   * @dev Follows the Open Zeppelin implementation when the token does not implement EIP-6372,
+   *  but using timestamp instead
    */
   // solhint-disable-next-line func-name-mixedcase
   function CLOCK_MODE() external view returns (string memory);
