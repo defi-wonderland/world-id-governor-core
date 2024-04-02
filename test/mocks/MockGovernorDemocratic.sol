@@ -35,7 +35,7 @@ contract MockGovernorDemocratic is GovernorCountingSimple, GovernorDemocratic {
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
-    bytes memory _appId,
+    string memory _appId,
     IVotes _token,
     uint48 _initialVotingDelay,
     uint32 _initialVotingPeriod,

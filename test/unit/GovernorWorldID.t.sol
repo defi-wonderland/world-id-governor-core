@@ -21,7 +21,7 @@ abstract contract Base is Test, UnitUtils {
   uint256 public constant GROUP_ID = 1;
   string public constant REASON = '';
   uint256 public constant WEIGHT = 0;
-  bytes public constant APP_ID = 'appId';
+  string public constant APP_ID = 'appId';
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
   uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;

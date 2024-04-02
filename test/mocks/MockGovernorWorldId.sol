@@ -24,7 +24,7 @@ contract MockGovernorWorldId is GovernorCountingSimple, GovernorVotes, GovernorV
   struct ConstructorArgs {
     uint256 groupID;
     IWorldIDRouter worldIdRouter;
-    bytes appId;
+    string appId;
     IVotes token;
     uint48 initialVotingDelay;
     uint32 initialVotingPeriod;

@@ -35,7 +35,7 @@ contract MockDemocraticGovernance is DemocraticGovernance {
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
-    bytes memory _appId,
+    string memory _appId,
     uint256 _quorum,
     uint48 _initialVotingDelay,
     uint32 _initialVotingPeriod,

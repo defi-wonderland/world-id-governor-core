@@ -25,7 +25,7 @@ abstract contract GovernorDemocratic is GovernorWorldID, IGovernorDemocratic {
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
-    bytes memory _appId,
+    string memory _appId,
     string memory _governorName,
     uint48 _initialVotingDelay,
     uint32 _initialVotingPeriod,

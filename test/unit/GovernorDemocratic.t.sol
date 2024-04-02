@@ -55,7 +55,7 @@ abstract contract Base is Test, UnitUtils {
     );
 
     // Deploy governor
-    bytes memory _appId = 'appId';
+    string memory _appId = 'appId';
     governor = new MockGovernorDemocratic(
       GROUP_ID,
       worldIDRouter,

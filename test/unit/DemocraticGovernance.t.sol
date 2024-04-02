@@ -22,7 +22,7 @@ abstract contract Base is Test, UnitUtils {
   uint256 public constant WEIGHT = 1;
   uint256 public constant QUORUM = 5;
   uint256 public constant ONE = 1;
-  bytes public constant APP_ID = 'appId';
+  string public constant APP_ID = 'appId';
   string public constant DESCRIPTION = '0xDescription';
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
