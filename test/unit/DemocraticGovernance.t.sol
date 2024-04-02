@@ -6,13 +6,16 @@ import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
+
 import {IDemocraticGovernance} from 'interfaces/IDemocraticGovernance.sol';
+import {IGovernorSettings} from 'interfaces/IGovernorSettings.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
+import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
 abstract contract Base is Test, UnitUtils {
@@ -28,6 +31,9 @@ abstract contract Base is Test, UnitUtils {
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
   uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
   uint256 public constant ROOT_EXPIRATION_THRESHOLD = 0;
+  uint256 public constant RESET_GRACE_PERIOD = 13 days + 22 hours;
+  uint256 public constant ROOT_HISTORY_EXPIRY = 1 weeks;
+  uint128 public rootTimestamp = uint128(block.timestamp - 1);
 
   IERC20 public token;
   IGovernorWorldID public governor;
@@ -104,12 +110,397 @@ abstract contract Base is Test, UnitUtils {
   }
 }
 
+contract DemocraticGovernance_Unit_Constructor is Base {
+  /**
+   * @notice Check that the constructor reverts if the root expiration threshold is bigger than the reset grace period
+   */
+  function test_revertIfThresholdBiggerThanResetGracePeriod(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold > RESET_GRACE_PERIOD);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
+    vm.prank(address(governor));
+    governor = new MockDemocraticGovernance(
+      GROUP_ID,
+      worldIDRouter,
+      APP_ID,
+      QUORUM,
+      INITIAL_VOTING_DELAY,
+      INITIAL_VOTING_PERIOD,
+      INITIAL_PROPOSAL_THRESHOLD,
+      _rootExpirationThreshold
+    );
+  }
+
+  /**
+   * @notice Check that the constructor reverts if the root expiration threshold is bigger than the root history expiry
+   */
+  function test_revertIfThresholdBiggerThanRootHistoryExpiry(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold > ROOT_HISTORY_EXPIRY);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
+    vm.prank(address(governor));
+    governor = new MockDemocraticGovernance(
+      GROUP_ID,
+      worldIDRouter,
+      APP_ID,
+      QUORUM,
+      INITIAL_VOTING_DELAY,
+      INITIAL_VOTING_PERIOD,
+      INITIAL_PROPOSAL_THRESHOLD,
+      _rootExpirationThreshold
+    );
+  }
+
+  /**
+   * @notice Check that the constructor works as expected
+   */
+  function test_correctDeploy(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
+    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
+
+    vm.prank(address(governor));
+    governor = new MockDemocraticGovernance(
+      GROUP_ID,
+      worldIDRouter,
+      APP_ID,
+      QUORUM,
+      INITIAL_VOTING_DELAY,
+      INITIAL_VOTING_PERIOD,
+      INITIAL_PROPOSAL_THRESHOLD,
+      _rootExpirationThreshold
+    );
+  }
+}
+
 contract DemocraticGovernance_Unit_WORLD_ID_ROUTER is Base {
   /**
-   * @notice Test that the function returns the worldIDRouter instance
+   * @notice Test that the function returns the WorldIDRouter instance
    */
   function test_returnWorldIDInstance() public {
     assertEq(address(governor.WORLD_ID_ROUTER()), address(worldIDRouter));
+  }
+}
+
+contract DemocraticGovernance_Unit_GROUP_ID is Base {
+  /**
+   * @notice Test that the function returns the group ID
+   */
+  function test_returnGroupId() public {
+    assertEq(governor.GROUP_ID(), GROUP_ID);
+  }
+}
+
+contract DemocraticGovernance_Unit_APP_ID is Base {
+  using ByteHasher for bytes;
+
+  /**
+   * @notice Test that the function returns the app ID
+   */
+  function test_returnAppId() public view {
+    assert(governor.APP_ID() == abi.encodePacked(APP_ID).hashToField());
+  }
+}
+
+contract DemocraticGovernance_Unit_ResetGracePeriod is Base {
+  /**
+   * @notice Test that the function returns the correct reset grace period
+   */
+  function test_returnResetGracePeriod() public {
+    assertEq(governor.resetGracePeriod(), RESET_GRACE_PERIOD);
+  }
+}
+
+contract DemocraticGovernance_Unit_RootExpirationThreshold is Base {
+  /**
+   * @notice Test that the function returns the correct root expiration threshold
+   */
+  function test_returnRootExpirationThreshold() public {
+    assertEq(governor.rootExpirationThreshold(), ROOT_EXPIRATION_THRESHOLD);
+  }
+}
+
+contract DemocraticGovernance_Unit_SetRootExpirationThreshold is Base {
+  /**
+   * @notice Check that the function reverts if called by non-governance
+   */
+  function test_revertIfCalledByNonGovernance(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
+    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
+
+    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
+    vm.prank(user);
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
+  }
+
+  /**
+   * @notice Check that the function reverts if the new root expiration threshold is bigger than the reset grace period
+   */
+  function test_revertIfBiggerThanResetGracePeriod(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold > RESET_GRACE_PERIOD);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
+  }
+
+  /**
+   * @notice Check that the function reverts if the new root expiration threshold is bigger than the reset grace period
+   */
+  function test_revertIfBiggerThanRootHistoryExpiry(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold > ROOT_HISTORY_EXPIRY);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_setRootExpirationThreshold(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
+    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
+
+    vm.expectEmit(true, true, true, true);
+    emit IGovernorWorldID.RootExpirationThresholdUpdated(_rootExpirationThreshold, ROOT_EXPIRATION_THRESHOLD);
+
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
+  }
+}
+
+contract DemocraticGovernance_Unit_SetResetGracePeriod is Base {
+  /**
+   * @notice Check that the function reverts if called by non-governance
+   */
+  function test_revertIfCalledByNonGovernance(uint256 _resetGracePeriod) public {
+    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
+    vm.prank(user);
+    governor.setResetGracePeriod(_resetGracePeriod);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_setResetGracePeriod(uint256 _resetGracePeriod) public {
+    vm.expectEmit(true, true, true, true);
+    emit IGovernorWorldID.ResetGracePeriodUpdated(_resetGracePeriod, RESET_GRACE_PERIOD);
+
+    vm.prank(address(governor));
+    governor.setResetGracePeriod(_resetGracePeriod);
+  }
+}
+
+contract DemocraticGovernance_Unit_CheckVoteValidity is Base {
+  /**
+   * @notice Test that the function reverts if the nullifier is already used
+   */
+  function test_revertIfNullifierAlreadyUsed(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    IMockDemocraticGovernanceForTest(address(governor)).forTest_setNullifierHash(_nullifierHash, true);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function calls the latestRoot function from the Router contract
+   */
+  function test_callRouteFor(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
+
+    _mockAndExpect(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector),
+      abi.encode(address(worldIDIdentityManager))
+    );
+
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function calls the rootHistory function from the IdentityManager contract
+   */
+  function test_callRootHistory(
+    uint128 _rootTimestamp,
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    vm.warp(1_000_000);
+    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
+
+    vm.assume(_rootTimestamp > block.timestamp - _rootExpirationThreshold);
+
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, _rootExpirationThreshold, _rootTimestamp
+    );
+
+    // Set a new root expiration threshold
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
+
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function reverts if the root is outdated
+   */
+  function test_revertIfOutdatedRoot(
+    uint128 _rootTimestamp,
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    vm.warp(1_000_000);
+    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
+
+    vm.assume(_rootTimestamp < block.timestamp - _rootExpirationThreshold);
+
+    _mockAndExpect(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistory.selector),
+      abi.encode(_rootTimestamp)
+    );
+
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // Set a new root expiration threshold
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
+
+    // Try to cast a vote with an outdated root
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function calls the latestRoot function from the IdentityManager contract
+   */
+  function test_callLatestRoot(
+    uint256 _root,
+    uint256 _latestRoot,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    // Encode the parameters
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    _mockWorlIDCalls(
+      worldIDRouter,
+      worldIDIdentityManager,
+      _latestRoot,
+      _nullifierHash,
+      _proof,
+      ROOT_EXPIRATION_THRESHOLD,
+      rootTimestamp
+    );
+
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function calls the verifyProof function from the WorldID contract
+   */
+  function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
+
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function returns the nullifier hash
+   */
+  function test_returnNullifierHash(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
+
+    vm.prank(user);
+    uint256 _returnedNullifierHash = governor.checkVoteValidity(SUPPORT, proposalId, _params);
+    assertEq(_returnedNullifierHash, _nullifierHash);
+  }
+}
+
+contract DemocraticGovernance_Unit_VotingDelay is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_VotingDelay() public {
+    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
+  }
+}
+
+contract DemocraticGovernance_Unit_VotingPeriod is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_VotingPeriod() public {
+    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
+  }
+}
+
+contract DemocraticGovernance_Unit_ProposalThreshold is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_ProposalThreshold() public {
+    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
+  }
+}
+
+contract DemocraticGovernance_Unit_SetVotingPeriod is Base {
+  /**
+   * @notice Check that the function reverts if invalid voting period
+   */
+  function test_revertIfInvalidPeriodWhenZeroThreshold(uint32 _votingPeriod) public {
+    vm.assume(_votingPeriod > RESET_GRACE_PERIOD);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
+    vm.prank(address(governor));
+    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
+  }
+
+  /**
+   * @notice Check that the function reverts if invalid voting period
+   */
+  function test_revertIfInvalidPeriodWhenNonZeroThreshold(uint32 _votingPeriod) public {
+    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
+
+    vm.assume(_votingPeriod > RESET_GRACE_PERIOD - _rootExpirationThreshold);
+
+    // Set a new root expiration threshold
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
+    vm.prank(address(governor));
+    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_setVotingPeriod(uint32 _votingPeriod) public {
+    vm.assume(_votingPeriod != 0);
+    vm.assume(_votingPeriod < RESET_GRACE_PERIOD);
+
+    vm.expectEmit(true, true, true, true);
+    emit GovernorSettings.VotingPeriodSet(INITIAL_VOTING_PERIOD, _votingPeriod);
+
+    vm.prank(address(governor));
+    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
   }
 }
 
@@ -146,147 +537,85 @@ contract DemocraticGovernance_Unit_CastVoteBySig is Base {
   }
 }
 
-// contract DemocraticGovernance_Unit_IsHuman is Base {
-//   //   /**
-//   //    * @notice Test that the function returns if the root is already verified
-//   //    */
-//   //   function test_returnIfAlreadyVerifiedOnLatestRoot(
-//   //     uint256 _root,
-//   //     uint256 _nullifierHash,
-//   //     uint256[8] memory _proof
-//   //   ) public {
-//   //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_root));
-//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_setLatestRootPerVoter(user, _root);
-//   //     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
+  /**
+   * @notice Check that the function stores the nullifier as used
+   */
+  function test_nullifierIsStored(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
-//   //     // Since the function returns, no call is expected to `verifyProof`
-//   //     uint64 _methodCallsCounter = 0;
-//   //     vm.expectCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.verifyProof.selector), _methodCallsCounter);
+    // Cast the vote
+    vm.prank(user);
+    IMockDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
 
-//   //     vm.prank(user);
-//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
-//   //   }
+    assertTrue(governor.nullifierHashes(_nullifierHash));
+  }
 
-//   //   /**
-//   //    * @notice Test that the function reverts if no proof data is provided
-//   //    */
-//   //   function test_revertIfNoProofData(uint256 _root) public {
-//   //     vm.assume(_root != 0);
-//   //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_root));
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
-//   //     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NoProofData.selector);
-//   //     vm.prank(user);
-//   //     bytes memory _emptyProofParams = '';
-//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _emptyProofParams);
-//   //   }
+    vm.expectEmit(true, true, true, true);
+    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
-//   //   /**
-//   //    * @notice Test that the function reverts if the root is outdated
-//   //    */
-//   //   function test_revertIfOutdatedRoot(
-//   //     uint256 _currentRoot,
-//   //     uint256 _root,
-//   //     uint256 _nullifierHash,
-//   //     uint256[8] memory _proof
-//   //   ) public {
-//   //     vm.assume(_currentRoot != 0);
-//   //     vm.assume(_currentRoot != _root);
+    // Cast the vote
+    vm.prank(user);
+    IMockDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+  }
+}
 
-//   //     // Set the current root
-//   //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_currentRoot));
+contract DemocraticGovernance_Unit_CastVoteWithReasonAndParams is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
-//   //     // Try to cast a vote with an outdated root
-//   //     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-//   //     vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
-//   //     vm.prank(user);
-//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
-//   //   }
+    vm.expectEmit(true, true, true, true);
+    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
-//   /**
-//    * @notice Test that the function calls the verifyProof function from the WorldID contract
-//    */
-//   function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
+    // Cast the vote
+    vm.prank(user);
+    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
+  }
+}
 
-//     // Cast the vote
-//     vm.prank(user);
-//     IMockDemocraticGovernanceForTest(address(governor)).forTest_checkVoteValidity(SUPPORT, proposalId, _params);
-//   }
+contract DemocraticGovernance_Unit_CastVoteWithReasonAndParamsBySig is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_castVoteWithReasonAndParamsBySig(
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
 
-//   //   /**
-//   //    * @notice Test that the latest root is stored
-//   //    */
-//   //   function test_storeLatestRootPerVoter(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-//   //     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
+    // Sign
+    bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
+    (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
+    bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
 
-//   //     // Cast the vote
-//   //     vm.prank(user);
-//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
+    vm.expectEmit(true, true, true, true);
+    emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
 
-//   //     // Check that the latest root is stored
-//   //     uint256 _latestRootStored = governor.latestRootPerVoter(user);
-//   //     assertEq(_latestRootStored, _root);
-//   //   }
-// }
-
-// contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
-//   /**
-//    * @notice Check that the function works as expected
-//    */
-//   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
-
-//     vm.expectEmit(true, true, true, true);
-//     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
-
-//     // Cast the vote
-//     vm.prank(user);
-//     IMockDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
-//   }
-// }
-
-// contract DemocraticGovernance_Unit_CastVoteWithReasonAndParams is Base {
-//   /**
-//    * @notice Check that the function works as expected
-//    */
-//   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
-
-//     vm.expectEmit(true, true, true, true);
-//     emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
-
-//     // Cast the vote
-//     vm.prank(user);
-//     governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
-//   }
-// }
-
-// contract DemocraticGovernance_Unit_CastVoteWithReasonAndParamsBySig is Base {
-//   /**
-//    * @notice Check that the function works as expected
-//    */
-//   function test_castVoteWithReasonAndParamsBySig(
-//     uint256 _root,
-//     uint256 _nullifierHash,
-//     uint256[8] memory _proof
-//   ) public {
-//     bytes memory _params = _mockWorlIDCalls(worldIDIdentityManager, _root, _nullifierHash, _proof);
-
-//     // Sign
-//     bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
-//     (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-//     bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
-
-//     vm.expectEmit(true, true, true, true);
-//     emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
-
-//     // Cast the vote
-//     vm.prank(user);
-//     governor.castVoteWithReasonAndParamsBySig(
-//       proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
-//     );
-//   }
-// }
+    // Cast the vote
+    vm.prank(user);
+    governor.castVoteWithReasonAndParamsBySig(
+      proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
+    );
+  }
+}
 
 contract DemocraticGovernance_Unit_GetVotes is Base {
   /**
@@ -376,10 +705,10 @@ contract DemocraticGovernance_Unit_Propose is Base {
 
 contract DemocraticGovernance_Unit_SetQuorum is Base {
   /**
-   * @notice Check that only the owner can set the quorum
+   * @notice Check that only governance can set the quorum
    */
-  function test_revertWithNotOwner(uint256 _quorum) public {
-    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
+  function test_revertWithNotGovernance(uint256 _quorum) public {
+    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
     vm.prank(user);
     IDemocraticGovernance(address(governor)).setQuorum(_quorum);
   }
@@ -388,7 +717,7 @@ contract DemocraticGovernance_Unit_SetQuorum is Base {
    * @notice Check that the function works as expected
    */
   function test_setQuorum(uint256 _quorum) public {
-    vm.prank(owner);
+    vm.prank(address(governor));
     IDemocraticGovernance(address(governor)).setQuorum(_quorum);
     uint256 _quorumFromGovernor = IDemocraticGovernance(address(governor)).quorum(block.number);
     assertEq(_quorumFromGovernor, _quorum);
@@ -401,7 +730,7 @@ contract DemocraticGovernance_Unit_SetQuorum is Base {
     vm.expectEmit(true, true, true, true);
     emit IDemocraticGovernance.QuorumSet(_quorum);
 
-    vm.prank(owner);
+    vm.prank(address(governor));
     IDemocraticGovernance(address(governor)).setQuorum(_quorum);
   }
 }
@@ -434,77 +763,57 @@ contract DemocraticGovernance_Unit_CLOCK_MODE is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_VotingDelay is Base {
+contract DemocraticGovernance_Unit_QuorumReached is Base {
   /**
-   * @notice Test that the function returns the voting delay
+   * @notice Test that the function returns if the quorum is reached
    */
-  function test_returnVotingDelay() public {
-    uint256 _delay = 1 days;
-    assertEq(governor.votingDelay(), _delay);
+  function test_reachedQuorum(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
+    // Propose and vote
+    uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM + 1);
+
+    // Check that the quorum is reached
+    assertTrue(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+  }
+
+  /**
+   * @notice Test that the function returns if the quorum is not reached
+   */
+  function test_notReachedQuorum(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
+    // Propose and vote
+    uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM - 1);
+
+    // Check that the quorum is reached
+    assertFalse(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+  }
+
+  /**
+   * @dev Propose a new proposal, and generate random accounts to vote on it the desired number of votes
+   */
+  function _proposeAndVote(
+    address _owner,
+    string memory _description,
+    uint256 _votesRequired
+  ) internal returns (uint256 _proposalId) {
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    bytes[] memory _calldatas = new bytes[](1);
+
+    vm.prank(_owner);
+    _proposalId = governor.propose(_targets, _values, _calldatas, _description);
+
+    // Advance time assuming 1 block == 1 second (this will make the proposal active)
+    vm.warp(block.timestamp + governor.votingDelay() + 1);
+    vm.roll(block.number + governor.votingDelay() + 1);
+
+    // Vote
+    for (uint256 i = 0; i < _votesRequired; i++) {
+      address _randomVoter = vm.addr(uint256(keccak256(abi.encodePacked(i, _description))));
+      vm.prank(_randomVoter);
+      IMockDemocraticGovernanceForTest(address(governor)).forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
+    }
   }
 }
-
-// contract DemocraticGovernance_Unit_VotingPeriod is Base {
-//   /**
-//    * @notice Test that the function returns the voting period
-//    */
-//   function test_returnVotingPeriod() public {
-//     uint256 _duration = 1 weeks;
-//     assertEq(governor.votingPeriod(), _duration);
-//   }
-// }
-
-// contract DemocraticGovernance_Unit_QuorumReached is Base {
-//   /**
-//    * @notice Test that the function returns if the quorum is reached
-//    */
-//   function test_reachedQuorum(string memory _description) public {
-//     vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
-
-//     // Propose and vote
-//     uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM + 1);
-
-//     // Check that the quorum is reached
-//     assertTrue(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
-//   }
-
-//   /**
-//    * @notice Test that the function returns if the quorum is not reached
-//    */
-//   function test_notReachedQuorum(string memory _description) public {
-//     vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
-
-//     // Propose and vote
-//     uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM - 1);
-
-//     // Check that the quorum is reached
-//     assertFalse(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
-//   }
-
-//   /**
-//    * @dev Propose a new proposal, and generate random accounts to vote on it the desired number of votes
-//    */
-//   function _proposeAndVote(
-//     address _owner,
-//     string memory _description,
-//     uint256 _votesRequired
-//   ) internal returns (uint256 _proposalId) {
-//     address[] memory _targets = new address[](1);
-//     uint256[] memory _values = new uint256[](1);
-//     bytes[] memory _calldatas = new bytes[](1);
-
-//     vm.prank(_owner);
-//     _proposalId = governor.propose(_targets, _values, _calldatas, _description);
-
-//     // Advance time assuming 1 block == 1 second (this will make the proposal active)
-//     vm.warp(block.timestamp + governor.votingDelay() + 1);
-//     vm.roll(block.number + governor.votingDelay() + 1);
-
-//     // Vote
-//     for (uint256 i = 0; i < _votesRequired; i++) {
-//       address _randomVoter = vm.addr(uint256(keccak256(abi.encodePacked(i, _description))));
-//       vm.prank(_randomVoter);
-//       IMockDemocraticGovernanceForTest(address(governor)).forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
-//     }
-//   }
-// }

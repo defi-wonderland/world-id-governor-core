@@ -101,7 +101,7 @@ abstract contract Base is Test, UnitUtils {
   }
 }
 
-contract GovernorWorldId_Unit_Constructor is Base {
+contract GovernorWorldID_Unit_Constructor is Base {
   /**
    * @notice Check that the constructor reverts if the root expiration threshold is bigger than the reset grace period
    */
@@ -169,7 +169,7 @@ contract GovernorWorldId_Unit_Constructor is Base {
   }
 }
 
-contract GovernorWorldId_Unit_WORLD_ID_ROUTER is Base {
+contract GovernorWorldID_Unit_WORLD_ID_ROUTER is Base {
   /**
    * @notice Test that the function returns the WorldIDRouter instance
    */
@@ -178,7 +178,7 @@ contract GovernorWorldId_Unit_WORLD_ID_ROUTER is Base {
   }
 }
 
-contract GovernorWorldId_Unit_GROUP_ID is Base {
+contract GovernorWorldID_Unit_GROUP_ID is Base {
   /**
    * @notice Test that the function returns the group ID
    */
@@ -187,7 +187,7 @@ contract GovernorWorldId_Unit_GROUP_ID is Base {
   }
 }
 
-contract GovernorWorldId_Unit_APP_ID is Base {
+contract GovernorWorldID_Unit_APP_ID is Base {
   using ByteHasher for bytes;
 
   /**
@@ -198,7 +198,7 @@ contract GovernorWorldId_Unit_APP_ID is Base {
   }
 }
 
-contract GovernorWorldId_Unit_ResetGracePeriod is Base {
+contract GovernorWorldID_Unit_ResetGracePeriod is Base {
   /**
    * @notice Test that the function returns the correct reset grace period
    */
@@ -207,7 +207,7 @@ contract GovernorWorldId_Unit_ResetGracePeriod is Base {
   }
 }
 
-contract GovernorWorldId_Unit_RootExpirationThreshold is Base {
+contract GovernorWorldID_Unit_RootExpirationThreshold is Base {
   /**
    * @notice Test that the function returns the correct root expiration threshold
    */

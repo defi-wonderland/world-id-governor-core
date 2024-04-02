@@ -22,6 +22,8 @@ interface IMockDemocraticGovernanceForTest {
 
   function forTest_countVote(uint256 _proposalId, address _account, uint8 _support, uint256 _weight) external;
 
+  function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) external;
+
   function forTest_getVotes(
     address _account,
     uint256 _timepoint,
@@ -71,6 +73,10 @@ contract MockDemocraticGovernance is DemocraticGovernance {
     string memory _reason
   ) public returns (uint256) {
     return _castVote(_proposalId, _account, _support, _reason);
+  }
+
+  function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) public {
+    nullifierHashes[_nullifierHash] = _isUsed;
   }
 
   function forTest_countVote(uint256 _proposalId, address _account, uint8 _support, uint256 _weight) public {
