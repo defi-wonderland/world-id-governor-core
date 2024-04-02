@@ -70,7 +70,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     GROUP_ID = _groupID;
     APP_ID = abi.encodePacked(_appId).hashToField();
 
-    _checkRootExpirationThresholdValidity(_rootExpirationThreshold);
+    _checkRootExpirationThreshold(_rootExpirationThreshold);
 
     rootExpirationThreshold = _rootExpirationThreshold;
   }
@@ -79,7 +79,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @inheritdoc IGovernorWorldID
    */
   function setRootExpirationThreshold(uint256 _newRootExpirationThreshold) external onlyGovernance {
-    _checkRootExpirationThresholdValidity(_newRootExpirationThreshold);
+    _checkRootExpirationThreshold(_newRootExpirationThreshold);
 
     uint256 _oldRootExpirationThreshold = rootExpirationThreshold;
     rootExpirationThreshold = _newRootExpirationThreshold;
@@ -202,7 +202,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @dev If zero, it will not check the root expiration threshold. If not zero, it will check if it is less than the reset grace period and the root history expiry
    * @param _rootExpirationThreshold The root expiration threshold
    */
-  function _checkRootExpirationThresholdValidity(uint256 _rootExpirationThreshold) internal view {
+  function _checkRootExpirationThreshold(uint256 _rootExpirationThreshold) internal view {
     if (_rootExpirationThreshold == 0) return;
 
     IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
