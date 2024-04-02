@@ -218,6 +218,19 @@ contract GovernorWorldID_Unit_SetRootExpirationThreshold is Base {
   }
 
   /**
+   * @notice Check that the setter works as expected
+   */
+  function test_setRootExpirationThreshold(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
+    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
+
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
+
+    assertEq(governor.rootExpirationThreshold(), _rootExpirationThreshold);
+  }
+
+  /**
    * @notice Check that the event is emitted
    */
   function test_emitEvent(uint256 _rootExpirationThreshold) public {
@@ -229,19 +242,6 @@ contract GovernorWorldID_Unit_SetRootExpirationThreshold is Base {
 
     vm.prank(address(governor));
     governor.setRootExpirationThreshold(_rootExpirationThreshold);
-  }
-
-  /**
-   * @notice Check that the setter works as expected
-   */
-  function test_setRootExpirationThreshold(uint256 _rootExpirationThreshold) public {
-    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
-    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
-
-    vm.prank(address(governor));
-    governor.setRootExpirationThreshold(_rootExpirationThreshold);
-
-    assertEq(governor.rootExpirationThreshold(), _rootExpirationThreshold);
   }
 }
 
@@ -276,6 +276,16 @@ contract GovernorWorldID_Unit_SetResetGracePeriod is Base {
   }
 
   /**
+   * @notice Check that the function sets the reset grace period
+   */
+  function test_setResetGracePeriod(uint256 _resetGracePeriod) public {
+    vm.prank(address(governor));
+    governor.setResetGracePeriod(_resetGracePeriod);
+
+    assertEq(governor.resetGracePeriod(), _resetGracePeriod);
+  }
+
+  /**
    * @notice Check that the function emits the event
    */
   function test_emitEvent(uint256 _resetGracePeriod) public {
@@ -284,16 +294,6 @@ contract GovernorWorldID_Unit_SetResetGracePeriod is Base {
 
     vm.prank(address(governor));
     governor.setResetGracePeriod(_resetGracePeriod);
-  }
-
-  /**
-   * @notice Check that the function sets the reset grace period
-   */
-  function test_setResetGracePeriod(uint256 _resetGracePeriod) public {
-    vm.prank(address(governor));
-    governor.setResetGracePeriod(_resetGracePeriod);
-
-    assertEq(governor.resetGracePeriod(), _resetGracePeriod);
   }
 }
 
@@ -510,6 +510,19 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   }
 
   /**
+   * @notice Check that the function sets the voting period
+   */
+  function test_setVotingPeriod(uint32 _votingPeriod) public {
+    vm.assume(_votingPeriod != 0);
+    vm.assume(_votingPeriod < RESET_GRACE_PERIOD);
+
+    vm.prank(address(governor));
+    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
+
+    assertEq(governor.votingPeriod(), _votingPeriod);
+  }
+
+  /**
    * @notice Check that the function emits the event
    */
   function test_emitEvent(uint32 _votingPeriod) public {
@@ -521,19 +534,6 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
 
     vm.prank(address(governor));
     IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
-  }
-
-  /**
-   * @notice Check that the function sets the voting period
-   */
-  function test_setVotingPeriod(uint32 _votingPeriod) public {
-    vm.assume(_votingPeriod != 0);
-    vm.assume(_votingPeriod < RESET_GRACE_PERIOD);
-
-    vm.prank(address(governor));
-    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
-
-    assertEq(governor.votingPeriod(), _votingPeriod);
   }
 }
 
