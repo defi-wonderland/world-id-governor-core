@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
-interface IMockDemocraticGovernanceForTest {
+interface IDemocraticGovernanceForTest {
   function forTest_castVote(
     uint256 _proposalId,
     address _account,
@@ -31,7 +31,7 @@ interface IMockDemocraticGovernanceForTest {
   function forTest_quorumReached(uint256 _proposalId) external view returns (bool _reached);
 }
 
-contract MockDemocraticGovernance is DemocraticGovernance {
+contract DemocraticGovernanceForTest is DemocraticGovernance {
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
-import {IMockGovernorDemocraticForTest, MockGovernorDemocratic} from '../mocks/MockGovernorDemocratic.sol';
+import {ERC20VotesForTest} from '../forTest/ERC20VotesForTest.sol';
+import {GovernorDemocraticForTest, IGovernorDemocraticForTest} from '../forTest/GovernorDemocraticForTest.sol';
 import {UnitUtils} from './UnitUtils.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
@@ -30,7 +30,7 @@ abstract contract Base is Test, UnitUtils {
     user = makeAddr('user');
 
     // Deploy token
-    token = new MockERC20Votes();
+    token = new ERC20VotesForTest();
 
     // Deploy mock worldIDRouter
     worldIDRouter = IWorldIDRouter(makeAddr('worldIDRouter'));
@@ -56,7 +56,7 @@ abstract contract Base is Test, UnitUtils {
 
     // Deploy governor
     string memory _appId = 'appId';
-    governor = new MockGovernorDemocratic(
+    governor = new GovernorDemocraticForTest(
       GROUP_ID,
       worldIDRouter,
       _appId,
@@ -75,7 +75,7 @@ contract GovernorDemocratic_Unit_GetVotes is Base {
    */
   function test_returnsOne(address _account, uint256 _timepoint, bytes memory _params) public {
     uint256 _votingWeight =
-      IMockGovernorDemocraticForTest(address(governor)).forTest_getVotes(_account, _timepoint, _params);
+      IGovernorDemocraticForTest(address(governor)).forTest_getVotes(_account, _timepoint, _params);
     assertEq(_votingWeight, ONE);
   }
 }

@@ -6,7 +6,7 @@ import {ERC20Permit} from 'open-zeppelin/token/ERC20/extensions/ERC20Permit.sol'
 import {ERC20Votes} from 'open-zeppelin/token/ERC20/extensions/ERC20Votes.sol';
 import {Nonces} from 'open-zeppelin/utils/Nonces.sol';
 
-contract MockERC20Votes is ERC20, ERC20Permit, ERC20Votes {
+contract ERC20VotesForTest is ERC20, ERC20Permit, ERC20Votes {
   constructor() ERC20('MyToken', 'MTK') ERC20Permit('MyToken') {}
 
   function mint(address to, uint256 amount) public {

@@ -8,7 +8,7 @@ import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.s
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
 import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
 
-interface IMockGovernorDemocraticForTest {
+interface IGovernorDemocraticForTest {
   function forTest_castVote(
     uint256 _proposalId,
     address _account,
@@ -31,7 +31,7 @@ interface IMockGovernorDemocraticForTest {
   ) external view returns (uint256 _votingWeight);
 }
 
-contract MockGovernorDemocratic is GovernorCountingSimple, GovernorDemocratic {
+contract GovernorDemocraticForTest is GovernorCountingSimple, GovernorDemocratic {
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,

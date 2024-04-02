@@ -8,7 +8,7 @@ import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/Govern
 import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/GovernorVotes.sol';
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
 
-interface IMockGovernorWorldIdForTest {
+interface IGovernorWorldIdForTest {
   function forTest_castVote(
     uint256 _proposalId,
     address _account,
@@ -22,7 +22,7 @@ interface IMockGovernorWorldIdForTest {
   function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) external view;
 }
 
-contract MockGovernorWorldId is GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorWorldID {
+contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorWorldID {
   struct ConstructorArgs {
     uint256 groupID;
     IWorldIDRouter worldIdRouter;

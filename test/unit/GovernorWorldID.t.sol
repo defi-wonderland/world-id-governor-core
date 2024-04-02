@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
-import {IMockGovernorWorldIdForTest, MockGovernorWorldId} from '../mocks/MockGovernorWorldId.sol';
+import {ERC20VotesForTest} from '../forTest/ERC20VotesForTest.sol';
+import {GovernorWorldIdForTest, IGovernorWorldIdForTest} from '../forTest/GovernorWorldIdForTest.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
@@ -46,7 +46,7 @@ abstract contract Base is Test, UnitUtils {
     user = makeAddr('user');
 
     // Deploy token
-    token = new MockERC20Votes();
+    token = new ERC20VotesForTest();
 
     // Deploy mock worldIDRouter
     worldIDRouter = IWorldIDRouter(makeAddr('worldIDRouter'));
@@ -71,7 +71,7 @@ abstract contract Base is Test, UnitUtils {
     );
 
     // Deploy governor
-    MockGovernorWorldId.ConstructorArgs memory _cArgs = MockGovernorWorldId.ConstructorArgs(
+    GovernorWorldIdForTest.ConstructorArgs memory _cArgs = GovernorWorldIdForTest.ConstructorArgs(
       GROUP_ID,
       worldIDRouter,
       APP_ID,
@@ -81,7 +81,7 @@ abstract contract Base is Test, UnitUtils {
       INITIAL_PROPOSAL_THRESHOLD,
       ROOT_EXPIRATION_THRESHOLD
     );
-    governor = new MockGovernorWorldId(_cArgs);
+    governor = new GovernorWorldIdForTest(_cArgs);
 
     // Deploy sigUtils
     sigUtils = new GovernorSigUtils(address(governor), 'Governor');
@@ -112,8 +112,8 @@ contract GovernorWorldId_Unit_Constructor is Base {
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
     vm.prank(address(governor));
-    governor = new MockGovernorWorldId(
-      MockGovernorWorldId.ConstructorArgs(
+    governor = new GovernorWorldIdForTest(
+      GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
         APP_ID,
@@ -134,8 +134,8 @@ contract GovernorWorldId_Unit_Constructor is Base {
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
     vm.prank(address(governor));
-    governor = new MockGovernorWorldId(
-      MockGovernorWorldId.ConstructorArgs(
+    governor = new GovernorWorldIdForTest(
+      GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
         APP_ID,
@@ -156,8 +156,8 @@ contract GovernorWorldId_Unit_Constructor is Base {
     vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
 
     vm.prank(address(governor));
-    governor = new MockGovernorWorldId(
-      MockGovernorWorldId.ConstructorArgs(
+    governor = new GovernorWorldIdForTest(
+      GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
         APP_ID,
@@ -304,7 +304,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
   function test_revertIfNullifierAlreadyUsed(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
-    IMockGovernorWorldIdForTest(address(governor)).forTest_setNullifierHash(_nullifierHash, true);
+    IGovernorWorldIdForTest(address(governor)).forTest_setNullifierHash(_nullifierHash, true);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
     vm.prank(user);
@@ -543,7 +543,7 @@ contract GovernorWorldID_Unit_CheckRootExpirationThreshold is Base {
    */
   function test_returnIfThresholdZero() public {
     vm.expectCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.routeFor.selector), 0);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(0);
+    IGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(0);
   }
 
   /**
@@ -560,7 +560,7 @@ contract GovernorWorldID_Unit_CheckRootExpirationThreshold is Base {
       abi.encode(address(worldIDIdentityManager))
     );
 
-    IMockGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
+    IGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   /**
@@ -577,7 +577,7 @@ contract GovernorWorldID_Unit_CheckRootExpirationThreshold is Base {
       abi.encode(ROOT_HISTORY_EXPIRY)
     );
 
-    IMockGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
+    IGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   /**
@@ -587,7 +587,7 @@ contract GovernorWorldID_Unit_CheckRootExpirationThreshold is Base {
     vm.assume(_rootExpirationThreshold > RESET_GRACE_PERIOD);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
+    IGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   /**
@@ -597,7 +597,7 @@ contract GovernorWorldID_Unit_CheckRootExpirationThreshold is Base {
     vm.assume(_rootExpirationThreshold > ROOT_HISTORY_EXPIRY);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
+    IGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   /**
@@ -607,7 +607,7 @@ contract GovernorWorldID_Unit_CheckRootExpirationThreshold is Base {
     vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
     vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
 
-    IMockGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
+    IGovernorWorldIdForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 }
 
@@ -655,7 +655,7 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
 
     // Cast the vote
     vm.prank(user);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+    IGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
 
     assertTrue(governor.nullifierHashes(_nullifierHash));
   }
@@ -673,7 +673,7 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
 
     // Cast the vote
     vm.prank(user);
-    IMockGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+    IGovernorWorldIdForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
   }
 }
 

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IMockDemocraticGovernanceForTest, MockDemocraticGovernance} from '../mocks/MockDemocraticGovernance.sol';
-import {MockERC20Votes} from '../mocks/MockERC20Votes.sol';
+import {DemocraticGovernanceForTest, IDemocraticGovernanceForTest} from '../forTest/DemocraticGovernanceForTest.sol';
+import {ERC20VotesForTest} from '../forTest/ERC20VotesForTest.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
@@ -47,7 +47,7 @@ abstract contract Base is Test, UnitUtils {
     owner = makeAddr('owner');
 
     // Deploy token
-    token = new MockERC20Votes();
+    token = new ERC20VotesForTest();
 
     // Deploy mock worldIDRouter
     worldIDRouter = IWorldIDRouter(makeAddr('worldIDRouter'));
@@ -74,7 +74,7 @@ abstract contract Base is Test, UnitUtils {
     // Deploy governor
     vm.prank(owner);
     governor = IGovernorWorldID(
-      new MockDemocraticGovernance(
+      new DemocraticGovernanceForTest(
         GROUP_ID,
         worldIDRouter,
         APP_ID,
@@ -156,7 +156,7 @@ contract DemocraticGovernance_Unit_CastVoteBySig is Base {
 //   //     uint256[8] memory _proof
 //   //   ) public {
 //   //     vm.mockCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector), abi.encode(_root));
-//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_setLatestRootPerVoter(user, _root);
+//   //     IDemocraticGovernanceForTest(address(governor)).forTest_setLatestRootPerVoter(user, _root);
 //   //     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
 //   //     // Since the function returns, no call is expected to `verifyProof`
@@ -164,7 +164,7 @@ contract DemocraticGovernance_Unit_CastVoteBySig is Base {
 //   //     vm.expectCall(address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.verifyProof.selector), _methodCallsCounter);
 
 //   //     vm.prank(user);
-//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
+//   //     IDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
 //   //   }
 
 //   //   /**
@@ -177,7 +177,7 @@ contract DemocraticGovernance_Unit_CastVoteBySig is Base {
 //   //     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NoProofData.selector);
 //   //     vm.prank(user);
 //   //     bytes memory _emptyProofParams = '';
-//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _emptyProofParams);
+//   //     IDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _emptyProofParams);
 //   //   }
 
 //   //   /**
@@ -199,7 +199,7 @@ contract DemocraticGovernance_Unit_CastVoteBySig is Base {
 //   //     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 //   //     vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
 //   //     vm.prank(user);
-//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
+//   //     IDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
 //   //   }
 
 //   /**
@@ -210,7 +210,7 @@ contract DemocraticGovernance_Unit_CastVoteBySig is Base {
 
 //     // Cast the vote
 //     vm.prank(user);
-//     IMockDemocraticGovernanceForTest(address(governor)).forTest_checkVoteValidity(SUPPORT, proposalId, _params);
+//     IDemocraticGovernanceForTest(address(governor)).forTest_checkVoteValidity(SUPPORT, proposalId, _params);
 //   }
 
 //   //   /**
@@ -221,7 +221,7 @@ contract DemocraticGovernance_Unit_CastVoteBySig is Base {
 
 //   //     // Cast the vote
 //   //     vm.prank(user);
-//   //     IMockDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
+//   //     IDemocraticGovernanceForTest(address(governor)).forTest_isHuman(user, proposalId, _params);
 
 //   //     // Check that the latest root is stored
 //   //     uint256 _latestRootStored = governor.latestRootPerVoter(user);
@@ -241,7 +241,7 @@ contract DemocraticGovernance_Unit_CastVoteBySig is Base {
 
 //     // Cast the vote
 //     vm.prank(user);
-//     IMockDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+//     IDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
 //   }
 // }
 
@@ -294,7 +294,7 @@ contract DemocraticGovernance_Unit_GetVotes is Base {
    */
   function test_returnsOne(address _account, uint256 _timepoint, bytes memory _params) public {
     uint256 _votingWeight =
-      IMockDemocraticGovernanceForTest(address(governor)).forTest_getVotes(_account, _timepoint, _params);
+      IDemocraticGovernanceForTest(address(governor)).forTest_getVotes(_account, _timepoint, _params);
     assertEq(_votingWeight, ONE);
   }
 }
@@ -465,7 +465,7 @@ contract DemocraticGovernance_Unit_VotingDelay is Base {
 //     uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM + 1);
 
 //     // Check that the quorum is reached
-//     assertTrue(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+//     assertTrue(IDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
 //   }
 
 //   /**
@@ -478,7 +478,7 @@ contract DemocraticGovernance_Unit_VotingDelay is Base {
 //     uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM - 1);
 
 //     // Check that the quorum is reached
-//     assertFalse(IMockDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+//     assertFalse(IDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
 //   }
 
 //   /**
@@ -504,7 +504,7 @@ contract DemocraticGovernance_Unit_VotingDelay is Base {
 //     for (uint256 i = 0; i < _votesRequired; i++) {
 //       address _randomVoter = vm.addr(uint256(keccak256(abi.encodePacked(i, _description))));
 //       vm.prank(_randomVoter);
-//       IMockDemocraticGovernanceForTest(address(governor)).forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
+//       IDemocraticGovernanceForTest(address(governor)).forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
 //     }
 //   }
 // }
