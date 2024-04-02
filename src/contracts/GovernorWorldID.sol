@@ -44,13 +44,13 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   /**
    * @inheritdoc IGovernorWorldID
    */
-  mapping(uint256 nullifierHash => bool isUsed) public nullifierHashes;
+  mapping(uint256 _nullifierHash => bool _isUsed) public nullifierHashes;
 
   /**
    * @param _groupID The WorldID group ID, 1 for orb verification level
    * @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
    * @param _appId The World ID app ID
-   * @param _name The governor name
+   * @param _governorName The governor name
    * @param _initialVotingDelay The initial voting delay for the proposals
    * @param _initialVotingPeriod The initial voting period for the proposals
    * @param _initialProposalThreshold The initial proposal threshold
@@ -60,17 +60,17 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
     bytes memory _appId,
-    string memory _name,
+    string memory _governorName,
     uint48 _initialVotingDelay,
     uint32 _initialVotingPeriod,
     uint256 _initialProposalThreshold,
     uint256 _rootExpirationThreshold
-  ) Governor(_name) GovernorSettings(_initialVotingDelay, _initialVotingPeriod, _initialProposalThreshold) {
+  ) Governor(_governorName) GovernorSettings(_initialVotingDelay, _initialVotingPeriod, _initialProposalThreshold) {
     WORLD_ID_ROUTER = _worldIdRouter;
     GROUP_ID = _groupID;
     APP_ID = abi.encodePacked(_appId).hashToField();
 
-    _checkExpirationThresholdValidity(_rootExpirationThreshold);
+    _checkRootExpirationThresholdValidity(_rootExpirationThreshold);
 
     rootExpirationThreshold = _rootExpirationThreshold;
   }
@@ -78,23 +78,23 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   /**
    * @inheritdoc IGovernorWorldID
    */
-  function setRootExpirationThreshold(uint256 _rootExpirationThreshold) external onlyGovernance {
-    _checkExpirationThresholdValidity(_rootExpirationThreshold);
+  function setRootExpirationThreshold(uint256 _newRootExpirationThreshold) external onlyGovernance {
+    _checkRootExpirationThresholdValidity(_newRootExpirationThreshold);
 
     uint256 _oldRootExpirationThreshold = rootExpirationThreshold;
-    rootExpirationThreshold = _rootExpirationThreshold;
+    rootExpirationThreshold = _newRootExpirationThreshold;
 
-    emit RootExpirationThresholdUpdated(_rootExpirationThreshold, _oldRootExpirationThreshold);
+    emit RootExpirationThresholdUpdated(_newRootExpirationThreshold, _oldRootExpirationThreshold);
   }
 
   /**
    * @inheritdoc IGovernorWorldID
    */
-  function setResetGracePeriod(uint256 _resetGracePeriod) external onlyGovernance {
+  function setResetGracePeriod(uint256 _newResetGracePeriod) external onlyGovernance {
     uint256 _oldResetGracePeriod = resetGracePeriod;
-    resetGracePeriod = _resetGracePeriod;
+    resetGracePeriod = _newResetGracePeriod;
 
-    emit ResetGracePeriodUpdated(_resetGracePeriod, _oldResetGracePeriod);
+    emit ResetGracePeriodUpdated(_newResetGracePeriod, _oldResetGracePeriod);
   }
 
   /**
@@ -104,12 +104,12 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     uint8 _support,
     uint256 _proposalId,
     bytes memory _proofData
-  ) public override returns (uint256 _decodedNullifierHash) {
+  ) public override returns (uint256 _nullifierHash) {
     // Decode the parameters
-    (uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) =
+    (uint256 _root, uint256 _decodedNullifierHash, uint256[8] memory _proof) =
       abi.decode(_proofData, (uint256, uint256, uint256[8]));
 
-    if (nullifierHashes[_nullifierHash]) revert GovernorWorldID_NullifierHashAlreadyUsed();
+    if (nullifierHashes[_decodedNullifierHash]) revert GovernorWorldID_NullifierHashAlreadyUsed();
 
     IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
 
@@ -124,10 +124,10 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     // Verify the provided proof
     uint256 _signal = abi.encodePacked(_support).hashToField();
     uint256 _externalNullifier = abi.encodePacked(APP_ID, _proposalId).hashToField();
-    WORLD_ID_ROUTER.verifyProof(_root, GROUP_ID, _signal, _nullifierHash, _externalNullifier, _proof);
+    WORLD_ID_ROUTER.verifyProof(_root, GROUP_ID, _signal, _decodedNullifierHash, _externalNullifier, _proof);
 
     // Return the decoded nullifier hash
-    _decodedNullifierHash = _nullifierHash;
+    _nullifierHash = _decodedNullifierHash;
   }
 
   /**
@@ -153,14 +153,14 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
 
   /**
    * @notice Adds extra checks to the OZ function to ensure the voting period is valid. After that, it calls the parent function
-   * @param _votingPeriod The voting period
+   * @param _newVotingPeriod The voting period
    */
-  function _setVotingPeriod(uint32 _votingPeriod) internal virtual override {
-    if (_votingPeriod > resetGracePeriod - rootExpirationThreshold) {
+  function _setVotingPeriod(uint32 _newVotingPeriod) internal virtual override {
+    if (_newVotingPeriod > resetGracePeriod - rootExpirationThreshold) {
       revert GovernorWorldID_InvalidVotingPeriod();
     }
 
-    super._setVotingPeriod(_votingPeriod);
+    super._setVotingPeriod(_newVotingPeriod);
   }
 
   /**
@@ -200,7 +200,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @dev If zero, it will not check the root expiration threshold. If not zero, it will check if it is less than the reset grace period and the root history expiry
    * @param _rootExpirationThreshold The root expiration threshold
    */
-  function _checkExpirationThresholdValidity(uint256 _rootExpirationThreshold) internal view {
+  function _checkRootExpirationThresholdValidity(uint256 _rootExpirationThreshold) internal view {
     if (_rootExpirationThreshold == 0) return;
 
     IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
