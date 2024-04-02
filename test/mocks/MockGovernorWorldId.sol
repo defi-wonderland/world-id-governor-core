@@ -18,6 +18,8 @@ interface IMockGovernorWorldIdForTest {
   ) external;
 
   function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) external;
+
+  function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) external view;
 }
 
 contract MockGovernorWorldId is GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorWorldID {
@@ -59,6 +61,10 @@ contract MockGovernorWorldId is GovernorCountingSimple, GovernorVotes, GovernorV
 
   function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) public {
     nullifierHashes[_nullifierHash] = _isUsed;
+  }
+
+  function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) public view {
+    return _checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   function quorum(uint256 blockNumber)
