@@ -154,7 +154,8 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
-   * @notice Adds extra checks to the OZ function to ensure the voting period is valid. After that, it calls the parent function
+   * @notice Adds extra checks to the OZ function to ensure the voting period is valid.
+   *  After that, it calls the parent function
    * @param _newVotingPeriod The voting period
    */
   function _setVotingPeriod(uint32 _newVotingPeriod) internal virtual override {
@@ -191,7 +192,8 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
-   * @notice This function is disabled because is not compatible with the new implementations. It will make revert the functions that implement it as: `castVote`, `castVoteWithReason`, `castVoteBySig`.
+   * @notice This function is disabled because is not compatible with the new implementations.
+   *  It will make revert the functions that implement it as: `castVote`, `castVoteWithReason`, `castVoteBySig`.
    */
   function _castVote(uint256, address, uint8, string memory) internal virtual override returns (uint256) {
     revert GovernorWorldID_NotSupportedFunction();
@@ -199,7 +201,8 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
 
   /**
    * Check if the root expiration threshold is valid
-   * @dev If zero, it will not check the root expiration threshold. If not zero, it will check if it is less than the reset grace period and the root history expiry
+   * @dev If zero, it will not check the root expiration threshold.
+   *  If not zero, it will check if it is less than the reset grace period and the root history expiry
    * @param _rootExpirationThreshold The root expiration threshold
    */
   function _checkRootExpirationThreshold(uint256 _rootExpirationThreshold) internal view {

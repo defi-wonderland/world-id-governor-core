@@ -100,7 +100,8 @@ interface IGovernorWorldID is IGovernor {
   function nullifierHashes(uint256 _nullifierHash) external view returns (bool _isUsed);
 
   /**
-   * @notice The current World ID reset grace period before inserting the user into the Merkle tree again. The current period is 14 days, and it has a setter function to be updated by the governance if it changes
+   * @notice The current World ID reset grace period before inserting the user into the Merkle tree again.
+   *  The current period is 14 days, and it has a setter function to be updated by the governance if it changes
    * @dev Initialized to 13 days and 22 hours as an extra safety measure
    * @return _resetGracePeriod The grace period
    */
