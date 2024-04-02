@@ -277,6 +277,26 @@ contract GovernorWorldID_Unit_SetResetGracePeriod is Base {
   }
 
   /**
+   * @notice Check that the function reverts if the new reset grace period is smaller than the root expiration threshold
+   */
+  function test_revertIfSmallerThanRootExpirationThreshold(
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) public {
+    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
+    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
+    vm.assume(_rootExpirationThreshold != 0);
+    vm.assume(_resetGracePeriod < _rootExpirationThreshold);
+
+    vm.prank(address(governor));
+    governor.setRootExpirationThreshold(_rootExpirationThreshold);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidResetGracePeriod.selector);
+    vm.prank(address(governor));
+    governor.setResetGracePeriod(_resetGracePeriod);
+  }
+
+  /**
    * @notice Check that the function works as expected
    */
   function test_setResetGracePeriod(uint256 _resetGracePeriod) public {

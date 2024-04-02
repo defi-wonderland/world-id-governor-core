@@ -31,6 +31,11 @@ interface IGovernorWorldID is IGovernor {
   error GovernorWorldID_InvalidRootExpirationThreshold();
 
   /**
+   * @notice Thrown when the provided reset grace period is bigger than the root expiration threshold
+   */
+  error GovernorWorldID_InvalidResetGracePeriod();
+
+  /**
    * @notice Thrown when the provided voting period is bigger than the reset grace period minus root expiration threshold
    */
   error GovernorWorldID_InvalidVotingPeriod();
