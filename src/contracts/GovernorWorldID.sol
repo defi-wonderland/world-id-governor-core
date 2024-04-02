@@ -44,7 +44,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   /**
    * @inheritdoc IGovernorWorldID
    */
-  mapping(uint256 nullifier => bool isUsed) public nullifierHashes;
+  mapping(uint256 nullifierHash => bool isUsed) public nullifierHashes;
 
   /**
    * @param _groupID The WorldID group ID, 1 for orb verification level
@@ -152,7 +152,8 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
-   * @inheritdoc GovernorSettings
+   * @notice Adds extra checks to the OZ function to ensure the voting period is valid. After that, it calls the parent function
+   * @param _votingPeriod The voting period
    */
   function _setVotingPeriod(uint32 _votingPeriod) internal virtual override {
     if (rootExpirationThreshold == 0 && _votingPeriod > resetGracePeriod - 2 hours) {

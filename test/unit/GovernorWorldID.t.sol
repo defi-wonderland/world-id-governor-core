@@ -299,32 +299,6 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
   }
 
   /**
-   * @notice Test that the function calls the latestRoot function from the IdentityManager contract
-   */
-  function test_callLatestRoot(
-    uint256 _root,
-    uint256 _latestRoot,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) public {
-    // Encode the parameters
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    _mockWorlIDCalls(
-      worldIDRouter,
-      worldIDIdentityManager,
-      _latestRoot,
-      _nullifierHash,
-      _proof,
-      ROOT_EXPIRATION_THRESHOLD,
-      rootTimestamp
-    );
-
-    vm.prank(user);
-    governor.checkVoteValidity(SUPPORT, proposalId, _params);
-  }
-
-  /**
    * @notice Test that the function calls the rootHistory function from the IdentityManager contract
    */
   function test_callRootHistory(
@@ -401,6 +375,32 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
   }
 
   /**
+   * @notice Test that the function calls the latestRoot function from the IdentityManager contract
+   */
+  function test_callLatestRoot(
+    uint256 _root,
+    uint256 _latestRoot,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    // Encode the parameters
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    _mockWorlIDCalls(
+      worldIDRouter,
+      worldIDIdentityManager,
+      _latestRoot,
+      _nullifierHash,
+      _proof,
+      ROOT_EXPIRATION_THRESHOLD,
+      rootTimestamp
+    );
+
+    vm.prank(user);
+    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
    * @notice Test that the function calls the verifyProof function from the WorldID contract
    */
   function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
@@ -457,7 +457,7 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   /**
    * @notice Check that the function reverts if invalid voting period
    */
-  function test_revertIfInvalidVotingPeriodWhenThresholdZero(uint32 _votingPeriod) public {
+  function test_revertIfInvalidPeriodWhenZeroThreshold(uint32 _votingPeriod) public {
     vm.assume(_votingPeriod > RESET_GRACE_PERIOD - 2 hours);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
@@ -468,7 +468,7 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   /**
    * @notice Check that the function reverts if invalid voting period
    */
-  function test_revertIfInvalidVotingPeriodWhenThresholdMoreThanZero(uint32 _votingPeriod) public {
+  function test_revertIfInvalidPeriodWhenNonZeroThreshold(uint32 _votingPeriod) public {
     uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
 
     vm.assume(_votingPeriod > RESET_GRACE_PERIOD - _rootExpirationThreshold);
