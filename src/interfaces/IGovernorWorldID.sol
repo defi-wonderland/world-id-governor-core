@@ -26,7 +26,8 @@ interface IGovernorWorldID is IGovernor {
   error GovernorWorldID_OutdatedRoot();
 
   /**
-   * @notice Thrown when the provided root expiration threshold is bigger than the root history expiry from identity manager
+   * @notice Thrown when the provided root expiration threshold
+   *  is bigger than the root history expiry from identity manager
    */
   error GovernorWorldID_InvalidRootExpirationThreshold();
 
@@ -36,7 +37,8 @@ interface IGovernorWorldID is IGovernor {
   error GovernorWorldID_InvalidResetGracePeriod();
 
   /**
-   * @notice Thrown when the provided voting period is bigger than the reset grace period minus root expiration threshold
+   * @notice Thrown when the provided voting period
+   *  is bigger than the reset grace period minus root expiration threshold
    */
   error GovernorWorldID_InvalidVotingPeriod();
 
