@@ -6,37 +6,12 @@ import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
-import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
-
-interface IGovernorDemocraticForTest {
-  function forTest_castVote(
-    uint256 _proposalId,
-    address _account,
-    uint8 _support,
-    string memory _reason
-  ) external returns (uint256);
-
-  function forTest_castVote(
-    uint256 _proposalId,
-    address _account,
-    uint8 _support,
-    string memory _reason,
-    bytes memory _params
-  ) external returns (uint256);
-
-  function forTest_getVotes(
-    address _account,
-    uint256 _timepoint,
-    bytes memory _params
-  ) external view returns (uint256 _votingWeight);
-}
 
 contract GovernorDemocraticForTest is GovernorCountingSimple, GovernorDemocratic {
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
     string memory _appId,
-    IVotes _token,
     uint48 _initialVotingDelay,
     uint32 _initialVotingPeriod,
     uint256 _initialProposalThreshold,
@@ -103,13 +78,5 @@ contract GovernorDemocraticForTest is GovernorCountingSimple, GovernorDemocratic
     bytes memory _params
   ) internal override(Governor, GovernorWorldID) returns (uint256) {
     return super._castVote(_proposalId, _account, _support, _reason, _params);
-  }
-
-  function _getVotes(
-    address _account,
-    uint256 _timepoint,
-    bytes memory _params
-  ) internal view virtual override(Governor, GovernorDemocratic) returns (uint256) {
-    return super._getVotes(_account, _timepoint, _params);
   }
 }

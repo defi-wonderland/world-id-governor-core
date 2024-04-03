@@ -5,6 +5,10 @@ import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IGovernorDemocratic} from 'interfaces/IGovernorDemocratic.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
+/**
+ * @title GovernorDemocratic
+ * @notice Governor contract that assigns 1 as voting power per human, enabling a democracy
+ */
 abstract contract GovernorDemocratic is GovernorWorldID, IGovernorDemocratic {
   /**
    * @inheritdoc IGovernorDemocratic
@@ -49,6 +53,6 @@ abstract contract GovernorDemocratic is GovernorWorldID, IGovernorDemocratic {
    * @return _votingWeight 1 as voting weight
    */
   function _getVotes(address, uint256, bytes memory) internal view virtual override returns (uint256 _votingWeight) {
-    return ONE_VOTE;
+    _votingWeight = ONE_VOTE;
   }
 }
