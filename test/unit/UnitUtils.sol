@@ -19,7 +19,7 @@ abstract contract UnitUtils is Test {
   }
 
   /**
-   * @notice Mocks the WorldIDIdentityManager contract calls to `latestRoot` and `verifyRoot`
+   * @notice Mocks the WorldIDIdentityManager contract calls to `latestRoot` or `rootHistory`, and `verifyRoot`
    *  and expects them to be called
    * @param _worldIDRouter The WorldIDRouter contract to mock and expect
    * @param _worldIDIdentityManager The WorldIDIdentityManager contract to mock and expect
