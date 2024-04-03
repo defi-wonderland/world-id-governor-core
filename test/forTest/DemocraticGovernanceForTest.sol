@@ -22,6 +22,10 @@ interface IDemocraticGovernanceForTest {
 
   function forTest_countVote(uint256 _proposalId, address _account, uint8 _support, uint256 _weight) external;
 
+  function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) external;
+
+  function forTest_setRootExpirationThreshold(uint256 _newRootExpirationThreshold) external;
+
   function forTest_getVotes(
     address _account,
     uint256 _timepoint,
@@ -29,6 +33,8 @@ interface IDemocraticGovernanceForTest {
   ) external view returns (uint256 _votingWeight);
 
   function forTest_quorumReached(uint256 _proposalId) external view returns (bool _reached);
+
+  function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) external view;
 }
 
 contract DemocraticGovernanceForTest is DemocraticGovernance {
@@ -75,6 +81,18 @@ contract DemocraticGovernanceForTest is DemocraticGovernance {
 
   function forTest_countVote(uint256 _proposalId, address _account, uint8 _support, uint256 _weight) public {
     _countVote(_proposalId, _account, _support, _weight, bytes(''));
+  }
+
+  function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) public {
+    nullifierHashes[_nullifierHash] = _isUsed;
+  }
+
+  function forTest_setRootExpirationThreshold(uint256 _newRootExpirationThreshold) public {
+    rootExpirationThreshold = _newRootExpirationThreshold;
+  }
+
+  function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) public view {
+    return _checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   function forTest_getVotes(
