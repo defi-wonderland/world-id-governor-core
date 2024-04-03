@@ -259,13 +259,8 @@ contract GovernorWorldID_Unit_SetResetGracePeriod is Base {
     uint256 _newResetGracePeriod,
     uint256 _rootExpirationThreshold
   ) public {
-    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
-    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
-    vm.assume(_rootExpirationThreshold != 0);
     vm.assume(_newResetGracePeriod < _rootExpirationThreshold);
-
-    vm.prank(address(governor));
-    governor.setRootExpirationThreshold(_rootExpirationThreshold);
+    IGovernorWorldIdForTest(address(governor)).forTest_setRootExpirationThreshold(_rootExpirationThreshold);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidResetGracePeriod.selector);
     vm.prank(address(governor));
@@ -509,9 +504,12 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   /**
    * @notice Check that the function sets the voting period
    */
-  function test_setVotingPeriod(uint32 _votingPeriod) public {
+  function test_setVotingPeriod(uint32 _votingPeriod, uint256 _rootExpirationThreshold) public {
     vm.assume(_votingPeriod != 0);
-    vm.assume(_votingPeriod < RESET_GRACE_PERIOD);
+    vm.assume(_rootExpirationThreshold < RESET_GRACE_PERIOD);
+    vm.assume(_votingPeriod < RESET_GRACE_PERIOD - _rootExpirationThreshold);
+
+    IGovernorWorldIdForTest(address(governor)).forTest_setRootExpirationThreshold(_rootExpirationThreshold);
 
     vm.prank(address(governor));
     IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);

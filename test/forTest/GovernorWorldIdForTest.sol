@@ -19,6 +19,8 @@ interface IGovernorWorldIdForTest {
 
   function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) external;
 
+  function forTest_setRootExpirationThreshold(uint256 _newRootExpirationThreshold) external;
+
   function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) external view;
 }
 
@@ -61,6 +63,10 @@ contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, Govern
 
   function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) public {
     nullifierHashes[_nullifierHash] = _isUsed;
+  }
+
+  function forTest_setRootExpirationThreshold(uint256 _newRootExpirationThreshold) public {
+    rootExpirationThreshold = _newRootExpirationThreshold;
   }
 
   function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) public view {

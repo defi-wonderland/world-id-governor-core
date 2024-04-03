@@ -47,7 +47,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   mapping(uint256 _nullifierHash => bool _isUsed) public nullifierHashes;
 
   /**
-   * @param _groupID The WorldID group ID for the verification levels
+   * @param _groupID The WorldID group ID for the verification level
    * @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
    * @param _appId The World ID app ID
    * @param _governorName The governor name
