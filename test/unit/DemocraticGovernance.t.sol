@@ -201,15 +201,12 @@ contract DemocraticGovernance_Unit_Propose is Base {
   function test_proposalsQuorumThreshold(string memory _description) public {
     vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
 
-    IDemocraticGovernance _democraticGovernance = IDemocraticGovernance(address(governor));
-
-    uint256 _quorumBeforePropose = _democraticGovernance.quorum(block.number);
+    uint256 _quorumBeforePropose = governor.quorum(block.number);
 
     vm.prank(owner);
-    uint256 _proposalId =
-      _democraticGovernance.propose(new address[](1), new uint256[](1), new bytes[](1), _description);
+    uint256 _proposalId = governor.propose(new address[](1), new uint256[](1), new bytes[](1), _description);
 
-    uint256 _quorumFromProposal = _democraticGovernance.proposalsQuorumThreshold(_proposalId);
+    uint256 _quorumFromProposal = governor.proposalsQuorumThreshold(_proposalId);
     assertEq(_quorumFromProposal, _quorumBeforePropose);
   }
 
@@ -269,7 +266,7 @@ contract DemocraticGovernance_Unit_SetQuorum is Base {
   function test_revertWithNotOwner(uint256 _quorum) public {
     vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
     vm.prank(user);
-    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
+    governor.setQuorum(_quorum);
   }
 
   /**
@@ -277,8 +274,8 @@ contract DemocraticGovernance_Unit_SetQuorum is Base {
    */
   function test_setQuorum(uint256 _quorum) public {
     vm.prank(owner);
-    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
-    uint256 _quorumFromGovernor = IDemocraticGovernance(address(governor)).quorum(block.number);
+    governor.setQuorum(_quorum);
+    uint256 _quorumFromGovernor = governor.quorum(block.number);
     assertEq(_quorumFromGovernor, _quorum);
   }
 
@@ -290,7 +287,7 @@ contract DemocraticGovernance_Unit_SetQuorum is Base {
     emit IDemocraticGovernance.QuorumSet(_quorum);
 
     vm.prank(owner);
-    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
+    governor.setQuorum(_quorum);
   }
 }
 
