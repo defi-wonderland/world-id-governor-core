@@ -7,11 +7,15 @@ import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 interface IGovernorWorldID is IGovernor {
   /**
    * @notice Emitted when the root expiration period is updated
+   * @param _newRootExpirationThreshold The new expiration threshold
+   * @param _oldRootExpirationThreshold The previous expiration threshold
    */
   event RootExpirationThresholdUpdated(uint256 _newRootExpirationThreshold, uint256 _oldRootExpirationThreshold);
 
   /**
    * @notice Emitted when the reset grace period is updated
+   * @param _newResetGracePeriod The new reset grace period
+   * @param _oldResetGracePeriod The previous reset grace period
    */
   event ResetGracePeriodUpdated(uint256 _newResetGracePeriod, uint256 _oldResetGracePeriod);
 
@@ -32,7 +36,7 @@ interface IGovernorWorldID is IGovernor {
   error GovernorWorldID_InvalidRootExpirationThreshold();
 
   /**
-   * @notice Thrown when the provided reset grace period is bigger than the root expiration threshold
+   * @notice Thrown when the provided reset grace period is less than the current root expiration threshold
    */
   error GovernorWorldID_InvalidResetGracePeriod();
 
@@ -43,7 +47,7 @@ interface IGovernorWorldID is IGovernor {
   error GovernorWorldID_InvalidVotingPeriod();
 
   /**
-   * @notice Thrown when the provided external nullifier hash is already used
+   * @notice Thrown when the provided nullifier hash is already used
    */
   error GovernorWorldID_NullifierHashAlreadyUsed();
 
@@ -55,7 +59,7 @@ interface IGovernorWorldID is IGovernor {
 
   /**
    * @notice Sets a new reset grace period
-   * @dev It is recommended to set this value minus 2 hours as an extra security measure
+   * @dev It is recommended to set the World ID reset grace period minus 2 hours as an extra security measure
    * @param _newResetGracePeriod The new reset grace period
    */
   function setResetGracePeriod(uint256 _newResetGracePeriod) external;
@@ -75,7 +79,7 @@ interface IGovernorWorldID is IGovernor {
 
   /**
    * @notice The World ID instance that will be used for verifying proofs
-   * @return _worldId The World ID instance
+   * @return _worldId The World ID Router instance
    */
   // solhint-disable-next-line func-name-mixedcase
   function WORLD_ID_ROUTER() external view returns (IWorldIDRouter _worldId);
@@ -97,7 +101,7 @@ interface IGovernorWorldID is IGovernor {
   /**
    * @notice The nullifier hashes used to prevent double voting
    * @param _nullifierHash The nullifier hash
-   * @return _isUsed True if the nullifier hash is used
+   * @return _isUsed True if the nullifier hash is already used
    */
   function nullifierHashes(uint256 _nullifierHash) external view returns (bool _isUsed);
 

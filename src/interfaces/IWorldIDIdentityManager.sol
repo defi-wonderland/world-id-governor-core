@@ -10,6 +10,7 @@ interface IWorldIDIdentityManager {
 
   /**
    * @notice Returns the timestamp of the desired root
+   * @param _root The Merkle tree
    * @return _timestamp The timestamp of the root
    */
   function rootHistory(uint256 _root) external view returns (uint128 _timestamp);
