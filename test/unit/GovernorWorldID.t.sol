@@ -101,7 +101,7 @@ abstract contract Base is Test, UnitUtils {
   }
 }
 
-contract GovernorWorldId_Unit_Constructor is Base {
+contract GovernorWorldID_Unit_Constructor is Base {
   using ByteHasher for bytes;
 
   /**
