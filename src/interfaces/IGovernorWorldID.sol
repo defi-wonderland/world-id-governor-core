@@ -92,7 +92,7 @@ interface IGovernorWorldID is IGovernor {
   function GROUP_ID() external view returns (uint256 _groupId);
 
   /**
-   * @notice The app ID used to verify the proofs
+   * @notice The developer portal app ID used to verify the proofs
    * @return _appId The app ID
    */
   // solhint-disable-next-line func-name-mixedcase
