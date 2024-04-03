@@ -35,7 +35,7 @@ abstract contract Base is Test, UnitUtils {
   uint128 public rootTimestamp = uint128(block.timestamp - 1);
 
   IERC20 public token;
-  IGovernorWorldID public governor;
+  IDemocraticGovernance public governor;
   IWorldIDRouter public worldIDRouter;
   IWorldIDIdentityManager public worldIDIdentityManager;
   GovernorSigUtils public sigUtils;
@@ -78,7 +78,7 @@ abstract contract Base is Test, UnitUtils {
 
     // Deploy governor
     vm.prank(owner);
-    governor = IGovernorWorldID(
+    governor = IDemocraticGovernance(
       new DemocraticGovernanceForTest(
         GROUP_ID,
         worldIDRouter,
@@ -181,6 +181,281 @@ contract DemocraticGovernance_Unit_Constructor is Base {
     assertEq(governor.APP_ID(), abi.encodePacked(APP_ID).hashToField());
     assertEq(governor.resetGracePeriod(), RESET_GRACE_PERIOD);
     assertEq(governor.rootExpirationThreshold(), ROOT_EXPIRATION_THRESHOLD);
+    assertEq(governor.quorumThreshold(), QUORUM);
+  }
+}
+
+contract DemocraticGovernance_Unit_Propose is Base {
+  /**
+   * @notice Check that only the owner can propose
+   */
+  function test_revertWithNotOwner(string memory _description) public {
+    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
+    vm.prank(user);
+    governor.propose(new address[](1), new uint256[](1), new bytes[](1), _description);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_proposalsQuorumThreshold(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
+    IDemocraticGovernance _democraticGovernance = IDemocraticGovernance(address(governor));
+
+    uint256 _quorumBeforePropose = _democraticGovernance.quorum(block.number);
+
+    vm.prank(owner);
+    uint256 _proposalId =
+      _democraticGovernance.propose(new address[](1), new uint256[](1), new bytes[](1), _description);
+
+    uint256 _quorumFromProposal = _democraticGovernance.proposalsQuorumThreshold(_proposalId);
+    assertEq(_quorumFromProposal, _quorumBeforePropose);
+  }
+
+  /**
+   * @notice Check that the function returns the correct proposalId
+   */
+  function test_returnsCorrectProposalId(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    bytes[] memory _calldatas = new bytes[](1);
+    bytes32 _descriptionHash = keccak256(bytes(_description));
+    uint256 _proposalId = governor.hashProposal(_targets, _values, _calldatas, _descriptionHash);
+
+    vm.prank(owner);
+    uint256 _proposalIdCreated = governor.propose(_targets, _values, _calldatas, _description);
+
+    assertEq(_proposalId, _proposalIdCreated);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_propose(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    bytes[] memory _calldatas = new bytes[](1);
+    bytes32 _descriptionHash = keccak256(bytes(_description));
+    uint256 _proposalId = governor.hashProposal(_targets, _values, _calldatas, _descriptionHash);
+
+    vm.expectEmit(true, true, true, true);
+    uint256 snapshot = governor.clock() + governor.votingDelay();
+    emit IGovernor.ProposalCreated(
+      _proposalId,
+      owner,
+      _targets,
+      _values,
+      new string[](_targets.length),
+      _calldatas,
+      snapshot,
+      snapshot + governor.votingPeriod(),
+      _description
+    );
+
+    vm.prank(owner);
+    governor.propose(_targets, _values, _calldatas, _description);
+  }
+}
+
+contract DemocraticGovernance_Unit_SetQuorum is Base {
+  /**
+   * @notice Check that only the owner can set the quorum
+   */
+  function test_revertWithNotOwner(uint256 _quorum) public {
+    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
+    vm.prank(user);
+    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_setQuorum(uint256 _quorum) public {
+    vm.prank(owner);
+    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
+    uint256 _quorumFromGovernor = IDemocraticGovernance(address(governor)).quorum(block.number);
+    assertEq(_quorumFromGovernor, _quorum);
+  }
+
+  /**
+   * @notice Check that the function emits the QuorumSet event
+   */
+  function test_emitQuorumSet(uint256 _quorum) public {
+    vm.expectEmit(true, true, true, true);
+    emit IDemocraticGovernance.QuorumSet(_quorum);
+
+    vm.prank(owner);
+    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
+  }
+}
+
+contract DemocraticGovernance_Unit_Quorum is Base {
+  /**
+   * @notice Test that the function returns the current quorum, independently of the given argument
+   */
+  function test_returnQuorum(uint256 _randomNumber) public {
+    assertEq(governor.quorum(_randomNumber), QUORUM);
+  }
+}
+
+contract DemocraticGovernance_Unit_Clock is Base {
+  /**
+   * @notice Test that the function returns the clock
+   */
+  function test_returnClock() public {
+    assertEq(governor.clock(), block.timestamp);
+  }
+}
+
+contract DemocraticGovernance_Unit_VotingDelay is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_VotingDelay() public {
+    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
+  }
+}
+
+contract DemocraticGovernance_Unit_VotingPeriod is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_VotingPeriod() public {
+    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
+  }
+}
+
+contract DemocraticGovernance_Unit_ProposalThreshold is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_ProposalThreshold() public {
+    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
+  }
+}
+
+contract DemocraticGovernance_Unit_CLOCK_MODE is Base {
+  /**
+   * @notice Test that the function returns the clock mode
+   */
+  function test_returnClockMode() public {
+    string memory _mode = 'mode=blocktimestamp&from=default';
+    assertEq(governor.CLOCK_MODE(), _mode);
+  }
+}
+
+contract DemocraticGovernance_Unit_CastVote_WithoutParams is Base {
+  /**
+   * @notice Check that the function is disabled and reverts
+   */
+  function test_revertWithNotSupportedFunction() public {
+    vm.prank(user);
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
+    governor.castVote(proposalId, SUPPORT);
+  }
+}
+
+contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
+  /**
+   * @notice Check that the function stores the nullifier as used
+   */
+  function test_nullifierIsStored(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
+
+    // Cast the vote
+    vm.prank(user);
+    IDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+
+    assertTrue(governor.nullifierHashes(_nullifierHash));
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
+
+    vm.expectEmit(true, true, true, true);
+    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
+
+    // Cast the vote
+    vm.prank(user);
+    IDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+  }
+}
+
+contract DemocraticGovernance_Unit_QuorumReached is Base {
+  /**
+   * @notice Test that the function returns if the quorum is reached
+   */
+  function test_reachedQuorum(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
+    // Propose and vote
+    uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM + 1);
+
+    // Check that the quorum is reached
+    assertTrue(IDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+  }
+
+  /**
+   * @notice Test that the function returns if the quorum is not reached
+   */
+  function test_notReachedQuorum(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
+    // Propose and vote
+    uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM - 1);
+
+    // Check that the quorum is reached
+    assertFalse(IDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+  }
+
+  /**
+   * @dev Propose a new proposal, and generate random accounts to vote on it the desired number of votes
+   */
+  function _proposeAndVote(
+    address _owner,
+    string memory _description,
+    uint256 _votesRequired
+  ) internal returns (uint256 _proposalId) {
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    bytes[] memory _calldatas = new bytes[](1);
+
+    vm.prank(_owner);
+    _proposalId = governor.propose(_targets, _values, _calldatas, _description);
+
+    // Advance time assuming 1 block == 1 second (this will make the proposal active)
+    vm.warp(block.timestamp + governor.votingDelay() + 1);
+    vm.roll(block.number + governor.votingDelay() + 1);
+
+    // Vote
+    for (uint256 i = 0; i < _votesRequired; i++) {
+      address _randomVoter = vm.addr(uint256(keccak256(abi.encodePacked(i, _description))));
+      vm.prank(_randomVoter);
+      IDemocraticGovernanceForTest(address(governor)).forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
+    }
+  }
+}
+
+contract DemocraticGovernance_Unit_GetVotes is Base {
+  /**
+   * @notice Check that the voting weight is 1
+   */
+  function test_returnsOne(address _account, uint256 _timepoint, bytes memory _params) public {
+    uint256 _votingWeight =
+      IDemocraticGovernanceForTest(address(governor)).forTest_getVotes(_account, _timepoint, _params);
+    assertEq(_votingWeight, ONE);
   }
 }
 
@@ -447,33 +722,6 @@ contract DemocraticGovernance_Unit_CheckVoteValidity is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_VotingDelay is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_VotingDelay() public {
-    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
-  }
-}
-
-contract DemocraticGovernance_Unit_VotingPeriod is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_VotingPeriod() public {
-    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
-  }
-}
-
-contract DemocraticGovernance_Unit_ProposalThreshold is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_ProposalThreshold() public {
-    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
-  }
-}
-
 contract DemocraticGovernance_Unit_SetVotingPeriod is Base {
   /**
    * @notice Check that the function reverts if invalid voting period
@@ -534,17 +782,6 @@ contract DemocraticGovernance_Unit_SetVotingPeriod is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_CastVote_WithoutParams is Base {
-  /**
-   * @notice Check that the function is disabled and reverts
-   */
-  function test_revertWithNotSupportedFunction() public {
-    vm.prank(user);
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
-    governor.castVote(proposalId, SUPPORT);
-  }
-}
-
 contract DemocraticGovernance_Unit_CastVoteWithReason is Base {
   /**
    * @notice Check that the function is disabled and reverts
@@ -564,39 +801,6 @@ contract DemocraticGovernance_Unit_CastVoteBySig is Base {
     vm.prank(signer.addr);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     governor.castVoteBySig(proposalId, SUPPORT, signer.addr, signature);
-  }
-}
-
-contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
-  /**
-   * @notice Check that the function stores the nullifier as used
-   */
-  function test_nullifierIsStored(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
-    );
-
-    // Cast the vote
-    vm.prank(user);
-    IDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
-
-    assertTrue(governor.nullifierHashes(_nullifierHash));
-  }
-
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
-    );
-
-    vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
-
-    // Cast the vote
-    vm.prank(user);
-    IDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
   }
 }
 
@@ -708,208 +912,5 @@ contract DemocraticGovernance_Unit_CheckRootExpirationThreshold is Base {
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
     IDemocraticGovernanceForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
-  }
-}
-
-contract DemocraticGovernance_Unit_GetVotes is Base {
-  /**
-   * @notice Check that the voting weight is 1
-   */
-  function test_returnsOne(address _account, uint256 _timepoint, bytes memory _params) public {
-    uint256 _votingWeight =
-      IDemocraticGovernanceForTest(address(governor)).forTest_getVotes(_account, _timepoint, _params);
-    assertEq(_votingWeight, ONE);
-  }
-}
-
-contract DemocraticGovernance_Unit_Propose is Base {
-  /**
-   * @notice Check that only the owner can propose
-   */
-  function test_revertWithNotOwner(string memory _description) public {
-    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
-    vm.prank(user);
-    governor.propose(new address[](1), new uint256[](1), new bytes[](1), _description);
-  }
-
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_proposalsQuorumThreshold(string memory _description) public {
-    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
-
-    IDemocraticGovernance _democraticGovernance = IDemocraticGovernance(address(governor));
-
-    uint256 _quorumBeforePropose = _democraticGovernance.quorum(block.number);
-
-    vm.prank(owner);
-    uint256 _proposalId =
-      _democraticGovernance.propose(new address[](1), new uint256[](1), new bytes[](1), _description);
-
-    uint256 _quorumFromProposal = _democraticGovernance.proposalsQuorumThreshold(_proposalId);
-    assertEq(_quorumFromProposal, _quorumBeforePropose);
-  }
-
-  /**
-   * @notice Check that the function returns the correct proposalId
-   */
-  function test_returnsCorrectProposalId(string memory _description) public {
-    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
-
-    address[] memory _targets = new address[](1);
-    uint256[] memory _values = new uint256[](1);
-    bytes[] memory _calldatas = new bytes[](1);
-    bytes32 _descriptionHash = keccak256(bytes(_description));
-    uint256 _proposalId = governor.hashProposal(_targets, _values, _calldatas, _descriptionHash);
-
-    vm.prank(owner);
-    uint256 _proposalIdCreated = governor.propose(_targets, _values, _calldatas, _description);
-
-    assertEq(_proposalId, _proposalIdCreated);
-  }
-
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_propose(string memory _description) public {
-    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
-
-    address[] memory _targets = new address[](1);
-    uint256[] memory _values = new uint256[](1);
-    bytes[] memory _calldatas = new bytes[](1);
-    bytes32 _descriptionHash = keccak256(bytes(_description));
-    uint256 _proposalId = governor.hashProposal(_targets, _values, _calldatas, _descriptionHash);
-
-    vm.expectEmit(true, true, true, true);
-    uint256 snapshot = governor.clock() + governor.votingDelay();
-    emit IGovernor.ProposalCreated(
-      _proposalId,
-      owner,
-      _targets,
-      _values,
-      new string[](_targets.length),
-      _calldatas,
-      snapshot,
-      snapshot + governor.votingPeriod(),
-      _description
-    );
-
-    vm.prank(owner);
-    governor.propose(_targets, _values, _calldatas, _description);
-  }
-}
-
-contract DemocraticGovernance_Unit_SetQuorum is Base {
-  /**
-   * @notice Check that only the owner can set the quorum
-   */
-  function test_revertWithNotOwner(uint256 _quorum) public {
-    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
-    vm.prank(user);
-    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
-  }
-
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_setQuorum(uint256 _quorum) public {
-    vm.prank(owner);
-    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
-    uint256 _quorumFromGovernor = IDemocraticGovernance(address(governor)).quorum(block.number);
-    assertEq(_quorumFromGovernor, _quorum);
-  }
-
-  /**
-   * @notice Check that the function emits the QuorumSet event
-   */
-  function test_emitQuorumSet(uint256 _quorum) public {
-    vm.expectEmit(true, true, true, true);
-    emit IDemocraticGovernance.QuorumSet(_quorum);
-
-    vm.prank(owner);
-    IDemocraticGovernance(address(governor)).setQuorum(_quorum);
-  }
-}
-
-contract DemocraticGovernance_Unit_Quorum is Base {
-  /**
-   * @notice Test that the function returns the current quorum, independently of the given argument
-   */
-  function test_returnQuorum(uint256 _randomNumber) public {
-    assertEq(governor.quorum(_randomNumber), QUORUM);
-  }
-}
-
-contract DemocraticGovernance_Unit_Clock is Base {
-  /**
-   * @notice Test that the function returns the clock
-   */
-  function test_returnClock() public {
-    assertEq(governor.clock(), block.timestamp);
-  }
-}
-
-contract DemocraticGovernance_Unit_CLOCK_MODE is Base {
-  /**
-   * @notice Test that the function returns the clock mode
-   */
-  function test_returnClockMode() public {
-    string memory _mode = 'mode=blocktimestamp&from=default';
-    assertEq(governor.CLOCK_MODE(), _mode);
-  }
-}
-
-contract DemocraticGovernance_Unit_QuorumReached is Base {
-  /**
-   * @notice Test that the function returns if the quorum is reached
-   */
-  function test_reachedQuorum(string memory _description) public {
-    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
-
-    // Propose and vote
-    uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM + 1);
-
-    // Check that the quorum is reached
-    assertTrue(IDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
-  }
-
-  /**
-   * @notice Test that the function returns if the quorum is not reached
-   */
-  function test_notReachedQuorum(string memory _description) public {
-    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
-
-    // Propose and vote
-    uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM - 1);
-
-    // Check that the quorum is reached
-    assertFalse(IDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
-  }
-
-  /**
-   * @dev Propose a new proposal, and generate random accounts to vote on it the desired number of votes
-   */
-  function _proposeAndVote(
-    address _owner,
-    string memory _description,
-    uint256 _votesRequired
-  ) internal returns (uint256 _proposalId) {
-    address[] memory _targets = new address[](1);
-    uint256[] memory _values = new uint256[](1);
-    bytes[] memory _calldatas = new bytes[](1);
-
-    vm.prank(_owner);
-    _proposalId = governor.propose(_targets, _values, _calldatas, _description);
-
-    // Advance time assuming 1 block == 1 second (this will make the proposal active)
-    vm.warp(block.timestamp + governor.votingDelay() + 1);
-    vm.roll(block.number + governor.votingDelay() + 1);
-
-    // Vote
-    for (uint256 i = 0; i < _votesRequired; i++) {
-      address _randomVoter = vm.addr(uint256(keccak256(abi.encodePacked(i, _description))));
-      vm.prank(_randomVoter);
-      IDemocraticGovernanceForTest(address(governor)).forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
-    }
   }
 }
