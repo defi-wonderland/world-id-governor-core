@@ -47,7 +47,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   mapping(uint256 _nullifierHash => bool _isUsed) public nullifierHashes;
 
   /**
-   * @param _groupID The WorldID group ID, 1 for orb verification level
+   * @param _groupID The WorldID group ID for the verification levels
    * @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
    * @param _appId The World ID app ID
    * @param _governorName The governor name
@@ -201,8 +201,6 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
 
   /**
    * Check if the root expiration threshold is valid
-   * @dev If zero, it will not check the root expiration threshold.
-   *  If not zero, it will check if it is less than the reset grace period and the root history expiry
    * @param _rootExpirationThreshold The root expiration threshold
    */
   function _checkRootExpirationThreshold(uint256 _rootExpirationThreshold) internal view {
