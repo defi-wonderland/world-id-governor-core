@@ -21,7 +21,7 @@ abstract contract Base is Test, UnitUtils {
   uint256 public constant GROUP_ID = 1;
   string public constant REASON = '';
   uint256 public constant WEIGHT = 0;
-  string public constant APP_ID = 'appId';
+  string public constant APP_ID_HASH = 'appId';
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
   uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
@@ -74,7 +74,7 @@ abstract contract Base is Test, UnitUtils {
     GovernorWorldIdForTest.ConstructorArgs memory _cArgs = GovernorWorldIdForTest.ConstructorArgs(
       GROUP_ID,
       worldIDRouter,
-      APP_ID,
+      APP_ID_HASH,
       IVotes(address(token)),
       INITIAL_VOTING_DELAY,
       INITIAL_VOTING_PERIOD,
@@ -116,7 +116,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
       GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
-        APP_ID,
+        APP_ID_HASH,
         IVotes(address(token)),
         INITIAL_VOTING_DELAY,
         INITIAL_VOTING_PERIOD,
@@ -138,7 +138,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
       GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
-        APP_ID,
+        APP_ID_HASH,
         IVotes(address(token)),
         INITIAL_VOTING_DELAY,
         INITIAL_VOTING_PERIOD,
@@ -160,7 +160,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
       GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
-        APP_ID,
+        APP_ID_HASH,
         IVotes(address(token)),
         INITIAL_VOTING_DELAY,
         INITIAL_VOTING_PERIOD,
@@ -168,17 +168,12 @@ contract GovernorWorldID_Unit_Constructor is Base {
         _rootExpirationThreshold
       )
     );
-  }
 
-  /**
-   * @notice Check that the constructor sets the correct variables
-   */
-  function test_setCorrectVariables() public {
     assertEq(address(governor.WORLD_ID_ROUTER()), address(worldIDRouter));
     assertEq(governor.GROUP_ID(), GROUP_ID);
-    assertEq(governor.APP_ID(), abi.encodePacked(APP_ID).hashToField());
+    assertEq(governor.APP_ID_HASH(), abi.encodePacked(APP_ID_HASH).hashToField());
     assertEq(governor.resetGracePeriod(), RESET_GRACE_PERIOD);
-    assertEq(governor.rootExpirationThreshold(), ROOT_EXPIRATION_THRESHOLD);
+    assertEq(governor.rootExpirationThreshold(), _rootExpirationThreshold);
   }
 }
 
