@@ -168,17 +168,12 @@ contract GovernorWorldID_Unit_Constructor is Base {
         _rootExpirationThreshold
       )
     );
-  }
 
-  /**
-   * @notice Check that the constructor sets the correct variables
-   */
-  function test_setCorrectVariables() public {
     assertEq(address(governor.WORLD_ID_ROUTER()), address(worldIDRouter));
     assertEq(governor.GROUP_ID(), GROUP_ID);
     assertEq(governor.APP_ID(), abi.encodePacked(APP_ID).hashToField());
     assertEq(governor.resetGracePeriod(), RESET_GRACE_PERIOD);
-    assertEq(governor.rootExpirationThreshold(), ROOT_EXPIRATION_THRESHOLD);
+    assertEq(governor.rootExpirationThreshold(), _rootExpirationThreshold);
   }
 }
 

@@ -200,7 +200,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
-   * Check if the root expiration threshold is valid
+   * @notice Check if the root expiration threshold is valid
    * @param _rootExpirationThreshold The root expiration threshold
    */
   function _checkRootExpirationThreshold(uint256 _rootExpirationThreshold) internal view {
