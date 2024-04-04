@@ -29,7 +29,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   /**
    * @inheritdoc IGovernorWorldID
    */
-  uint256 public immutable APP_ID;
+  uint256 public immutable APP_ID_HASH;
 
   /**
    * @inheritdoc IGovernorWorldID
@@ -68,7 +68,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   ) Governor(_governorName) GovernorSettings(_initialVotingDelay, _initialVotingPeriod, _initialProposalThreshold) {
     WORLD_ID_ROUTER = _worldIdRouter;
     GROUP_ID = _groupID;
-    APP_ID = abi.encodePacked(_appId).hashToField();
+    APP_ID_HASH = abi.encodePacked(_appId).hashToField();
 
     _checkRootExpirationThreshold(_rootExpirationThreshold);
 
@@ -125,7 +125,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
 
     // Verify the provided proof
     uint256 _signal = abi.encodePacked(_support).hashToField();
-    uint256 _externalNullifier = abi.encodePacked(APP_ID, _proposalId).hashToField();
+    uint256 _externalNullifier = abi.encodePacked(APP_ID_HASH, _proposalId).hashToField();
     WORLD_ID_ROUTER.verifyProof(_root, GROUP_ID, _signal, _decodedNullifierHash, _externalNullifier, _proof);
 
     // Return the decoded nullifier hash
