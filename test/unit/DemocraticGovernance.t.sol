@@ -261,33 +261,33 @@ contract DemocraticGovernance_Unit_Propose is Base {
 
 contract DemocraticGovernance_Unit_SetQuorum is Base {
   /**
-   * @notice Check that only the owner can set the quorum
+   * @notice Check that only the governance can set the quorum
    */
-  function test_revertWithNotOwner(uint256 _quorum) public {
-    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
+  function test_revertWithOnlyGovernance(uint256 _newQuorumThreshold) public {
+    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
     vm.prank(user);
-    governor.setQuorum(_quorum);
+    governor.setQuorum(_newQuorumThreshold);
   }
 
   /**
    * @notice Check that the function works as expected
    */
-  function test_setQuorum(uint256 _quorum) public {
-    vm.prank(owner);
-    governor.setQuorum(_quorum);
+  function test_setQuorum(uint256 _newQuorumThreshold) public {
+    vm.prank(address(governor));
+    governor.setQuorum(_newQuorumThreshold);
     uint256 _quorumFromGovernor = governor.quorum(block.number);
-    assertEq(_quorumFromGovernor, _quorum);
+    assertEq(_quorumFromGovernor, _newQuorumThreshold);
   }
 
   /**
    * @notice Check that the function emits the QuorumSet event
    */
-  function test_emitQuorumSet(uint256 _quorum) public {
+  function test_emitQuorumSet(uint256 _newQuorumThreshold) public {
     vm.expectEmit(true, true, true, true);
-    emit IDemocraticGovernance.QuorumSet(_quorum);
+    emit IDemocraticGovernance.QuorumSet(_newQuorumThreshold);
 
-    vm.prank(owner);
-    governor.setQuorum(_quorum);
+    vm.prank(address(governor));
+    governor.setQuorum(_newQuorumThreshold);
   }
 }
 
@@ -359,24 +359,9 @@ contract DemocraticGovernance_Unit_CastVote_WithoutParams is Base {
 
 contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
   /**
-   * @notice Check that the function stores the nullifier as used
+   * @notice Check that the function emits the VoteCastWithParams event
    */
-  function test_nullifierIsStored(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
-    );
-
-    // Cast the vote
-    vm.prank(user);
-    IDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
-
-    assertTrue(governor.nullifierHashes(_nullifierHash));
-  }
-
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+  function test_emitEvent(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params = _mockWorlIDCalls(
       worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
     );
@@ -387,6 +372,21 @@ contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
     // Cast the vote
     vm.prank(user);
     IDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+  }
+
+  /**
+   * @notice Check that the function returns the correct votingWeight
+   */
+  function test_returnsVotingWeight(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = _mockWorlIDCalls(
+      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+    );
+
+    // Cast the vote
+    vm.prank(user);
+    uint256 _votingWeight =
+      IDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+    assertEq(_votingWeight, WEIGHT);
   }
 }
 
