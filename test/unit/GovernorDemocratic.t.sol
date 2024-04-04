@@ -7,7 +7,7 @@ import {Test} from 'forge-std/Test.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
 abstract contract Base is Test, UnitUtils {
-  string public constant APP_ID = 'appId';
+  string public constant APP_ID_HASH = 'appId';
   uint256 public constant GROUP_ID = 1;
   uint256 public constant ONE = 1;
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
@@ -29,7 +29,7 @@ abstract contract Base is Test, UnitUtils {
     governor = new GovernorDemocraticForTest(
       GROUP_ID,
       worldIDRouter,
-      APP_ID,
+      APP_ID_HASH,
       INITIAL_VOTING_DELAY,
       INITIAL_VOTING_PERIOD,
       INITIAL_PROPOSAL_THRESHOLD,
