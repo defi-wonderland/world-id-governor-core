@@ -4,39 +4,6 @@ pragma solidity 0.8.23;
 import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
-interface IDemocraticGovernanceForTest {
-  function forTest_castVote(
-    uint256 _proposalId,
-    address _account,
-    uint8 _support,
-    string memory _reason,
-    bytes memory _params
-  ) external returns (uint256);
-
-  function forTest_castVote(
-    uint256 _proposalId,
-    address _account,
-    uint8 _support,
-    string memory _reason
-  ) external returns (uint256);
-
-  function forTest_countVote(uint256 _proposalId, address _account, uint8 _support, uint256 _weight) external;
-
-  function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) external;
-
-  function forTest_setRootExpirationThreshold(uint256 _newRootExpirationThreshold) external;
-
-  function forTest_getVotes(
-    address _account,
-    uint256 _timepoint,
-    bytes memory _params
-  ) external view returns (uint256 _votingWeight);
-
-  function forTest_quorumReached(uint256 _proposalId) external view returns (bool _reached);
-
-  function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) external view;
-}
-
 contract DemocraticGovernanceForTest is DemocraticGovernance {
   constructor(
     uint256 _groupID,

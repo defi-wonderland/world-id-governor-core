@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {DemocraticGovernanceForTest, IDemocraticGovernanceForTest} from '../forTest/DemocraticGovernanceForTest.sol';
+import {DemocraticGovernanceForTest} from '../forTest/DemocraticGovernanceForTest.sol';
 import {ERC20VotesForTest} from '../forTest/ERC20VotesForTest.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
@@ -35,7 +35,7 @@ abstract contract Base is Test, UnitUtils {
   uint128 public rootTimestamp = uint128(block.timestamp - 1);
 
   IERC20 public token;
-  IDemocraticGovernance public governor;
+  DemocraticGovernanceForTest public governor;
   IWorldIDRouter public worldIDRouter;
   IWorldIDIdentityManager public worldIDIdentityManager;
   GovernorSigUtils public sigUtils;
@@ -78,17 +78,15 @@ abstract contract Base is Test, UnitUtils {
 
     // Deploy governor
     vm.prank(owner);
-    governor = IDemocraticGovernance(
-      new DemocraticGovernanceForTest(
-        GROUP_ID,
-        worldIDRouter,
-        APP_ID,
-        QUORUM,
-        INITIAL_VOTING_DELAY,
-        INITIAL_VOTING_PERIOD,
-        INITIAL_PROPOSAL_THRESHOLD,
-        ROOT_EXPIRATION_THRESHOLD
-      )
+    governor = new DemocraticGovernanceForTest(
+      GROUP_ID,
+      worldIDRouter,
+      APP_ID,
+      QUORUM,
+      INITIAL_VOTING_DELAY,
+      INITIAL_VOTING_PERIOD,
+      INITIAL_PROPOSAL_THRESHOLD,
+      ROOT_EXPIRATION_THRESHOLD
     );
 
     // Deploy sigUtils
@@ -371,7 +369,7 @@ contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
 
     // Cast the vote
     vm.prank(user);
-    IDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+    governor.forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
   }
 
   /**
@@ -384,8 +382,7 @@ contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
 
     // Cast the vote
     vm.prank(user);
-    uint256 _votingWeight =
-      IDemocraticGovernanceForTest(address(governor)).forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
+    uint256 _votingWeight = governor.forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
     assertEq(_votingWeight, WEIGHT);
   }
 }
@@ -401,7 +398,7 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
     uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM + 1);
 
     // Check that the quorum is reached
-    assertTrue(IDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+    assertTrue(governor.forTest_quorumReached(_proposalId));
   }
 
   /**
@@ -414,7 +411,7 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
     uint256 _proposalId = _proposeAndVote(owner, _description, QUORUM - 1);
 
     // Check that the quorum is reached
-    assertFalse(IDemocraticGovernanceForTest(address(governor)).forTest_quorumReached(_proposalId));
+    assertFalse(governor.forTest_quorumReached(_proposalId));
   }
 
   /**
@@ -440,7 +437,7 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
     for (uint256 i = 0; i < _votesRequired; i++) {
       address _randomVoter = vm.addr(uint256(keccak256(abi.encodePacked(i, _description))));
       vm.prank(_randomVoter);
-      IDemocraticGovernanceForTest(address(governor)).forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
+      governor.forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
     }
   }
 }
@@ -450,8 +447,7 @@ contract DemocraticGovernance_Unit_GetVotes is Base {
    * @notice Check that the voting weight is 1
    */
   function test_returnsOne(address _account, uint256 _timepoint, bytes memory _params) public {
-    uint256 _votingWeight =
-      IDemocraticGovernanceForTest(address(governor)).forTest_getVotes(_account, _timepoint, _params);
+    uint256 _votingWeight = governor.forTest_getVotes(_account, _timepoint, _params);
     assertEq(_votingWeight, ONE);
   }
 }
@@ -534,7 +530,7 @@ contract DemocraticGovernance_Unit_SetResetGracePeriod is Base {
     uint256 _rootExpirationThreshold
   ) public {
     vm.assume(_newResetGracePeriod < _rootExpirationThreshold);
-    IDemocraticGovernanceForTest(address(governor)).forTest_setRootExpirationThreshold(_rootExpirationThreshold);
+    governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidResetGracePeriod.selector);
     vm.prank(address(governor));
@@ -570,7 +566,7 @@ contract DemocraticGovernance_Unit_CheckVoteValidity is Base {
   function test_revertIfNullifierAlreadyUsed(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
-    IDemocraticGovernanceForTest(address(governor)).forTest_setNullifierHash(_nullifierHash, true);
+    governor.forTest_setNullifierHash(_nullifierHash, true);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
     vm.prank(user);
@@ -756,7 +752,7 @@ contract DemocraticGovernance_Unit_SetVotingPeriod is Base {
     vm.assume(_rootExpirationThreshold < RESET_GRACE_PERIOD);
     vm.assume(_votingPeriod < RESET_GRACE_PERIOD - _rootExpirationThreshold);
 
-    IDemocraticGovernanceForTest(address(governor)).forTest_setRootExpirationThreshold(_rootExpirationThreshold);
+    governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
 
     vm.prank(address(governor));
     IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
@@ -854,7 +850,7 @@ contract DemocraticGovernance_Unit_CheckRootExpirationThreshold is Base {
    */
   function test_returnIfThresholdZero() public {
     vm.expectCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.routeFor.selector), 0);
-    IDemocraticGovernanceForTest(address(governor)).forTest_checkRootExpirationThreshold(0);
+    governor.forTest_checkRootExpirationThreshold(0);
   }
 
   /**
@@ -871,7 +867,7 @@ contract DemocraticGovernance_Unit_CheckRootExpirationThreshold is Base {
       abi.encode(address(worldIDIdentityManager))
     );
 
-    IDemocraticGovernanceForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
+    governor.forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   /**
@@ -888,7 +884,7 @@ contract DemocraticGovernance_Unit_CheckRootExpirationThreshold is Base {
       abi.encode(ROOT_HISTORY_EXPIRY)
     );
 
-    IDemocraticGovernanceForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
+    governor.forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   /**
@@ -898,7 +894,7 @@ contract DemocraticGovernance_Unit_CheckRootExpirationThreshold is Base {
     vm.assume(_rootExpirationThreshold > RESET_GRACE_PERIOD);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    IDemocraticGovernanceForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
+    governor.forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   /**
@@ -908,6 +904,6 @@ contract DemocraticGovernance_Unit_CheckRootExpirationThreshold is Base {
     vm.assume(_rootExpirationThreshold > ROOT_HISTORY_EXPIRY);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    IDemocraticGovernanceForTest(address(governor)).forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
+    governor.forTest_checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 }
