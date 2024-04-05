@@ -11,12 +11,12 @@ import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
+import {Time} from 'open-zeppelin/utils/types/Time.sol';
 
 abstract contract Base is Test, UnitUtils {
   uint8 public constant SUPPORT = 1;
   uint256 public constant GROUP_ID = _GROUP_ID;
   string public constant REASON = '';
-  uint256 public constant WEIGHT = 1;
   uint256 public constant QUORUM = 5;
   uint256 public constant ONE = 1;
   string public constant APP_ID = _APP_ID;
@@ -113,10 +113,43 @@ contract DemocraticGovernance_Unit_Constructor is Base {
     assertEq(governor.resetGracePeriod(), RESET_GRACE_PERIOD);
     assertEq(governor.rootExpirationThreshold(), _rootExpirationThreshold);
     assertEq(governor.quorumThreshold(), QUORUM);
+    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
+    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
+    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
   }
 }
 
 contract DemocraticGovernance_Unit_Propose is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_propose(string memory _description) public {
+    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
+
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    bytes[] memory _calldatas = new bytes[](1);
+    bytes32 _descriptionHash = keccak256(bytes(_description));
+    uint256 _proposalId = governor.hashProposal(_targets, _values, _calldatas, _descriptionHash);
+
+    vm.expectEmit(true, true, true, true);
+    uint256 snapshot = governor.clock() + governor.votingDelay();
+    emit IGovernor.ProposalCreated(
+      _proposalId,
+      owner,
+      _targets,
+      _values,
+      new string[](_targets.length),
+      _calldatas,
+      snapshot,
+      snapshot + governor.votingPeriod(),
+      _description
+    );
+
+    vm.prank(owner);
+    governor.propose(_targets, _values, _calldatas, _description);
+  }
+
   /**
    * @notice Check that only the owner can propose
    */
@@ -157,36 +190,6 @@ contract DemocraticGovernance_Unit_Propose is Base {
     uint256 _proposalIdCreated = governor.propose(_targets, _values, _calldatas, _description);
 
     assertEq(_proposalId, _proposalIdCreated);
-  }
-
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_propose(string memory _description) public {
-    vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
-
-    address[] memory _targets = new address[](1);
-    uint256[] memory _values = new uint256[](1);
-    bytes[] memory _calldatas = new bytes[](1);
-    bytes32 _descriptionHash = keccak256(bytes(_description));
-    uint256 _proposalId = governor.hashProposal(_targets, _values, _calldatas, _descriptionHash);
-
-    vm.expectEmit(true, true, true, true);
-    uint256 snapshot = governor.clock() + governor.votingDelay();
-    emit IGovernor.ProposalCreated(
-      _proposalId,
-      owner,
-      _targets,
-      _values,
-      new string[](_targets.length),
-      _calldatas,
-      snapshot,
-      snapshot + governor.votingPeriod(),
-      _description
-    );
-
-    vm.prank(owner);
-    governor.propose(_targets, _values, _calldatas, _description);
   }
 }
 
@@ -232,38 +235,13 @@ contract DemocraticGovernance_Unit_Quorum is Base {
 }
 
 contract DemocraticGovernance_Unit_Clock is Base {
+  using Time for *;
+
   /**
    * @notice Test that the function returns the clock
    */
   function test_returnClock() public {
-    assertEq(governor.clock(), block.timestamp);
-  }
-}
-
-contract DemocraticGovernance_Unit_VotingDelay is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_VotingDelay() public {
-    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
-  }
-}
-
-contract DemocraticGovernance_Unit_VotingPeriod is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_VotingPeriod() public {
-    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
-  }
-}
-
-contract DemocraticGovernance_Unit_ProposalThreshold is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_ProposalThreshold() public {
-    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
+    assertEq(governor.clock(), Time.timestamp());
   }
 }
 
@@ -297,7 +275,7 @@ contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
       _mockWorlIDCalls(SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
+    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, ONE, REASON, _params);
 
     // Cast the vote
     vm.prank(user);
@@ -314,7 +292,7 @@ contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
     // Cast the vote
     vm.prank(user);
     uint256 _votingWeight = governor.forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
-    assertEq(_votingWeight, WEIGHT);
+    assertEq(_votingWeight, ONE);
   }
 }
 
@@ -369,8 +347,9 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
     // Vote
     for (uint256 i = 0; i < _votesRequired; i++) {
       address _randomVoter = vm.addr(uint256(keccak256(abi.encodePacked(i, _description))));
+      uint8 _support = i % 2 == 0 ? 1 : 2; // If even support, if odd abstain
       vm.prank(_randomVoter);
-      governor.forTest_countVote(_proposalId, _randomVoter, SUPPORT, WEIGHT);
+      governor.forTest_countVote(_proposalId, _randomVoter, _support, ONE);
     }
   }
 }
