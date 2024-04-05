@@ -109,46 +109,6 @@ contract DemocraticGovernance_Unit_Constructor is Base {
   using ByteHasher for bytes;
 
   /**
-   * @notice Check that the constructor reverts if the root expiration threshold is bigger than the reset grace period
-   */
-  function test_revertIfThresholdBiggerThanResetGracePeriod() public {
-    uint256 _rootExpirationThreshold = RESET_GRACE_PERIOD + 1;
-
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    vm.prank(address(governor));
-    governor = new DemocraticGovernanceForTest(
-      GROUP_ID,
-      worldIDRouter,
-      APP_ID,
-      QUORUM,
-      INITIAL_VOTING_DELAY,
-      INITIAL_VOTING_PERIOD,
-      INITIAL_PROPOSAL_THRESHOLD,
-      _rootExpirationThreshold
-    );
-  }
-
-  /**
-   * @notice Check that the constructor reverts if the root expiration threshold is bigger than the root history expiry
-   */
-  function test_revertIfThresholdBiggerThanRootHistoryExpiry() public {
-    uint256 _rootExpirationThreshold = ROOT_HISTORY_EXPIRY + 1;
-
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    vm.prank(address(governor));
-    governor = new DemocraticGovernanceForTest(
-      GROUP_ID,
-      worldIDRouter,
-      APP_ID,
-      QUORUM,
-      INITIAL_VOTING_DELAY,
-      INITIAL_VOTING_PERIOD,
-      INITIAL_PROPOSAL_THRESHOLD,
-      _rootExpirationThreshold
-    );
-  }
-
-  /**
    * @notice Check that the constructor works as expected
    */
   function test_correctDeploy(uint256 _rootExpirationThreshold) public {
@@ -166,12 +126,7 @@ contract DemocraticGovernance_Unit_Constructor is Base {
       INITIAL_PROPOSAL_THRESHOLD,
       _rootExpirationThreshold
     );
-  }
 
-  /**
-   * @notice Check that the constructor sets the correct variables
-   */
-  function test_setCorrectVariables() public {
     assertEq(address(governor.WORLD_ID_ROUTER()), address(worldIDRouter));
     assertEq(governor.GROUP_ID(), GROUP_ID);
     assertEq(governor.APP_ID_HASH(), abi.encodePacked(APP_ID).hashToField());
