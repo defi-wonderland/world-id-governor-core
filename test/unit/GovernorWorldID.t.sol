@@ -521,58 +521,54 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   /**
    * @notice Check that the function reverts if invalid voting period
    */
-  function test_revertIfInvalidPeriodWhenZeroThreshold(uint32 _votingPeriod) public {
-    vm.assume(_votingPeriod > RESET_GRACE_PERIOD);
+  function test_revertIfInvalidPeriodWhenZeroThreshold(uint32 _newVotingPeriod) public {
+    vm.assume(_newVotingPeriod > RESET_GRACE_PERIOD);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
-    vm.prank(address(governor));
-    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
+    governor.forTest_setVotingPeriodInternal(_newVotingPeriod);
   }
 
   /**
    * @notice Check that the function reverts if invalid voting period
    */
-  function test_revertIfInvalidPeriodWhenNonZeroThreshold(uint32 _votingPeriod) public {
+  function test_revertIfInvalidPeriodWhenNonZeroThreshold(uint32 _newVotingPeriod) public {
     uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
 
-    vm.assume(_votingPeriod > RESET_GRACE_PERIOD - _rootExpirationThreshold);
+    vm.assume(_newVotingPeriod > RESET_GRACE_PERIOD - _rootExpirationThreshold);
 
     // Set a new root expiration threshold
     governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
-    vm.prank(address(governor));
-    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
+    governor.forTest_setVotingPeriodInternal(_newVotingPeriod);
   }
 
   /**
    * @notice Check that the function sets the voting period
    */
-  function test_setVotingPeriod(uint32 _votingPeriod, uint256 _rootExpirationThreshold) public {
-    vm.assume(_votingPeriod != 0);
+  function test_setVotingPeriod(uint32 _newVotingPeriod, uint256 _rootExpirationThreshold) public {
+    vm.assume(_newVotingPeriod != 0);
     vm.assume(_rootExpirationThreshold < RESET_GRACE_PERIOD);
-    vm.assume(_votingPeriod < RESET_GRACE_PERIOD - _rootExpirationThreshold);
+    vm.assume(_newVotingPeriod < RESET_GRACE_PERIOD - _rootExpirationThreshold);
 
     governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
 
-    vm.prank(address(governor));
-    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
+    governor.forTest_setVotingPeriodInternal(_newVotingPeriod);
 
-    assertEq(governor.votingPeriod(), _votingPeriod);
+    assertEq(governor.votingPeriod(), _newVotingPeriod);
   }
 
   /**
    * @notice Check that the function emits the event
    */
-  function test_emitEvent(uint32 _votingPeriod) public {
-    vm.assume(_votingPeriod != 0);
-    vm.assume(_votingPeriod < RESET_GRACE_PERIOD);
+  function test_emitEvent(uint32 _newVotingPeriod) public {
+    vm.assume(_newVotingPeriod != 0);
+    vm.assume(_newVotingPeriod < RESET_GRACE_PERIOD);
 
     vm.expectEmit(true, true, true, true);
-    emit GovernorSettings.VotingPeriodSet(INITIAL_VOTING_PERIOD, _votingPeriod);
+    emit GovernorSettings.VotingPeriodSet(INITIAL_VOTING_PERIOD, _newVotingPeriod);
 
-    vm.prank(address(governor));
-    IGovernorSettings(address(governor)).setVotingPeriod(_votingPeriod);
+    governor.forTest_setVotingPeriodInternal(_newVotingPeriod);
   }
 }
 

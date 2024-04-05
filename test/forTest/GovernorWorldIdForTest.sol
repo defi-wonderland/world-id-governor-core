@@ -53,6 +53,10 @@ contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, Govern
     rootExpirationThreshold = _newRootExpirationThreshold;
   }
 
+  function forTest_setVotingPeriodInternal(uint32 _newVotingPeriod) public {
+    _setVotingPeriod(_newVotingPeriod);
+  }
+
   function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) public view {
     return _checkRootExpirationThreshold(_rootExpirationThreshold);
   }
