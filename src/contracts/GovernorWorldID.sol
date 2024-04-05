@@ -8,6 +8,7 @@ import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {Governor} from 'open-zeppelin/governance/Governor.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
+import {Strings} from 'open-zeppelin/utils/Strings.sol';
 
 /**
  * @title GovernorWorldID
@@ -15,6 +16,7 @@ import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSett
  */
 abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldID {
   using ByteHasher for bytes;
+  using Strings for uint256;
 
   /**
    * @inheritdoc IGovernorWorldID
@@ -124,9 +126,9 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     }
 
     // Verify the provided proof
-    uint256 _signal = abi.encodePacked(_support).hashToField();
-    uint256 _externalNullifier = abi.encodePacked(APP_ID_HASH, _proposalId).hashToField();
-    WORLD_ID_ROUTER.verifyProof(_root, GROUP_ID, _signal, _decodedNullifierHash, _externalNullifier, _proof);
+    uint256 _signalHash = abi.encodePacked(uint256(_support).toString()).hashToField();
+    uint256 _externalNullifierHash = abi.encodePacked(APP_ID_HASH, _proposalId.toString()).hashToField();
+    WORLD_ID_ROUTER.verifyProof(_root, GROUP_ID, _signalHash, _decodedNullifierHash, _externalNullifierHash, _proof);
 
     // Return the decoded nullifier hash
     _nullifierHash = _decodedNullifierHash;
