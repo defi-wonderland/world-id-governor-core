@@ -7,14 +7,12 @@ import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
 import {IDemocraticGovernance} from 'interfaces/IDemocraticGovernance.sol';
-import {IGovernorSettings} from 'interfaces/IGovernorSettings.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
-import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
 abstract contract Base is Test, UnitUtils {
