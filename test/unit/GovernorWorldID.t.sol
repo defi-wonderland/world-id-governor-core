@@ -521,13 +521,12 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   /**
    * @notice Check that the function reverts if invalid voting period
    */
-  function test_revertIfInvalidPeriodWhenNonZeroThreshold(
+  function test_revertIfInvalidPeriod(
     uint32 _newVotingPeriod,
     uint256 _resetGracePeriod,
     uint256 _rootExpirationThreshold
   ) public {
     vm.assume(_resetGracePeriod != 0);
-    vm.assume(_rootExpirationThreshold != 0);
     vm.assume(_resetGracePeriod >= _rootExpirationThreshold);
     vm.assume(_newVotingPeriod > _resetGracePeriod - _rootExpirationThreshold);
 
