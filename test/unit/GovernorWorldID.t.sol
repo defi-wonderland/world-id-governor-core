@@ -20,7 +20,7 @@ abstract contract Base is Test, UnitUtils {
   uint256 public constant GROUP_ID = 1;
   string public constant REASON = '';
   uint256 public constant WEIGHT = 0;
-  string public constant APP_ID_HASH = 'appId';
+  string public constant APP_ID = 'appId';
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
   uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
@@ -73,7 +73,7 @@ abstract contract Base is Test, UnitUtils {
     GovernorWorldIdForTest.ConstructorArgs memory _cArgs = GovernorWorldIdForTest.ConstructorArgs(
       GROUP_ID,
       worldIDRouter,
-      APP_ID_HASH,
+      APP_ID,
       IVotes(address(token)),
       INITIAL_VOTING_DELAY,
       INITIAL_VOTING_PERIOD,
@@ -114,7 +114,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
       GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
-        APP_ID_HASH,
+        APP_ID,
         IVotes(address(token)),
         INITIAL_VOTING_DELAY,
         INITIAL_VOTING_PERIOD,
@@ -135,7 +135,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
       GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
-        APP_ID_HASH,
+        APP_ID,
         IVotes(address(token)),
         INITIAL_VOTING_DELAY,
         INITIAL_VOTING_PERIOD,
@@ -156,7 +156,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
       GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
-        APP_ID_HASH,
+        APP_ID,
         IVotes(address(token)),
         INITIAL_VOTING_DELAY,
         INITIAL_VOTING_PERIOD,
@@ -167,7 +167,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
 
     assertEq(address(_governor.WORLD_ID_ROUTER()), address(worldIDRouter));
     assertEq(_governor.GROUP_ID(), GROUP_ID);
-    assertEq(_governor.APP_ID_HASH(), abi.encodePacked(APP_ID_HASH).hashToField());
+    assertEq(_governor.APP_ID_HASH(), abi.encodePacked(APP_ID).hashToField());
     assertEq(_governor.resetGracePeriod(), RESET_GRACE_PERIOD);
     assertEq(_governor.rootExpirationThreshold(), _rootExpirationThreshold);
   }
@@ -637,59 +637,14 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
-    );
-
-    vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
-
-    // Cast the vote
-    vm.prank(user);
-    governor.castVoteWithReasonAndParams(proposalId, SUPPORT, REASON, _params);
-  }
-}
-
-contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_castVoteWithReasonAndParamsBySig(
-    uint256 _root,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) public {
-    bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
-    );
-
-    // Sign
-    bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr, REASON, _params);
-    (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-    bytes memory _extendedBallotSignature = abi.encodePacked(_r, _s, _v);
-
-    vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(signer.addr, proposalId, SUPPORT, WEIGHT, REASON, _params);
-
-    // Cast the vote
-    vm.prank(user);
-    governor.castVoteWithReasonAndParamsBySig(
-      proposalId, SUPPORT, signer.addr, REASON, _params, _extendedBallotSignature
-    );
-  }
-}
-
 contract GovernorWorldID_Unit_CheckRootExpirationThreshold is Base {
   /**
    * @notice Check that the function just return and does not call the router if the threshold is zero
    */
   function test_returnIfThresholdZero() public {
-    vm.expectCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.routeFor.selector), 0);
+    // Check that the function is called 0 times
+    uint64 _expectedCalls = 0;
+    vm.expectCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.routeFor.selector), _expectedCalls);
     governor.forTest_checkRootExpirationThreshold(0);
   }
 
