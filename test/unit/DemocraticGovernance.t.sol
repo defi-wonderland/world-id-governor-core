@@ -2,10 +2,8 @@
 pragma solidity 0.8.23;
 
 import {DemocraticGovernanceForTest} from '../forTest/DemocraticGovernanceForTest.sol';
-import {ERC20VotesForTest} from '../forTest/ERC20VotesForTest.sol';
-import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {UnitUtils} from './UnitUtils.sol';
-import {Test, Vm} from 'forge-std/Test.sol';
+import {Test} from 'forge-std/Test.sol';
 import {IDemocraticGovernance} from 'interfaces/IDemocraticGovernance.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
@@ -13,16 +11,15 @@ import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
-import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
 abstract contract Base is Test, UnitUtils {
   uint8 public constant SUPPORT = 1;
-  uint256 public constant GROUP_ID = 1;
+  uint256 public constant GROUP_ID = _GROUP_ID;
   string public constant REASON = '';
   uint256 public constant WEIGHT = 1;
   uint256 public constant QUORUM = 5;
   uint256 public constant ONE = 1;
-  string public constant APP_ID = 'appId';
+  string public constant APP_ID = _APP_ID;
   string public constant DESCRIPTION = '0xDescription';
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
@@ -32,32 +29,24 @@ abstract contract Base is Test, UnitUtils {
   uint256 public constant ROOT_HISTORY_EXPIRY = 1 weeks;
   uint128 public rootTimestamp = uint128(block.timestamp - 1);
 
-  IERC20 public token;
   DemocraticGovernanceForTest public governor;
   IWorldIDRouter public worldIDRouter;
   IWorldIDIdentityManager public worldIDIdentityManager;
-  GovernorSigUtils public sigUtils;
 
   uint256 public proposalId;
-  bytes public signature;
-  Vm.Wallet public signer;
   address public user;
   address public owner;
 
   function setUp() public {
-    signer = vm.createWallet('signer');
     user = makeAddr('user');
     owner = makeAddr('owner');
 
-    // Deploy token
-    token = new ERC20VotesForTest();
-
     // Deploy mock worldIDRouter
-    worldIDRouter = IWorldIDRouter(makeAddr('worldIDRouter'));
+    worldIDRouter = _worldIDRouter;
     vm.etch(address(worldIDRouter), new bytes(0x1));
 
     // Deploy mock worldIDIdentityManager
-    worldIDIdentityManager = IWorldIDIdentityManager(makeAddr('worldIDIdentityManager'));
+    worldIDIdentityManager = _worldIDIdentityManager;
     vm.etch(address(worldIDIdentityManager), new bytes(0x1));
 
     // Mock the routeFor function
@@ -87,9 +76,6 @@ abstract contract Base is Test, UnitUtils {
       ROOT_EXPIRATION_THRESHOLD
     );
 
-    // Deploy sigUtils
-    sigUtils = new GovernorSigUtils(address(governor), 'DemocraticGovernor');
-
     // Create proposal
     vm.prank(owner);
     proposalId = governor.propose(new address[](1), new uint256[](1), new bytes[](1), DESCRIPTION);
@@ -97,11 +83,6 @@ abstract contract Base is Test, UnitUtils {
     // Advance time assuming 1 block == 1 second (this will make the proposal active)
     vm.warp(block.timestamp + governor.votingDelay() + 1);
     vm.roll(block.number + governor.votingDelay() + 1);
-
-    // Generate signature
-    bytes32 _hash = sigUtils.getHash(proposalId, SUPPORT, signer.addr);
-    (uint8 _v, bytes32 _r, bytes32 _s) = vm.sign(signer.privateKey, _hash);
-    signature = abi.encodePacked(_r, _s, _v);
   }
 }
 
@@ -115,7 +96,6 @@ contract DemocraticGovernance_Unit_Constructor is Base {
     vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
     vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
 
-    vm.prank(address(governor));
     governor = new DemocraticGovernanceForTest(
       GROUP_ID,
       worldIDRouter,
@@ -343,6 +323,7 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
    * @notice Test that the function returns if the quorum is reached
    */
   function test_reachedQuorum(string memory _description) public {
+    // Prevent the same proposal id as `proposalId`
     vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
 
     // Propose and vote
@@ -356,6 +337,7 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
    * @notice Test that the function returns if the quorum is not reached
    */
   function test_notReachedQuorum(string memory _description) public {
+    // Prevent the same proposal id as `proposalId`
     vm.assume(keccak256(abi.encode(_description)) != keccak256(abi.encode((DESCRIPTION))));
 
     // Propose and vote
