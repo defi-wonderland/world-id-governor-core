@@ -35,7 +35,7 @@ interface IDemocraticGovernance is IGovernorWorldID {
    * @dev Follows the Open Zeppelin implementation when the token does not implement EIP-6372,
    *  but using timestamp instead
    */
-  function clock() external view returns (uint48);
+  function clock() external view returns (uint48 _clock);
 
   /**
    * @notice Description of the clock mode
@@ -44,5 +44,5 @@ interface IDemocraticGovernance is IGovernorWorldID {
    *  but using timestamp instead
    */
   // solhint-disable-next-line func-name-mixedcase
-  function CLOCK_MODE() external view returns (string memory);
+  function CLOCK_MODE() external view returns (string memory _mode);
 }

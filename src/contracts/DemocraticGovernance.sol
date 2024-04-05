@@ -13,7 +13,7 @@ import {Time} from 'open-zeppelin/utils/types/Time.sol';
 /**
  * @title DemocraticGovernance
  * @notice Implementation of the DemocraticGovernance contract, with 1 vote per voter that is verified on WorldID.
- * @dev For this specific case only the owner can propose.
+ * @dev For this specific case, only the owner can propose.
  */
 contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocratic, IDemocraticGovernance {
   /**
@@ -101,22 +101,40 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   /**
    * @inheritdoc IGovernor
    */
-  function votingDelay() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
-    return super.votingDelay();
+  function votingDelay()
+    public
+    view
+    virtual
+    override(Governor, GovernorWorldID, IGovernor)
+    returns (uint256 _votingDelay)
+  {
+    _votingDelay = super.votingDelay();
   }
 
   /**
    * @inheritdoc IGovernor
    */
-  function votingPeriod() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
-    return super.votingPeriod();
+  function votingPeriod()
+    public
+    view
+    virtual
+    override(Governor, GovernorWorldID, IGovernor)
+    returns (uint256 _votingPeriod)
+  {
+    _votingPeriod = super.votingPeriod();
   }
 
   /**
    * @inheritdoc IGovernor
    */
-  function proposalThreshold() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
-    return super.proposalThreshold();
+  function proposalThreshold()
+    public
+    view
+    virtual
+    override(Governor, GovernorWorldID, IGovernor)
+    returns (uint256 _proposalThreshold)
+  {
+    _proposalThreshold = super.proposalThreshold();
   }
 
   /**
