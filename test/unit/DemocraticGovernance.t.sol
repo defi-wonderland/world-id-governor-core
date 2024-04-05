@@ -131,7 +131,7 @@ contract DemocraticGovernance_Unit_Constructor is Base {
     assertEq(governor.GROUP_ID(), GROUP_ID);
     assertEq(governor.APP_ID_HASH(), abi.encodePacked(APP_ID).hashToField());
     assertEq(governor.resetGracePeriod(), RESET_GRACE_PERIOD);
-    assertEq(governor.rootExpirationThreshold(), ROOT_EXPIRATION_THRESHOLD);
+    assertEq(governor.rootExpirationThreshold(), _rootExpirationThreshold);
     assertEq(governor.quorumThreshold(), QUORUM);
   }
 }
