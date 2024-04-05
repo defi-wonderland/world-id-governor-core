@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Strings} from '@openzeppelin/contracts/utils/Strings.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
+import {Strings} from 'open-zeppelin/utils/Strings.sol';
 
 abstract contract UnitUtils is Test {
   using Strings for uint256;
