@@ -18,10 +18,10 @@ import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
 abstract contract Base is Test, UnitUtils {
   uint8 public constant SUPPORT = 1;
-  uint256 public constant GROUP_ID = 1;
+  uint256 public constant GROUP_ID = _GROUP_ID;
   string public constant REASON = '';
   uint256 public constant WEIGHT = 0;
-  string public constant APP_ID_HASH = 'appId';
+  string public constant APP_ID = 'appId';
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
   uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
@@ -49,11 +49,11 @@ abstract contract Base is Test, UnitUtils {
     token = new ERC20VotesForTest();
 
     // Deploy mock worldIDRouter
-    worldIDRouter = IWorldIDRouter(makeAddr('worldIDRouter'));
+    worldIDRouter = _worldIDRouter;
     vm.etch(address(worldIDRouter), new bytes(0x1));
 
     // Deploy mock worldIDIdentityManager
-    worldIDIdentityManager = IWorldIDIdentityManager(makeAddr('worldIDIdentityManager'));
+    worldIDIdentityManager = _worldIDIdentityManager;
     vm.etch(address(worldIDIdentityManager), new bytes(0x1));
 
     // Mock the routeFor function
@@ -74,7 +74,7 @@ abstract contract Base is Test, UnitUtils {
     GovernorWorldIdForTest.ConstructorArgs memory _cArgs = GovernorWorldIdForTest.ConstructorArgs(
       GROUP_ID,
       worldIDRouter,
-      APP_ID_HASH,
+      APP_ID,
       IVotes(address(token)),
       INITIAL_VOTING_DELAY,
       INITIAL_VOTING_PERIOD,
@@ -116,7 +116,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
       GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
-        APP_ID_HASH,
+        APP_ID,
         IVotes(address(token)),
         INITIAL_VOTING_DELAY,
         INITIAL_VOTING_PERIOD,
@@ -138,7 +138,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
       GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
-        APP_ID_HASH,
+        APP_ID,
         IVotes(address(token)),
         INITIAL_VOTING_DELAY,
         INITIAL_VOTING_PERIOD,
@@ -160,7 +160,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
       GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
-        APP_ID_HASH,
+        APP_ID,
         IVotes(address(token)),
         INITIAL_VOTING_DELAY,
         INITIAL_VOTING_PERIOD,
@@ -171,7 +171,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
 
     assertEq(address(governor.WORLD_ID_ROUTER()), address(worldIDRouter));
     assertEq(governor.GROUP_ID(), GROUP_ID);
-    assertEq(governor.APP_ID_HASH(), abi.encodePacked(APP_ID_HASH).hashToField());
+    assertEq(governor.APP_ID_HASH(), abi.encodePacked(APP_ID).hashToField());
     assertEq(governor.resetGracePeriod(), RESET_GRACE_PERIOD);
     assertEq(governor.rootExpirationThreshold(), _rootExpirationThreshold);
   }
@@ -303,7 +303,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
    */
   function test_callRouteFor(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+      governor, SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
     );
 
     _mockAndExpect(
@@ -324,7 +324,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
     _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+      governor, SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
     );
 
     vm.prank(user);
@@ -371,7 +371,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
     vm.assume(_rootTimestamp > block.timestamp - _rootExpirationThreshold);
 
     bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, _rootExpirationThreshold, _rootTimestamp
+      governor, SUPPORT, proposalId, _root, _nullifierHash, _proof, _rootExpirationThreshold, _rootTimestamp
     );
 
     // Set a new root expiration threshold
@@ -417,13 +417,19 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
   /**
    * @notice Test that the function calls the verifyProof function from the WorldID contract
    */
-  function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+  function test_callVerifyProof(
+    uint8 _support,
+    uint256 _proposalId,
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
     bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+      governor, _support, _proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
     );
 
     vm.prank(user);
-    governor.checkVoteValidity(SUPPORT, proposalId, _params);
+    governor.checkVoteValidity(_support, _proposalId, _params);
   }
 
   /**
@@ -431,7 +437,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
    */
   function test_returnNullifierHash(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+      governor, SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
     );
 
     vm.prank(user);
@@ -566,7 +572,7 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
    */
   function test_nullifierIsStored(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+      governor, SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
     );
 
     // Cast the vote
@@ -581,7 +587,7 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+      governor, SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
     );
 
     vm.expectEmit(true, true, true, true);
@@ -599,7 +605,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParams is Base {
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+      governor, SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
     );
 
     vm.expectEmit(true, true, true, true);
@@ -621,7 +627,7 @@ contract GovernorWorldID_Unit_CastVoteWithReasonAndParamsBySig is Base {
     uint256[8] memory _proof
   ) public {
     bytes memory _params = _mockWorlIDCalls(
-      worldIDRouter, worldIDIdentityManager, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
+      governor, SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp
     );
 
     // Sign

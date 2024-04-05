@@ -1,12 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {Strings} from '@openzeppelin/contracts/utils/Strings.sol';
 import {Test} from 'forge-std/Test.sol';
-
+import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
+import {ByteHasher} from 'libraries/ByteHasher.sol';
 
 abstract contract UnitUtils is Test {
+  using Strings for uint256;
+  using ByteHasher for bytes;
+
+  uint256 internal constant _GROUP_ID = 1;
+  IWorldIDRouter internal _worldIDRouter = IWorldIDRouter(makeAddr('worldIDRouter'));
+  IWorldIDIdentityManager internal _worldIDIdentityManager = IWorldIDIdentityManager(makeAddr('worldIDIdentityManager'));
+
   /**
    * @notice Sets up a mock and expects a call to it*
    * @param _receiver The address to have a mock on
@@ -21,8 +30,9 @@ abstract contract UnitUtils is Test {
   /**
    * @notice Mocks the WorldIDIdentityManager contract calls to `latestRoot` or `rootHistory`, and `verifyRoot`
    *  and expects them to be called
-   * @param _worldIDRouter The WorldIDRouter contract to mock and expect
-   * @param _worldIDIdentityManager The WorldIDIdentityManager contract to mock and expect
+   * @param _governor The governor contract to interact with
+   * @param _support The support need for the signal hash to mock and expect
+   * @param _proposalId The proposal ID need for the external nullifier hash to mock and expect
    * @param _root The root to mock and expect
    * @param _nullifierHash The nullifier hash to mock and expect
    * @param _proof The proof to mock and expect
@@ -31,8 +41,9 @@ abstract contract UnitUtils is Test {
    * @return _params The encoded parameters to mock and expect
    */
   function _mockWorlIDCalls(
-    IWorldIDRouter _worldIDRouter,
-    IWorldIDIdentityManager _worldIDIdentityManager,
+    IGovernorWorldID _governor,
+    uint8 _support,
+    uint256 _proposalId,
     uint256 _root,
     uint256 _nullifierHash,
     uint256[8] memory _proof,
@@ -55,8 +66,21 @@ abstract contract UnitUtils is Test {
       );
     }
 
+    // Mock the `verifyProof` function and expect it to be called
+    uint256 _signalHash = abi.encodePacked(uint256(_support).toString()).hashToField();
+    uint256 _externalNullifierHash = abi.encodePacked(_governor.APP_ID_HASH(), _proposalId.toString()).hashToField();
     _mockAndExpect(
-      address(_worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.verifyProof.selector), abi.encode(true)
+      address(_worldIDRouter),
+      abi.encodeWithSelector(
+        IWorldIDRouter.verifyProof.selector,
+        _root,
+        _GROUP_ID,
+        _signalHash,
+        _nullifierHash,
+        _externalNullifierHash,
+        _proof
+      ),
+      abi.encode(true)
     );
 
     // Encode the parameters
