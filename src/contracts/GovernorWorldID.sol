@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Strings} from '@openzeppelin/contracts/utils/Strings.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
@@ -9,6 +8,7 @@ import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {Governor} from 'open-zeppelin/governance/Governor.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
+import {Strings} from 'open-zeppelin/utils/Strings.sol';
 
 /**
  * @title GovernorWorldID
