@@ -24,7 +24,7 @@ abstract contract Base is Test, UnitUtils {
   uint256 public constant WEIGHT = 1;
   uint256 public constant QUORUM = 5;
   uint256 public constant ONE = 1;
-  string public constant APP_ID_HASH = 'appId';
+  string public constant APP_ID = 'appId';
   string public constant DESCRIPTION = '0xDescription';
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
@@ -81,7 +81,7 @@ abstract contract Base is Test, UnitUtils {
     governor = new DemocraticGovernanceForTest(
       GROUP_ID,
       worldIDRouter,
-      APP_ID_HASH,
+      APP_ID,
       QUORUM,
       INITIAL_VOTING_DELAY,
       INITIAL_VOTING_PERIOD,
@@ -121,7 +121,7 @@ contract DemocraticGovernance_Unit_Constructor is Base {
     governor = new DemocraticGovernanceForTest(
       GROUP_ID,
       worldIDRouter,
-      APP_ID_HASH,
+      APP_ID,
       QUORUM,
       INITIAL_VOTING_DELAY,
       INITIAL_VOTING_PERIOD,
@@ -141,7 +141,7 @@ contract DemocraticGovernance_Unit_Constructor is Base {
     governor = new DemocraticGovernanceForTest(
       GROUP_ID,
       worldIDRouter,
-      APP_ID_HASH,
+      APP_ID,
       QUORUM,
       INITIAL_VOTING_DELAY,
       INITIAL_VOTING_PERIOD,
@@ -161,7 +161,7 @@ contract DemocraticGovernance_Unit_Constructor is Base {
     governor = new DemocraticGovernanceForTest(
       GROUP_ID,
       worldIDRouter,
-      APP_ID_HASH,
+      APP_ID,
       QUORUM,
       INITIAL_VOTING_DELAY,
       INITIAL_VOTING_PERIOD,
@@ -176,7 +176,7 @@ contract DemocraticGovernance_Unit_Constructor is Base {
   function test_setCorrectVariables() public {
     assertEq(address(governor.WORLD_ID_ROUTER()), address(worldIDRouter));
     assertEq(governor.GROUP_ID(), GROUP_ID);
-    assertEq(governor.APP_ID_HASH(), abi.encodePacked(APP_ID_HASH).hashToField());
+    assertEq(governor.APP_ID_HASH(), abi.encodePacked(APP_ID).hashToField());
     assertEq(governor.resetGracePeriod(), RESET_GRACE_PERIOD);
     assertEq(governor.rootExpirationThreshold(), ROOT_EXPIRATION_THRESHOLD);
     assertEq(governor.quorumThreshold(), QUORUM);
