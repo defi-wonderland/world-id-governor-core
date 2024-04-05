@@ -69,13 +69,13 @@ interface IGovernorWorldID is IGovernor {
    * @param _support The support for the proposal
    * @param _proposalId The proposal id
    * @param _proofData The proof data containing the Merkle root, the nullifier hash and the zkProof
-   * @return _decodedNullifierHash The decoded nullifier hash
+   * @return _nullifierHash The nullifier hash
    */
   function checkVoteValidity(
     uint8 _support,
     uint256 _proposalId,
     bytes memory _proofData
-  ) external returns (uint256 _decodedNullifierHash);
+  ) external returns (uint256 _nullifierHash);
 
   /**
    * @notice The World ID instance that will be used for verifying proofs
@@ -116,7 +116,7 @@ interface IGovernorWorldID is IGovernor {
   /**
    * @notice The expiration threshold used to define how old a root must be to be considered valid or invalid.
    * @dev If set to 0, the proof can only be verified using the latest root.
-   * @dev If deploying this contract on mainnet, the value must be 0.
+   * @dev If deploying this contract on mainnet or mainnet testnets, the value must be 0.
    * @return _rootExpirationThreshold The expiration threshold
    */
   function rootExpirationThreshold() external view returns (uint256 _rootExpirationThreshold);
