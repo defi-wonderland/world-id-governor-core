@@ -245,6 +245,33 @@ contract DemocraticGovernance_Unit_Clock is Base {
   }
 }
 
+contract DemocraticGovernance_Unit_VotingDelay is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_VotingDelay() public {
+    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
+  }
+}
+
+contract DemocraticGovernance_Unit_VotingPeriod is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_VotingPeriod() public {
+    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
+  }
+}
+
+contract DemocraticGovernance_Unit_ProposalThreshold is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_ProposalThreshold() public {
+    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
+  }
+}
+
 contract DemocraticGovernance_Unit_CLOCK_MODE is Base {
   /**
    * @notice Test that the function returns the clock mode
