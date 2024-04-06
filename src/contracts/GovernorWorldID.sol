@@ -73,7 +73,6 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     APP_ID_HASH = abi.encodePacked(_appId).hashToField();
 
     _checkRootExpirationThreshold(_rootExpirationThreshold);
-
     rootExpirationThreshold = _rootExpirationThreshold;
   }
 
@@ -82,10 +81,8 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    */
   function setRootExpirationThreshold(uint256 _newRootExpirationThreshold) external onlyGovernance {
     _checkRootExpirationThreshold(_newRootExpirationThreshold);
-
     uint256 _oldRootExpirationThreshold = rootExpirationThreshold;
     rootExpirationThreshold = _newRootExpirationThreshold;
-
     emit RootExpirationThresholdUpdated(_newRootExpirationThreshold, _oldRootExpirationThreshold);
   }
 
@@ -109,18 +106,16 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     uint256 _proposalId,
     bytes memory _proofData
   ) public override returns (uint256 _nullifierHash) {
-    // Decode the parameters
     (uint256 _root, uint256 _decodedNullifierHash, uint256[8] memory _proof) =
       abi.decode(_proofData, (uint256, uint256, uint256[8]));
 
     if (nullifierHashes[_decodedNullifierHash]) revert GovernorWorldID_NullifierHashAlreadyUsed();
 
     IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
-
+    // Validate the root timestamp
     if (rootExpirationThreshold == 0) {
       if (_root != _identityManager.latestRoot()) revert GovernorWorldID_OutdatedRoot();
     } else {
-      // Query and validate root information
       uint128 _rootTimestamp = _identityManager.rootHistory(_root);
       if (block.timestamp - rootExpirationThreshold > _rootTimestamp) revert GovernorWorldID_OutdatedRoot();
     }
@@ -161,10 +156,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    * @param _newVotingPeriod The voting period
    */
   function _setVotingPeriod(uint32 _newVotingPeriod) internal virtual override {
-    if (_newVotingPeriod > resetGracePeriod - rootExpirationThreshold) {
-      revert GovernorWorldID_InvalidVotingPeriod();
-    }
-
+    if (_newVotingPeriod > resetGracePeriod - rootExpirationThreshold) revert GovernorWorldID_InvalidVotingPeriod();
     super._setVotingPeriod(_newVotingPeriod);
   }
 
@@ -186,8 +178,6 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     bytes memory _params
   ) internal virtual override returns (uint256 _votingWeight) {
     uint256 _nullifierHash = checkVoteValidity(_support, _proposalId, _params);
-
-    // Save the nullifier hash as used
     nullifierHashes[_nullifierHash] = true;
 
     return super._castVote(_proposalId, _account, _support, _reason, _params);
