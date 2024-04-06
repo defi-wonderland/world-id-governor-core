@@ -6,12 +6,26 @@ import {Test} from 'forge-std/Test.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
 contract Common is Test {
+  /* DAO constant settings */
+  uint256 public constant QUORUM = 5;
+  uint48 public constant INITIAL_VOTING_DELAY = 0;
+  uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
+  uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
+  string public constant REASON = 'I want to vote on this proposal';
+
+  // Worldcoin WorldID Id Router
+  IWorldIDRouter public constant WORLD_ID_ROUTER = IWorldIDRouter(0x57f928158C3EE7CDad1e4D8642503c4D0201f611);
+
+  // Op block number on which the `ROOT` returned on the SDK was the latest one
+  uint256 public constant FORK_BLOCK = 118_332_222;
+
   /* Proof Inputs (on the SDK, everything was passed as a string) */
   string public constant APP_ID = 'app_40cfae76904f7231cf7dc28ce48a40e7';
   uint256 public constant PROPOSAL_ID =
     101_464_408_321_971_908_304_756_596_521_565_750_541_773_429_674_425_130_310_070_172_912_535_081_945_163;
   uint8 public FOR_SUPPORT = 1;
   uint256 public GROUP_ID = 1;
+
   /* Proof Outpus */
   uint256 public constant ROOT = 0x1439b1b8294e4bfe71a81c29daa378947b8d35dfc9faffe1debb6f8d206f48f5;
   uint256 public constant NULLIFIER_HASH = 0x1bf6089762e46ab249c0f9bc0c22abbe4899242e8a26100a9bd8b2930d959c24;
@@ -26,28 +40,19 @@ contract Common is Test {
     6_537_684_568_486_212_583_837_058_966_639_634_826_708_352_721_970_088_019_204_610_021_119_760_399_401,
     7_331_490_139_911_688_804_012_066_906_648_538_202_966_281_497_035_287_928_547_886_203_592_112_338_875
   ];
-  bytes public proofData;
-  /* Worldcoin WorldID Id Router */
-  IWorldIDRouter public constant WORLD_ID_ROUTER = IWorldIDRouter(0x57f928158C3EE7CDad1e4D8642503c4D0201f611);
-  /* DAO values  */
-  uint256 public constant QUORUM = 5;
-  uint48 public constant INITIAL_VOTING_DELAY = 0;
-  uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
-  uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
-  string public constant VOTE_REASON = 'I want to vote on this proposal';
 
-  uint256 internal constant _ZERO = 0;
-  uint256 internal constant _ONE = 1;
-  uint256 internal constant _FORK_BLOCK = 118_332_222;
-
+  // Root expiration threshold set to 1 hour so we test the `rootHistory` flow first
   uint256 public rootExpirationThreshold = 1 hours;
+  // Contracts, addresses and other values
   DemocraticGovernance public governance;
   address public owner = makeAddr('owner');
   address public user = makeAddr('user');
+  address public stranger = makeAddr('stranger');
+  bytes public proofData;
   uint256 public forkId;
 
   function setUp() public virtual {
-    forkId = vm.createSelectFork(vm.rpcUrl('optimism'), _FORK_BLOCK);
+    forkId = vm.createSelectFork(vm.rpcUrl('optimism'), FORK_BLOCK);
 
     // Deploy a DemocraticGovernance instance
     vm.prank(owner);
@@ -78,7 +83,7 @@ contract Common is Test {
     // Advance the time to make the proposal active
     vm.warp(block.timestamp + 1);
 
-    // Get the real proof data to validate the vote
+    // Pack the all the proof data together
     proofData = abi.encodePacked(ROOT, NULLIFIER_HASH, proof);
   }
 }
