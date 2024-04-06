@@ -153,8 +153,8 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     address _account,
     uint8 _support,
     string memory _reason
-  ) internal override(Governor, GovernorWorldID) returns (uint256 _votingWeight) {
-    _votingWeight = super._castVote(_proposalId, _account, _support, _reason);
+  ) internal override(Governor, GovernorWorldID) returns (uint256) {
+    super._castVote(_proposalId, _account, _support, _reason);
   }
 
   /**
