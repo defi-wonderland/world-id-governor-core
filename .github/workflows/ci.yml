@@ -62,6 +62,8 @@ jobs:
         run: yarn build
 
       - name: Run tests
+        env:
+          OPTIMISM_RPC: ${{ secrets.OPTIMISM_RPC }}
         run: yarn test:integration
 
   lint:
