@@ -30,10 +30,20 @@ contract Integration_SetResetGracePeriod is IntegrationBase {
   }
 
   /**
-   * @notice Test reverts when `resetGracePeriod` is set to an invalid value.
+   * @notice Test reverts when `resetGracePeriod` is set to less than `rootExpirationThreshold`.
    */
-  function test_revertIfInvalidValue() public {
+  function test_revertWhenLessThanRootExpirationThreshold() public {
     uint256 _newResetGracePeriod = governance.rootExpirationThreshold() - 1;
+    vm.prank(address(governance));
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidResetGracePeriod.selector);
+    governance.setResetGracePeriod(_newResetGracePeriod);
+  }
+
+  /**
+   * @notice Test reverts when `resetGracePeriod` is set to less than `votingPeriod`.
+   */
+  function test_revertWhenLessThanVotingPeriod() public {
+    uint256 _newResetGracePeriod = governance.votingPeriod() - 1;
     vm.prank(address(governance));
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidResetGracePeriod.selector);
     governance.setResetGracePeriod(_newResetGracePeriod);
