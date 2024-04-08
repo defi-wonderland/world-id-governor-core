@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity 0.8.23;
 
-import {DemocraticGovernance} from '../../../src/contracts/DemocraticGovernance.sol';
+import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
