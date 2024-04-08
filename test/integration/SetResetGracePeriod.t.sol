@@ -20,7 +20,7 @@ contract Integration_SetResetGracePeriod is IntegrationBase {
     // Get a different value between the root expiration threshold and the current reset grace period
     _newResetGracePeriod = bound(_newResetGracePeriod, _rootExpirationThreshold, _previousResetGracePeriod - 1);
 
-    vm.expectEmit(true, true, true, true);
+    vm.expectEmit(true, true, true, true, address(governance));
     emit IGovernorWorldID.ResetGracePeriodUpdated(_newResetGracePeriod, _previousResetGracePeriod);
 
     governance.setResetGracePeriod(_newResetGracePeriod);
