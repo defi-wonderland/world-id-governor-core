@@ -11,9 +11,10 @@ contract Integration_SetResetGracePeriod is Common {
    * @notice Test `resetGracePeriod` is correctly updated
    */
   function test_updateResetGracePeriod() public {
-    /* set to zero */
     vm.startPrank(address(governance));
     uint256 _firstResetGracePeriod = governance.resetGracePeriod();
+
+    // Set to a new valid value
     uint256 _rootExpirationThreshold = governance.rootExpirationThreshold();
     uint256 _newResetGracePeriod;
     _newResetGracePeriod = bound(_newResetGracePeriod, _rootExpirationThreshold, _firstResetGracePeriod - 1);
