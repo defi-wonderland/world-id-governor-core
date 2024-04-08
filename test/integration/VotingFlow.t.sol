@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity 0.8.23;
 
-import {Common} from './Common.sol';
+import {IntegrationBase} from './IntegrationBase.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 
-/**
- * @notice Contract that tests the voting flows on the DemocraticGovernance contract
- * by using a non-zero root expiration threshold.
- */
-contract DemocraticGovernance_Integration_NonZeroThreshold is Common {
+contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
   error InvalidProof();
 
   /**
@@ -98,11 +94,7 @@ contract DemocraticGovernance_Integration_NonZeroThreshold is Common {
   }
 }
 
-/**
- * @notice Contract that tests the voting flows on the DemocraticGovernance contract
- * by using a zero root expiration threshold.
- */
-contract DemocraticGovernance_Integration_ZeroThreshold is Common {
+contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
   error InvalidProof();
 
   /**
@@ -191,7 +183,7 @@ contract DemocraticGovernance_Integration_ZeroThreshold is Common {
    * @notice Test a user tries to vote when the `ROOT` from the proof is not anymore the current one
    */
   function test_revertIfNotLatestRoot() public {
-    // Current block number where the latest root changed
+    // Current block number where the `latestRoot()` has already changed
     uint256 _currentBlockNumber = 118_381_402;
 
     // Make persisten the deployed governance contract
