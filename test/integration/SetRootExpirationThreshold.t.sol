@@ -13,7 +13,7 @@ contract Integration_SetRootExpirationThreshold is IntegrationBase {
   function test_updateRootExpirationThreshold() public {
     /* set to zero */
     vm.startPrank(address(governance));
-    uint256 _firstRootExpirationThreshold = governance.rootExpirationThreshold();
+    uint256 _previousRootExpirationThreshold = governance.rootExpirationThreshold();
     uint256 _zero = 0;
 
     vm.expectEmit(true, true, true, true);
@@ -22,11 +22,11 @@ contract Integration_SetRootExpirationThreshold is IntegrationBase {
     governance.setRootExpirationThreshold(_zero);
     uint256 _newRootExpirationThreshold = governance.rootExpirationThreshold();
 
-    assertTrue(_newRootExpirationThreshold != _firstRootExpirationThreshold);
+    assertTrue(_newRootExpirationThreshold != _previousRootExpirationThreshold);
     assertEq(_newRootExpirationThreshold, _zero);
 
     /* set to non-zero */
-    uint256 _secondRootExpirationThreshold = governance.rootExpirationThreshold();
+    uint256 _currentRootExpirationThreshold = governance.rootExpirationThreshold();
     uint256 _resetGracePeriod = governance.resetGracePeriod();
     uint256 _rootHistoryExpiry = governance.WORLD_ID_ROUTER().routeFor(governance.GROUP_ID()).rootHistoryExpiry();
     // The max value that the new root expiration threshold can be set to is the minimum between the root history
@@ -35,12 +35,12 @@ contract Integration_SetRootExpirationThreshold is IntegrationBase {
     uint256 _nonZero = _maxValue - 1;
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernorWorldID.RootExpirationThresholdUpdated(_nonZero, _secondRootExpirationThreshold);
+    emit IGovernorWorldID.RootExpirationThresholdUpdated(_nonZero, _currentRootExpirationThreshold);
 
     governance.setRootExpirationThreshold(_nonZero);
     _newRootExpirationThreshold = governance.rootExpirationThreshold();
 
-    assertTrue(_newRootExpirationThreshold != _secondRootExpirationThreshold);
+    assertTrue(_newRootExpirationThreshold != _currentRootExpirationThreshold);
     assertEq(_newRootExpirationThreshold, _nonZero);
   }
 

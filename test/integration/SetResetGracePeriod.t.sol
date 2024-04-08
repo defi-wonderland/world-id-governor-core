@@ -12,22 +12,22 @@ contract Integration_SetResetGracePeriod is IntegrationBase {
    */
   function test_updateResetGracePeriod() public {
     vm.startPrank(address(governance));
-    uint256 _firstResetGracePeriod = governance.resetGracePeriod();
+    uint256 _previousResetGracePeriod = governance.resetGracePeriod();
 
     // Set to a new valid value
     uint256 _rootExpirationThreshold = governance.rootExpirationThreshold();
     uint256 _newResetGracePeriod;
     // Get a different value between the root expiration threshold and the current reset grace period
-    _newResetGracePeriod = bound(_newResetGracePeriod, _rootExpirationThreshold, _firstResetGracePeriod - 1);
+    _newResetGracePeriod = bound(_newResetGracePeriod, _rootExpirationThreshold, _previousResetGracePeriod - 1);
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernorWorldID.ResetGracePeriodUpdated(_newResetGracePeriod, _firstResetGracePeriod);
+    emit IGovernorWorldID.ResetGracePeriodUpdated(_newResetGracePeriod, _previousResetGracePeriod);
 
     governance.setResetGracePeriod(_newResetGracePeriod);
-    uint256 _resetGracePeriod = governance.rootExpirationThreshold();
+    uint256 _currentResetGracePeriod = governance.resetGracePeriod();
 
-    assertTrue(_resetGracePeriod != _firstResetGracePeriod);
-    assertEq(_resetGracePeriod, _newResetGracePeriod);
+    assertTrue(_currentResetGracePeriod != _previousResetGracePeriod);
+    assertEq(_currentResetGracePeriod, _newResetGracePeriod);
   }
 
   /**
