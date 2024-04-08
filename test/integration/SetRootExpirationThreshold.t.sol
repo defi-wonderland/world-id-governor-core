@@ -1,16 +1,12 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity 0.8.23;
 
-import {Common} from './Common.sol';
+import {IntegrationBase} from './IntegrationBase.sol';
 
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 
-/**
- * @notice Contract that tests the voting flows on the DemocraticGovernance contract
- * by using a non-zero root expiration threshold.
- */
-contract Integration_SetRootExpirationThreshold is Common {
+contract Integration_SetRootExpirationThreshold is IntegrationBase {
   /**
    * @notice Test `rootExpirationThreshold` is correctly updated, when the value is set to zero and non-zero.
    */

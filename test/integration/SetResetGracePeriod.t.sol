@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity 0.8.23;
 
-import {Common} from './Common.sol';
+import {IntegrationBase} from './IntegrationBase.sol';
 
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 
-contract Integration_SetResetGracePeriod is Common {
+contract Integration_SetResetGracePeriod is IntegrationBase {
   /**
    * @notice Test `resetGracePeriod` is correctly updated
    */
@@ -17,6 +17,7 @@ contract Integration_SetResetGracePeriod is Common {
     // Set to a new valid value
     uint256 _rootExpirationThreshold = governance.rootExpirationThreshold();
     uint256 _newResetGracePeriod;
+    // Get a different value between the root expiration threshold and the current reset grace period
     _newResetGracePeriod = bound(_newResetGracePeriod, _rootExpirationThreshold, _firstResetGracePeriod - 1);
 
     vm.expectEmit(true, true, true, true);

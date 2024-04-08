@@ -5,7 +5,7 @@ import {DemocraticGovernance} from '../../../src/contracts/DemocraticGovernance.
 import {Test} from 'forge-std/Test.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
-contract Common is Test {
+contract IntegrationBase is Test {
   /* DAO constant settings */
   uint256 public constant QUORUM = 5;
   uint48 public constant INITIAL_VOTING_DELAY = 0;
@@ -81,7 +81,7 @@ contract Common is Test {
     assert(_proposalId == PROPOSAL_ID);
 
     // Advance the time to make the proposal active
-    vm.warp(block.timestamp + 1);
+    vm.warp(block.timestamp + INITIAL_VOTING_DELAY + 1);
 
     // Pack the all the proof data together
     proofData = abi.encodePacked(ROOT, NULLIFIER_HASH, proof);
