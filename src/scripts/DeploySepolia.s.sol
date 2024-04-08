@@ -5,13 +5,8 @@ import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Deploy} from 'scripts/Deploy.sol';
 
 contract DeploySepolia is Deploy {
-  uint256 public constant GROUP_ID = 1;
   IWorldIDRouter public constant WORLD_ID_ROUTER = IWorldIDRouter(0x469449f251692E0779667583026b5A1E99512157);
-  uint256 public constant QUORUM = 5;
-  uint48 public constant INITIAL_VOTING_DELAY = 0;
-  uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
-  uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
-  uint256 public constant ROOT_EXPIRATION_THRESHOLD = 1 hours;
+  uint256 public constant ROOT_EXPIRATION_THRESHOLD = 0;
 
   string public appId = vm.envString('SEPOLIA_APP_ID');
   address public deployer = vm.rememberKey(vm.envUint('SEPOLIA_DEPLOYER_PK'));

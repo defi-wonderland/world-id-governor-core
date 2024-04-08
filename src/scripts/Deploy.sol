@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+//
+import {Constants} from './Constants.sol';
 import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {Script, console} from 'forge-std/Script.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
-abstract contract Deploy is Script {
+abstract contract Deploy is Script, Constants {
   function _deploy(
     uint256 _groupId,
     IWorldIDRouter _worldIdRouter,
