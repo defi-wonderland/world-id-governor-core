@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-//
 import {Constants} from './Constants.sol';
 import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {Script, console} from 'forge-std/Script.sol';
