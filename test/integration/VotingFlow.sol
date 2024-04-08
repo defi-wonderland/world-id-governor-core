@@ -8,7 +8,7 @@ import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
  * @notice Contract that tests the voting flows on the DemocraticGovernance contract
  * by using a non-zero root expiration threshold.
  */
-contract DemocraticGovernance_Integration_NonZeroThreshold is Common {
+contract Integration_VotingFlow_NonZeroThreshold is Common {
   error InvalidProof();
 
   /**
@@ -102,7 +102,7 @@ contract DemocraticGovernance_Integration_NonZeroThreshold is Common {
  * @notice Contract that tests the voting flows on the DemocraticGovernance contract
  * by using a zero root expiration threshold.
  */
-contract DemocraticGovernance_Integration_ZeroThreshold is Common {
+contract Integration_VotingFlow_ZeroThreshold is Common {
   error InvalidProof();
 
   /**
