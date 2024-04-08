@@ -23,10 +23,10 @@ contract Common is Test {
   string public constant APP_ID = 'app_40cfae76904f7231cf7dc28ce48a40e7';
   uint256 public constant PROPOSAL_ID =
     101_464_408_321_971_908_304_756_596_521_565_750_541_773_429_674_425_130_310_070_172_912_535_081_945_163;
-  uint8 public FOR_SUPPORT = 1;
-  uint256 public GROUP_ID = 1;
+  uint8 public constant FOR_SUPPORT = 1;
+  uint256 public constant GROUP_ID = 1;
 
-  /* Proof Outpus */
+  /* Proof Outputs */
   uint256 public constant ROOT = 0x1439b1b8294e4bfe71a81c29daa378947b8d35dfc9faffe1debb6f8d206f48f5;
   uint256 public constant NULLIFIER_HASH = 0x1bf6089762e46ab249c0f9bc0c22abbe4899242e8a26100a9bd8b2930d959c24;
 
