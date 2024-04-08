@@ -2,7 +2,6 @@
 pragma solidity 0.8.23;
 
 import {IntegrationBase} from './IntegrationBase.sol';
-
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 
@@ -70,8 +69,8 @@ contract Integration_SetRootExpirationThreshold is IntegrationBase {
    */
   function test_revertIfNotGovernance() public {
     uint256 _randomNumber = 100_000;
-    vm.prank(user);
-    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
+    vm.prank(stranger);
+    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, stranger));
     governance.setRootExpirationThreshold(_randomNumber);
   }
 }
