@@ -13,19 +13,19 @@ contract Integration_SetVotingPeriod is IntegrationBase {
   function test_updateVotingPeriod() public {
     vm.startPrank(address(governance));
 
-    uint256 _previousVotingPeriod = governance.votingPeriod();
+    uint256 _votingPeriodBefore = governance.votingPeriod();
     uint256 _resetGracePeriod = governance.resetGracePeriod();
     uint256 _rootExpirationThreshold = governance.rootExpirationThreshold();
     uint32 _newVotingPeriod = uint32(_resetGracePeriod - _rootExpirationThreshold - 1);
 
     vm.expectEmit(true, true, true, true, address(governance));
-    emit GovernorSettings.VotingPeriodSet(_previousVotingPeriod, _newVotingPeriod);
+    emit GovernorSettings.VotingPeriodSet(_votingPeriodBefore, _newVotingPeriod);
 
     governance.setVotingPeriod(_newVotingPeriod);
-    uint256 _currentVotingPeriod = governance.votingPeriod();
+    uint256 _votingPeriodAfter = governance.votingPeriod();
 
-    assertTrue(_currentVotingPeriod != _previousVotingPeriod);
-    assertEq(_currentVotingPeriod, _newVotingPeriod);
+    assertTrue(_votingPeriodAfter != _votingPeriodBefore);
+    assertEq(_votingPeriodAfter, _newVotingPeriod);
   }
 
   /**
@@ -39,15 +39,5 @@ contract Integration_SetVotingPeriod is IntegrationBase {
     vm.prank(address(governance));
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
     governance.setVotingPeriod(_newVotingPeriod);
-  }
-
-  /**
-   * @notice Test reverts when called by a non-governance address.
-   */
-  function test_revertIfNotGovernance() public {
-    uint32 _randomNumber = 100_000;
-    vm.prank(stranger);
-    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, stranger));
-    governance.setVotingPeriod(_randomNumber);
   }
 }

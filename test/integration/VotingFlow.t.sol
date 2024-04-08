@@ -12,7 +12,8 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
    */
   function test_voteWithValidProof() public {
     // Get the proposals votes before the vote
-    (uint256 _againstVotesBef, uint256 _forVotesBef, uint256 _abstainVotesBef) = governance.proposalVotes(PROPOSAL_ID);
+    (uint256 _againstVotesBefore, uint256 _forVotesBefore, uint256 _abstainVotesBefore) =
+      governance.proposalVotes(PROPOSAL_ID);
 
     // Cast the vote
     vm.prank(user);
@@ -25,9 +26,9 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
     // Assert the user has voted, with 1 as voting weight supporting the proposal.
     assertTrue(governance.hasVoted(PROPOSAL_ID, user));
     assertEq(_votingWeigth, 1);
-    assertEq(_forVotesAfter, _forVotesBef + 1);
-    assertEq(_abstainVotesAfter, _abstainVotesBef);
-    assertEq(_againstVotesAfter, _againstVotesBef);
+    assertEq(_forVotesAfter, _forVotesBefore + 1);
+    assertEq(_abstainVotesAfter, _abstainVotesBefore);
+    assertEq(_againstVotesAfter, _againstVotesBefore);
   }
 
   /**
@@ -110,7 +111,8 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
    */
   function test_voteWithValidProof() public {
     // Get the proposals votes before the vote
-    (uint256 _againstVotesBef, uint256 _forVotesBef, uint256 _abstainVotesBef) = governance.proposalVotes(PROPOSAL_ID);
+    (uint256 _againstVotesBefore, uint256 _forVotesBefore, uint256 _abstainVotesBefore) =
+      governance.proposalVotes(PROPOSAL_ID);
 
     // Cast the vote
     vm.prank(user);
@@ -123,9 +125,9 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
     // Assert the user has voted, with 1 as voting weight supporting the proposal.
     assertTrue(governance.hasVoted(PROPOSAL_ID, user));
     assertEq(_votingWeigth, 1);
-    assertEq(_forVotesAfter, _forVotesBef + 1);
-    assertEq(_abstainVotesAfter, _abstainVotesBef);
-    assertEq(_againstVotesAfter, _againstVotesBef);
+    assertEq(_forVotesAfter, _forVotesBefore + 1);
+    assertEq(_abstainVotesAfter, _abstainVotesBefore);
+    assertEq(_againstVotesAfter, _againstVotesBefore);
   }
 
   /**

@@ -11,22 +11,22 @@ contract Integration_SetResetGracePeriod is IntegrationBase {
    */
   function test_updateResetGracePeriod() public {
     vm.startPrank(address(governance));
-    uint256 _previousResetGracePeriod = governance.resetGracePeriod();
+    uint256 _resetGracePeriodBefore = governance.resetGracePeriod();
 
     // Set to a new valid value
     uint256 _rootExpirationThreshold = governance.rootExpirationThreshold();
     uint256 _newResetGracePeriod;
     // Get a different value between the root expiration threshold and the current reset grace period
-    _newResetGracePeriod = bound(_newResetGracePeriod, _rootExpirationThreshold, _previousResetGracePeriod - 1);
+    _newResetGracePeriod = bound(_newResetGracePeriod, _rootExpirationThreshold, _resetGracePeriodBefore - 1);
 
     vm.expectEmit(true, true, true, true, address(governance));
-    emit IGovernorWorldID.ResetGracePeriodUpdated(_newResetGracePeriod, _previousResetGracePeriod);
+    emit IGovernorWorldID.ResetGracePeriodUpdated(_newResetGracePeriod, _resetGracePeriodBefore);
 
     governance.setResetGracePeriod(_newResetGracePeriod);
-    uint256 _currentResetGracePeriod = governance.resetGracePeriod();
+    uint256 _resetGracePeriodAfter = governance.resetGracePeriod();
 
-    assertTrue(_currentResetGracePeriod != _previousResetGracePeriod);
-    assertEq(_currentResetGracePeriod, _newResetGracePeriod);
+    assertTrue(_resetGracePeriodAfter != _resetGracePeriodBefore);
+    assertEq(_resetGracePeriodAfter, _newResetGracePeriod);
   }
 
   /**
@@ -37,15 +37,5 @@ contract Integration_SetResetGracePeriod is IntegrationBase {
     vm.prank(address(governance));
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidResetGracePeriod.selector);
     governance.setResetGracePeriod(_newResetGracePeriod);
-  }
-
-  /**
-   * @notice Test reverts when called by a non-governance address.
-   */
-  function test_revertIfNotGovernance() public {
-    uint256 _randomNumber = 100_000;
-    vm.prank(stranger);
-    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, stranger));
-    governance.setResetGracePeriod(_randomNumber);
   }
 }

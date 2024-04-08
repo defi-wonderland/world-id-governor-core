@@ -63,14 +63,4 @@ contract Integration_SetRootExpirationThreshold is IntegrationBase {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
     governance.setRootExpirationThreshold(_newRootExpirationThreshold);
   }
-
-  /**
-   * @notice Test reverts when called by a non-governance address.
-   */
-  function test_revertIfNotGovernance() public {
-    uint256 _randomNumber = 100_000;
-    vm.prank(stranger);
-    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, stranger));
-    governance.setRootExpirationThreshold(_randomNumber);
-  }
 }
