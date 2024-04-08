@@ -250,9 +250,34 @@ contract GovernorWorldID_Unit_SetResetGracePeriod is Base {
    */
   function test_revertIfSmallerThanRootExpirationThreshold(
     uint256 _newResetGracePeriod,
-    uint256 _rootExpirationThreshold
+    uint256 _rootExpirationThreshold,
+    uint32 _votingPeriod
   ) public {
+    vm.assume(_votingPeriod != 0);
+    vm.assume(_votingPeriod < governor.resetGracePeriod() - governor.rootExpirationThreshold());
     vm.assume(_newResetGracePeriod < _rootExpirationThreshold);
+    vm.assume(_newResetGracePeriod >= _votingPeriod);
+    governor.forTest_setVotingPeriodInternal(_votingPeriod);
+    governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidResetGracePeriod.selector);
+    vm.prank(address(governor));
+    governor.setResetGracePeriod(_newResetGracePeriod);
+  }
+
+  /**
+   * @notice Check that the function reverts if the new reset grace period is smaller than the voting period
+   */
+  function test_revertIfSmallerThanVotingPeriod(
+    uint256 _newResetGracePeriod,
+    uint256 _rootExpirationThreshold,
+    uint32 _votingPeriod
+  ) public {
+    vm.assume(_votingPeriod != 0);
+    vm.assume(_votingPeriod < governor.resetGracePeriod() - governor.rootExpirationThreshold());
+    vm.assume(_newResetGracePeriod >= _rootExpirationThreshold);
+    vm.assume(_newResetGracePeriod < _votingPeriod);
+    governor.forTest_setVotingPeriodInternal(_votingPeriod);
     governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidResetGracePeriod.selector);
@@ -265,6 +290,7 @@ contract GovernorWorldID_Unit_SetResetGracePeriod is Base {
    */
   function test_setResetGracePeriod(uint256 _newResetGracePeriod) public {
     vm.assume(_newResetGracePeriod >= ROOT_EXPIRATION_THRESHOLD);
+    vm.assume(_newResetGracePeriod >= governor.votingPeriod());
 
     vm.prank(address(governor));
     governor.setResetGracePeriod(_newResetGracePeriod);
@@ -277,6 +303,7 @@ contract GovernorWorldID_Unit_SetResetGracePeriod is Base {
    */
   function test_emitEvent(uint256 _newResetGracePeriod) public {
     vm.assume(_newResetGracePeriod >= ROOT_EXPIRATION_THRESHOLD);
+    vm.assume(_newResetGracePeriod >= governor.votingPeriod());
 
     vm.expectEmit(true, true, true, true);
     emit IGovernorWorldID.ResetGracePeriodUpdated(_newResetGracePeriod, RESET_GRACE_PERIOD);

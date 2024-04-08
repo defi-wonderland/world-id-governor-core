@@ -91,6 +91,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    */
   function setResetGracePeriod(uint256 _newResetGracePeriod) external onlyGovernance {
     if (_newResetGracePeriod < rootExpirationThreshold) revert GovernorWorldID_InvalidResetGracePeriod();
+    if (_newResetGracePeriod < votingPeriod()) revert GovernorWorldID_InvalidResetGracePeriod();
 
     uint256 _oldResetGracePeriod = resetGracePeriod;
     resetGracePeriod = _newResetGracePeriod;
