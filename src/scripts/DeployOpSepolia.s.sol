@@ -13,8 +13,8 @@ contract DeployOpSepolia is Deploy {
   uint256 public constant INITIAL_PROPOSAL_THRESHOLD = 0;
   uint256 public constant ROOT_EXPIRATION_THRESHOLD = 1 hours;
 
-  string public appId = vm.envString('OPSEPOLIA_APP_ID');
-  address public deployer = vm.rememberKey(vm.envUint('OPSEPOLIA_DEPLOYER_PK'));
+  string public appId = vm.envString('OP_SEPOLIA_APP_ID');
+  address public deployer = vm.rememberKey(vm.envUint('OP_SEPOLIA_DEPLOYER_PK'));
 
   function run() public {
     vm.startBroadcast(deployer);
