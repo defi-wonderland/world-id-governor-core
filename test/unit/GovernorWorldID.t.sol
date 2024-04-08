@@ -228,7 +228,7 @@ contract GovernorWorldID_Unit_SetRootExpirationThreshold is Base {
     vm.assume(_newRootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernorWorldID.RootExpirationThresholdUpdated(_newRootExpirationThreshold, ROOT_EXPIRATION_THRESHOLD);
+    emit IGovernorWorldID.RootExpirationThresholdUpdated(ROOT_EXPIRATION_THRESHOLD, _newRootExpirationThreshold);
 
     vm.prank(address(governor));
     governor.setRootExpirationThreshold(_newRootExpirationThreshold);
@@ -279,7 +279,7 @@ contract GovernorWorldID_Unit_SetResetGracePeriod is Base {
     vm.assume(_newResetGracePeriod >= ROOT_EXPIRATION_THRESHOLD);
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernorWorldID.ResetGracePeriodUpdated(_newResetGracePeriod, RESET_GRACE_PERIOD);
+    emit IGovernorWorldID.ResetGracePeriodUpdated(RESET_GRACE_PERIOD, _newResetGracePeriod);
 
     vm.prank(address(governor));
     governor.setResetGracePeriod(_newResetGracePeriod);

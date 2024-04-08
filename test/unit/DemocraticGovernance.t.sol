@@ -218,7 +218,7 @@ contract DemocraticGovernance_Unit_SetQuorum is Base {
    */
   function test_emitQuorumSet(uint256 _newQuorumThreshold) public {
     vm.expectEmit(true, true, true, true);
-    emit IDemocraticGovernance.QuorumSet(_newQuorumThreshold);
+    emit IDemocraticGovernance.QuorumSet(QUORUM, _newQuorumThreshold);
 
     vm.prank(address(governor));
     governor.setQuorum(_newQuorumThreshold);

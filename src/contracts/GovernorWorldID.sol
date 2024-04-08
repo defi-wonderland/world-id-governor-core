@@ -83,7 +83,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     _checkRootExpirationThreshold(_newRootExpirationThreshold);
     uint256 _oldRootExpirationThreshold = rootExpirationThreshold;
     rootExpirationThreshold = _newRootExpirationThreshold;
-    emit RootExpirationThresholdUpdated(_newRootExpirationThreshold, _oldRootExpirationThreshold);
+    emit RootExpirationThresholdUpdated(_oldRootExpirationThreshold, _newRootExpirationThreshold);
   }
 
   /**
@@ -95,7 +95,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     uint256 _oldResetGracePeriod = resetGracePeriod;
     resetGracePeriod = _newResetGracePeriod;
 
-    emit ResetGracePeriodUpdated(_newResetGracePeriod, _oldResetGracePeriod);
+    emit ResetGracePeriodUpdated(_oldResetGracePeriod, _newResetGracePeriod);
   }
 
   /**

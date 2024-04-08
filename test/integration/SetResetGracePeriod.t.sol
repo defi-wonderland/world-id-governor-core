@@ -20,7 +20,7 @@ contract Integration_SetResetGracePeriod is IntegrationBase {
     _newResetGracePeriod = bound(_newResetGracePeriod, _rootExpirationThreshold, _resetGracePeriodBefore - 1);
 
     vm.expectEmit(true, true, true, true, address(governance));
-    emit IGovernorWorldID.ResetGracePeriodUpdated(_newResetGracePeriod, _resetGracePeriodBefore);
+    emit IGovernorWorldID.ResetGracePeriodUpdated(_resetGracePeriodBefore, _newResetGracePeriod);
 
     governance.setResetGracePeriod(_newResetGracePeriod);
     uint256 _resetGracePeriodAfter = governance.resetGracePeriod();

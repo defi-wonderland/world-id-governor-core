@@ -16,7 +16,7 @@ contract Integration_SetRootExpirationThreshold is IntegrationBase {
     uint256 _zero = 0;
 
     vm.expectEmit(true, true, true, true, address(governance));
-    emit IGovernorWorldID.RootExpirationThresholdUpdated(_zero, rootExpirationThreshold);
+    emit IGovernorWorldID.RootExpirationThresholdUpdated(rootExpirationThreshold, _zero);
 
     governance.setRootExpirationThreshold(_zero);
     uint256 _newRootExpirationThreshold = governance.rootExpirationThreshold();
@@ -34,7 +34,7 @@ contract Integration_SetRootExpirationThreshold is IntegrationBase {
     uint256 _nonZero = _maxValue - 1;
 
     vm.expectEmit(true, true, true, true, address(governance));
-    emit IGovernorWorldID.RootExpirationThresholdUpdated(_nonZero, _currentRootExpirationThreshold);
+    emit IGovernorWorldID.RootExpirationThresholdUpdated(_currentRootExpirationThreshold, _nonZero);
 
     governance.setRootExpirationThreshold(_nonZero);
     _newRootExpirationThreshold = governance.rootExpirationThreshold();
