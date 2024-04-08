@@ -61,6 +61,14 @@ contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, Govern
     _setVotingPeriod(_newVotingPeriod);
   }
 
+  function forTest_checkVoteValidity(
+    uint8 _support,
+    uint256 _proposalId,
+    bytes memory _proofData
+  ) public returns (uint256 _nullifierHash) {
+    _nullifierHash = _checkVoteValidity(_support, _proposalId, _proofData);
+  }
+
   function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) public view {
     return _checkRootExpirationThreshold(_rootExpirationThreshold);
   }

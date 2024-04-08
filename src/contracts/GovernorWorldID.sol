@@ -106,27 +106,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     uint256 _proposalId,
     bytes memory _proofData
   ) public override returns (uint256 _nullifierHash) {
-    (uint256 _root, uint256 _decodedNullifierHash, uint256[8] memory _proof) =
-      abi.decode(_proofData, (uint256, uint256, uint256[8]));
-
-    if (nullifierHashes[_decodedNullifierHash]) revert GovernorWorldID_NullifierHashAlreadyUsed();
-
-    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
-    // Validate the root timestamp
-    if (rootExpirationThreshold == 0) {
-      if (_root != _identityManager.latestRoot()) revert GovernorWorldID_OutdatedRoot();
-    } else {
-      uint128 _rootTimestamp = _identityManager.rootHistory(_root);
-      if (block.timestamp - rootExpirationThreshold > _rootTimestamp) revert GovernorWorldID_OutdatedRoot();
-    }
-
-    // Verify the provided proof
-    uint256 _signalHash = abi.encodePacked(uint256(_support).toString()).hashToField();
-    uint256 _externalNullifierHash = abi.encodePacked(APP_ID_HASH, _proposalId.toString()).hashToField();
-    WORLD_ID_ROUTER.verifyProof(_root, GROUP_ID, _signalHash, _decodedNullifierHash, _externalNullifierHash, _proof);
-
-    // Return the decoded nullifier hash
-    _nullifierHash = _decodedNullifierHash;
+    _nullifierHash = _checkVoteValidity(_support, _proposalId, _proofData);
   }
 
   /**
@@ -161,6 +141,41 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
+   * @notice Checks the validity of a vote
+   * @param _support The support for the proposal
+   * @param _proposalId The proposal id
+   * @param _proofData The proof data containing the Merkle root, the nullifier hash and the zkProof
+   * @return _nullifierHash The nullifier hash
+   */
+  function _checkVoteValidity(
+    uint8 _support,
+    uint256 _proposalId,
+    bytes memory _proofData
+  ) internal returns (uint256 _nullifierHash) {
+    (uint256 _root, uint256 _decodedNullifierHash, uint256[8] memory _proof) =
+      abi.decode(_proofData, (uint256, uint256, uint256[8]));
+
+    if (nullifierHashes[_decodedNullifierHash]) revert GovernorWorldID_NullifierHashAlreadyUsed();
+
+    IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
+    // Validate the root timestamp
+    if (rootExpirationThreshold == 0) {
+      if (_root != _identityManager.latestRoot()) revert GovernorWorldID_OutdatedRoot();
+    } else {
+      uint128 _rootTimestamp = _identityManager.rootHistory(_root);
+      if (block.timestamp - rootExpirationThreshold > _rootTimestamp) revert GovernorWorldID_OutdatedRoot();
+    }
+
+    // Verify the provided proof
+    uint256 _signalHash = abi.encodePacked(uint256(_support).toString()).hashToField();
+    uint256 _externalNullifierHash = abi.encodePacked(APP_ID_HASH, _proposalId.toString()).hashToField();
+    WORLD_ID_ROUTER.verifyProof(_root, GROUP_ID, _signalHash, _decodedNullifierHash, _externalNullifierHash, _proof);
+
+    // Return the decoded nullifier hash
+    _nullifierHash = _decodedNullifierHash;
+  }
+
+  /**
    * @notice Cast a vote for a proposal
    * @dev It checks if the voter is a real human before proceeding with the vote
    * @param _proposalId The proposal id
@@ -177,7 +192,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     string memory _reason,
     bytes memory _params
   ) internal virtual override returns (uint256 _votingWeight) {
-    uint256 _nullifierHash = checkVoteValidity(_support, _proposalId, _params);
+    uint256 _nullifierHash = _checkVoteValidity(_support, _proposalId, _params);
     nullifierHashes[_nullifierHash] = true;
 
     return super._castVote(_proposalId, _account, _support, _reason, _params);
