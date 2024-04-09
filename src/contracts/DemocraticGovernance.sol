@@ -81,7 +81,6 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   function setQuorum(uint256 _newQuorumThreshold) public onlyGovernance {
     uint256 _oldQuorumThreshold = quorumThreshold;
     quorumThreshold = _newQuorumThreshold;
-
     emit QuorumSet(_oldQuorumThreshold, _newQuorumThreshold);
   }
 
