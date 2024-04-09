@@ -92,7 +92,11 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
       if (_root != _identityManager.latestRoot()) revert GovernorWorldID_OutdatedRoot();
     } else {
       uint128 _rootTimestamp = _identityManager.rootHistory(_root);
-      if (block.timestamp - rootExpirationThreshold > _rootTimestamp) revert GovernorWorldID_OutdatedRoot();
+      // The root expiration threshold can't be greater than the root history expiry
+      uint256 _rootHistoryExpiry = _identityManager.rootHistoryExpiry();
+      uint256 _rootExpirationThreshold =
+        rootExpirationThreshold < _rootHistoryExpiry ? rootExpirationThreshold : _rootHistoryExpiry;
+      if (block.timestamp - _rootExpirationThreshold > _rootTimestamp) revert GovernorWorldID_OutdatedRoot();
     }
 
     // Verify the proof

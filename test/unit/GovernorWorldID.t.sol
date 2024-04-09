@@ -126,17 +126,6 @@ contract GovernorWorldID_Unit_Constructor is Base {
       )
     );
 
-    // // Expect the `_SetConfig` internal function to be properly called
-    // vm.expectCall(
-    //   watcher,
-    //   abi.encodeWithSelector(
-    //     InternalCallsWatcher.calledInternal.selector,
-    //     abi.encodeWithSignature(
-    //       '_setConfig(uint32,uint256,uint256)', INITIAL_VOTING_PERIOD, RESET_GRACE_PERIOD, _rootExpirationThreshold
-    //     )
-    //   )
-    // );
-
     assertEq(address(_governor.WORLD_ID_ROUTER()), address(worldIDRouter));
     assertEq(_governor.GROUP_ID(), GROUP_ID);
     assertEq(_governor.APP_ID_HASH(), abi.encodePacked(APP_ID).hashToField());
