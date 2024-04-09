@@ -6,7 +6,7 @@ import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 interface IDemocraticGovernance is IGovernorWorldID {
   /**
    * @notice Emitted when the quorum threshold is set
-   * @param _oldQuorumThreshold The quorum threshold
+   * @param _oldQuorumThreshold The previous quorum threshold
    * @param _newQuorumThreshold The new quorum threshold
    */
   event QuorumSet(uint256 _oldQuorumThreshold, uint256 _newQuorumThreshold);
