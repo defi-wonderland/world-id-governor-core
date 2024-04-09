@@ -45,6 +45,10 @@ contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, Govern
     _castVote(_proposalId, _account, _support, _reason, _params);
   }
 
+  function forTest_setConfig(uint32 _votingDelay, uint256 _votingPeriod, uint256 _proposalThreshold) public {
+    _setConfig(_votingDelay, _votingPeriod, _proposalThreshold);
+  }
+
   function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) public {
     nullifierHashes[_nullifierHash] = _isUsed;
   }
@@ -61,9 +65,9 @@ contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, Govern
     _setVotingPeriod(_newVotingPeriod);
   }
 
-  function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) public view {
-    return _checkRootExpirationThreshold(_rootExpirationThreshold);
-  }
+  // function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) public view {
+  //   return _checkRootExpirationThreshold(_rootExpirationThreshold);
+  // }
 
   function quorum(uint256 blockNumber)
     public

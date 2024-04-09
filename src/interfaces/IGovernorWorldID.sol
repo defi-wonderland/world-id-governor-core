@@ -7,17 +7,17 @@ import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 interface IGovernorWorldID is IGovernor {
   /**
    * @notice Emitted when the root expiration period is updated
-   * @param _newRootExpirationThreshold The new expiration threshold
    * @param _oldRootExpirationThreshold The previous expiration threshold
+   * @param _newRootExpirationThreshold The new expiration threshold
    */
-  event RootExpirationThresholdUpdated(uint256 _newRootExpirationThreshold, uint256 _oldRootExpirationThreshold);
+  event RootExpirationThresholdUpdated(uint256 _oldRootExpirationThreshold, uint256 _newRootExpirationThreshold);
 
   /**
    * @notice Emitted when the reset grace period is updated
-   * @param _newResetGracePeriod The new reset grace period
    * @param _oldResetGracePeriod The previous reset grace period
+   * @param _newResetGracePeriod The new reset grace period
    */
-  event ResetGracePeriodUpdated(uint256 _newResetGracePeriod, uint256 _oldResetGracePeriod);
+  event ResetGracePeriodUpdated(uint256 _oldResetGracePeriod, uint256 _newResetGracePeriod);
 
   /**
    * @notice Thrown when attempting to call a non supported function
@@ -51,18 +51,18 @@ interface IGovernorWorldID is IGovernor {
    */
   error GovernorWorldID_NullifierHashAlreadyUsed();
 
-  /**
-   * @notice Sets a new expiration threshold
-   * @param _newRootExpirationThreshold The new expiration threshold
-   */
-  function setRootExpirationThreshold(uint256 _newRootExpirationThreshold) external;
+  // /**
+  //  * @notice Sets a new expiration threshold
+  //  * @param _newRootExpirationThreshold The new expiration threshold
+  //  */
+  // function setRootExpirationThreshold(uint256 _newRootExpirationThreshold) external;
 
-  /**
-   * @notice Sets a new reset grace period
-   * @dev It is recommended to set the World ID reset grace period minus 2 hours as an extra security measure
-   * @param _newResetGracePeriod The new reset grace period
-   */
-  function setResetGracePeriod(uint256 _newResetGracePeriod) external;
+  // /**
+  //  * @notice Sets a new reset grace period
+  //  * @dev It is recommended to set the World ID reset grace period minus 2 hours as an extra security measure
+  //  * @param _newResetGracePeriod The new reset grace period
+  //  */
+  // function setResetGracePeriod(uint256 _newResetGracePeriod) external;
 
   /**
    * @notice Checks the validity of a vote

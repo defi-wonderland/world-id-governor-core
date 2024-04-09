@@ -58,9 +58,9 @@ contract DemocraticGovernanceForTest is DemocraticGovernance {
     rootExpirationThreshold = _newRootExpirationThreshold;
   }
 
-  function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) public view {
-    return _checkRootExpirationThreshold(_rootExpirationThreshold);
-  }
+  // function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) public view {
+  //   return _checkRootExpirationThreshold(_rootExpirationThreshold);
+  // }
 
   function forTest_getVotes(
     address _account,
