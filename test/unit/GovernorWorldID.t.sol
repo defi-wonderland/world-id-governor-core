@@ -417,10 +417,10 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
   /**
    * @notice Test that it reverts if the root expiration threshold is less than the reset grace period
    */
-  function test_revertIfRootExpirationThresholdLessThanResetGracePeriod() public {
+  function test_revertIfRootExpirationThresholdGreaterThanResetGracePeriod() public {
     // Add 1 to the reset grace period just in case it is change to 0
     uint256 _newResetGracePeriod = RESET_GRACE_PERIOD + 1;
-    uint256 _newRootExpirationThreshold = _newResetGracePeriod - 1;
+    uint256 _newRootExpirationThreshold = _newResetGracePeriod + 1;
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
     governor.forTest_setConfig(INITIAL_VOTING_PERIOD, _newResetGracePeriod, _newRootExpirationThreshold);
   }
