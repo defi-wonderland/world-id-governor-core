@@ -107,22 +107,40 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   /**
    * @inheritdoc IGovernor
    */
-  function votingDelay() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
-    return super.votingDelay();
+  function votingDelay()
+    public
+    view
+    virtual
+    override(Governor, GovernorSettings, IGovernor)
+    returns (uint256 _votingDelay)
+  {
+    _votingDelay = super.votingDelay();
   }
 
   /**
    * @inheritdoc IGovernor
    */
-  function votingPeriod() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
-    return super.votingPeriod();
+  function votingPeriod()
+    public
+    view
+    virtual
+    override(Governor, GovernorSettings, IGovernor)
+    returns (uint256 _votingPeriod)
+  {
+    _votingPeriod = super.votingPeriod();
   }
 
   /**
    * @inheritdoc IGovernor
    */
-  function proposalThreshold() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
-    return super.proposalThreshold();
+  function proposalThreshold()
+    public
+    view
+    virtual
+    override(Governor, GovernorSettings, IGovernor)
+    returns (uint256 _proposalThreshold)
+  {
+    _proposalThreshold = super.proposalThreshold();
   }
 
   /**
@@ -219,7 +237,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   ) internal virtual override returns (uint256 _votingWeight) {
     uint256 _nullifierHash = checkVoteValidity(_support, _proposalId, _params);
     nullifierHashes[_nullifierHash] = true;
-    return super._castVote(_proposalId, _account, _support, _reason, _params);
+    _votingWeight = super._castVote(_proposalId, _account, _support, _reason, _params);
   }
 
   /**
