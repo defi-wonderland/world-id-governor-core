@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {InternalCallsWatcherExtension} from '../unit/utils/CalledInternal.sol';
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
@@ -8,7 +9,13 @@ import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/Govern
 import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/GovernorVotes.sol';
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
 
-contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorWorldID {
+contract GovernorWorldIdForTest is
+  InternalCallsWatcherExtension,
+  GovernorCountingSimple,
+  GovernorVotes,
+  GovernorVotesQuorumFraction,
+  GovernorWorldID
+{
   struct ConstructorArgs {
     uint256 groupID;
     IWorldIDRouter worldIdRouter;
@@ -35,6 +42,10 @@ contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, Govern
     GovernorVotesQuorumFraction(4)
   {}
 
+  function forTest_castVote(uint256 _proposalId, address _account, uint8 _support, string memory _reason) public {
+    _castVote(_proposalId, _account, _support, _reason);
+  }
+
   function forTest_castVote(
     uint256 _proposalId,
     address _account,
@@ -43,6 +54,22 @@ contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, Govern
     bytes memory _params
   ) public {
     _castVote(_proposalId, _account, _support, _reason, _params);
+  }
+
+  function forTest_setConfig(
+    uint32 _newVotingPeriod,
+    uint256 _newResetGracePeriod,
+    uint256 _newRootExpirationThreshold
+  ) public {
+    _setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
+  }
+
+  function forTest_checkVoteValidity(
+    uint8 _support,
+    uint256 _proposalId,
+    bytes memory _proofData
+  ) public returns (uint256 _nullifierHash) {
+    _nullifierHash = _checkVoteValidity(_support, _proposalId, _proofData);
   }
 
   function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) public {
@@ -59,10 +86,6 @@ contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, Govern
 
   function forTest_setVotingPeriodInternal(uint32 _newVotingPeriod) public {
     _setVotingPeriod(_newVotingPeriod);
-  }
-
-  function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) public view {
-    return _checkRootExpirationThreshold(_rootExpirationThreshold);
   }
 
   function quorum(uint256 blockNumber)
@@ -93,6 +116,30 @@ contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, Govern
 
   function proposalThreshold() public view virtual override(Governor, GovernorWorldID) returns (uint256) {
     return super.proposalThreshold();
+  }
+
+  function _checkVoteValidity(
+    uint8 _support,
+    uint256 _proposalId,
+    bytes memory _proofData
+  ) internal virtual override returns (uint256 _nullifierHash) {
+    _calledInternal(
+      abi.encodeWithSignature('_checkVoteValidity(uint8,uint256,bytes)', _support, _proposalId, _proofData)
+    );
+    if (_callSuper) _nullifierHash = super._checkVoteValidity(_support, _proposalId, _proofData);
+  }
+
+  function _setConfig(
+    uint32 _newVotingPeriod,
+    uint256 _newResetGracePeriod,
+    uint256 _newRootExpirationThreshold
+  ) internal virtual override {
+    _calledInternal(
+      abi.encodeWithSignature(
+        '_setConfig(uint32,uint256,uint256)', _newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold
+      )
+    );
+    if (_callSuper) super._setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
   function _castVote(

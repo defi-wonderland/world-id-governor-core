@@ -78,9 +78,10 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   /**
    * @inheritdoc IDemocraticGovernance
    */
-  function setQuorum(uint256 _quorumThreshold) public onlyGovernance {
-    quorumThreshold = _quorumThreshold;
-    emit QuorumSet(_quorumThreshold);
+  function setQuorum(uint256 _newQuorumThreshold) public onlyGovernance {
+    uint256 _oldQuorumThreshold = quorumThreshold;
+    quorumThreshold = _newQuorumThreshold;
+    emit QuorumSet(_oldQuorumThreshold, _newQuorumThreshold);
   }
 
   /**
@@ -181,7 +182,6 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   {
     (, uint256 _forVotes, uint256 _abstainVotes) = proposalVotes(proposalId);
     uint256 _quorum = proposalsQuorumThreshold[proposalId];
-
     _reached = _quorum <= (_forVotes + _abstainVotes);
   }
 
