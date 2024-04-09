@@ -43,7 +43,7 @@ contract Integration_SetConfig is IntegrationBase {
   }
 
   /**
-   * @notice Test reverts when `votingPeriod` is smaller than `resetGracePeriod` less `rootExpirationThreshold`
+   * @notice Test reverts when `votingPeriod` is greater than `resetGracePeriod` less `rootExpirationThreshold`
    */
   function test_revertIfInvalidVotingPeriod() public {
     uint256 _newResetGracePeriod = governance.resetGracePeriod();

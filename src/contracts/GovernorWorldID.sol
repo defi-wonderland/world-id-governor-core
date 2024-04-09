@@ -110,6 +110,13 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     _setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
+  /**
+   * @notice disabled
+   */
+  function setVotingPeriod(uint32 newVotingPeriod) public virtual override {
+    revert GovernorWorldID_NotSupportedFunction();
+  }
+
   function _setConfig(
     uint32 _newVotingPeriod,
     uint256 _newResetGracePeriod,
@@ -139,13 +146,6 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
       rootExpirationThreshold = _newRootExpirationThreshold;
       emit RootExpirationThresholdUpdated(_currentRootExpirationThreshold, _newRootExpirationThreshold);
     }
-  }
-
-  /**
-   * @notice disabled
-   */
-  function setVotingPeriod(uint32 newVotingPeriod) public virtual override {
-    revert GovernorWorldID_NotSupportedFunction();
   }
 
   /**

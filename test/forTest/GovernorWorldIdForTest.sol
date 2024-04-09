@@ -10,11 +10,11 @@ import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/Governo
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
 
 contract GovernorWorldIDForTest is
+  InternalCallsWatcherExtension,
   GovernorCountingSimple,
   GovernorVotes,
   GovernorVotesQuorumFraction,
-  GovernorWorldID,
-  InternalCallsWatcherExtension
+  GovernorWorldID
 {
   struct ConstructorArgs {
     uint256 groupID;
@@ -42,6 +42,10 @@ contract GovernorWorldIDForTest is
     GovernorVotesQuorumFraction(4)
   {}
 
+  function forTest_castVote(uint256 _proposalId, address _account, uint8 _support, string memory _reason) public {
+    _castVote(_proposalId, _account, _support, _reason);
+  }
+
   function forTest_castVote(
     uint256 _proposalId,
     address _account,
@@ -52,18 +56,26 @@ contract GovernorWorldIDForTest is
     _castVote(_proposalId, _account, _support, _reason, _params);
   }
 
-  function forTest_setConfig(uint32 _votingDelay, uint256 _votingPeriod, uint256 _proposalThreshold) public {
-    _setConfig(_votingDelay, _votingPeriod, _proposalThreshold);
+  function forTest_setConfig(
+    uint32 _newVotingPeriod,
+    uint256 _newResetGracePeriod,
+    uint256 _newRootExpirationThreshold
+  ) public {
+    _setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
-  // function _setConfig(uint32 _votingDelay, uint256 _votingPeriod, uint256 _proposalThreshold) internal virtual override {
-  //   _calledInternal(
-  //     abi.encodeWithSignature(
-  //       '_setConfig(_votingDelay, _votingPeriod, _proposalThreshold)', _votingDelay, _votingPeriod, _proposalThreshold
-  //     )
-  //   );
-  //   if (_callSuper) super._setConfig(_votingDelay, _votingPeriod, _proposalThreshold);
-  // }
+  function _setConfig(
+    uint32 _newVotingPeriod,
+    uint256 _newResetGracePeriod,
+    uint256 _newRootExpirationThreshold
+  ) internal virtual override {
+    _calledInternal(
+      abi.encodeWithSignature(
+        '_setConfig(uint32,uint256,uint256)', _newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold
+      )
+    );
+    if (_callSuper) super._setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
+  }
 
   function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) public {
     nullifierHashes[_nullifierHash] = _isUsed;
