@@ -1,146 +1,144 @@
-<img src="https://raw.githubusercontent.com/defi-wonderland/brand/v1.0.0/external/solidity-foundry-boilerplate-banner.png" alt="wonderland banner" align="center" />
-<br />
+# GovernorWorldID
 
-<div align="center"><strong>Start your next Solidity project with Foundry in seconds</strong></div>
-<div align="center">A highly scalable foundation focused on DX and best practices</div>
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/defi-wonderland/world-id-governor-core/blob/main/LICENSE)
 
-<br />
+⚠️ The code has not been audited yet, tread with caution.
 
-## Features
+## Overview
 
-<dl>
-  <dt>Sample contracts</dt>
-  <dd>Basic Greeter contract with an external interface.</dd>
+The GovernorWorldID contract is designed to offer a Sybil-resistant voting framework, ensuring that only orb-verified addresses can participate in DAO voting processes via World ID. This system is built to be both versatile and extensible. 
 
-  <dt>Foundry setup</dt>
-  <dd>Foundry configuration with multiple custom profiles and remappings.</dd>
-
-  <dt>Deployment scripts</dt>
-  <dd>Sample scripts to deploy contracts on both mainnet and testnet.</dd>
-
-  <dt>Sample Integration & Unit tests</dt>
-  <dd>Example tests showcasing mocking, assertions and configuration for mainnet forking. As well it includes everything needed in order to check code coverage.</dd>
-
-  <dt>Linter</dt>
-  <dd>Simple and fast solidity linting thanks to forge fmt.</dd>
-  <dd>Find missing natspec automatically.</dd>
-
-  <dt>Github workflows CI</dt>
-  <dd>Run all tests and see the coverage as you push your changes.</dd>
-  <dd>Export your Solidity interfaces and contracts as packages, and publish them to NPM.</dd>
-</dl>
+The GovernorDemocratic contract capitalizes on this feature to establish democratic governance for DAOs. It achieves this by assigning a voting power of one vote per voter, ensuring an equitable and transparent voting process.
 
 ## Setup
 
-1. Install Foundry by following the instructions from [their repository](https://github.com/foundry-rs/foundry#installation).
-2. Copy the `.env.example` file to `.env` and fill in the variables.
-3. Install the dependencies by running: `yarn install`. In case there is an error with the commands, run `foundryup` and try them again.
+This project uses [Foundry](https://book.getfoundry.sh/). To build it locally, run:
 
-## Build
-
-The default way to build the code is suboptimal but fast, you can run it via:
-
-```bash
+```sh
+git clone git@github.com:defi-wonderland/world-id-governor-core.git
+cd world-id-governor-core
+yarn install
 yarn build
 ```
 
-In order to build a more optimized code ([via IR](https://docs.soliditylang.org/en/v0.8.15/ir-breaking-changes.html#solidity-ir-based-codegen-changes)), run:
+## Implementing the abstracts
 
-```bash
-yarn build:optimized
+You can implement [GovernorWorldID](src/contracts/GovernorWorldID.sol) and [GovernorDemocratic](src/contracts/GovernorDemocratic.sol) abstract contracts and use it as base to create your own governance protocols.
+When implementing the contracts, other functions and extensions related to OpenZeppelin standard contracts should be implemented as well.
+
+An example implementation of GovernorWorldID would like:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.23;
+
+import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
+import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
+import {Governor, IERC6372, IGovernor} from '@openzeppelin/contracts/governance/Governor.sol';
+import {GovernorCountingSimple} from '@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol';
+
+contract Governance is GovernorCountingSimple, GovernorWorldID {
+  constructor(
+    uint256 _groupID,
+    IWorldIDRouter _worldIdRouter,
+    string memory _appId,
+    string memory _governorName,
+    uint48 _initialVotingDelay,
+    uint32 _initialVotingPeriod,
+    uint256 _initialProposalThreshold,
+    uint256 _rootExpirationThreshold
+  )
+    GovernorWorldID(
+      _groupID,
+      _worldIdRouter,
+      _appId,
+      _governorName,
+      _initialVotingDelay,
+      _initialVotingPeriod,
+      _initialProposalThreshold,
+      _rootExpirationThreshold
+    )
+  {}
+
+  function votingDelay() public view virtual override(Governor, GovernorWorldID) returns (uint256 _votingDelay) {
+    _votingDelay = super.votingDelay();
+  }
+
+  function votingPeriod() public view virtual override(Governor, GovernorWorldID) returns (uint256 _votingPeriod) {
+    _votingPeriod = super.votingPeriod();
+  }
+
+  function proposalThreshold()
+    public
+    view
+    virtual
+    override(Governor, GovernorWorldID)
+    returns (uint256 _proposalThreshold)
+  {
+    _proposalThreshold = super.proposalThreshold();
+  }
+
+  function quorum(uint256 _timepoint) public view override(Governor, IGovernor) returns (uint256 _quorumThreshold) {
+    _quorumThreshold = quorum(_timepoint);
+  }
+
+  function clock() public view override(Governor, IERC6372) returns (uint48 _clock) {
+    _clock = clock();
+  }
+
+  function CLOCK_MODE() public pure override(Governor, IERC6372) returns (string memory _mode) {
+    _mode = CLOCK_MODE();
+  }
+
+  function _castVote(
+    uint256 _proposalId,
+    address _account,
+    uint8 _support,
+    string memory _reason
+  ) internal override(Governor, GovernorWorldID) returns (uint256) {
+    super._castVote(_proposalId, _account, _support, _reason);
+  }
+
+  function _castVote(
+    uint256 _proposalId,
+    address _account,
+    uint8 _support,
+    string memory _reason,
+    bytes memory _params
+  ) internal override(Governor, GovernorWorldID) returns (uint256 _votingWeight) {
+    _votingWeight = super._castVote(_proposalId, _account, _support, _reason, _params);
+  }
+
+  function _getVotes(
+    address _account,
+    uint256 _timepoint,
+    bytes memory _params
+  ) internal view virtual override(Governor) returns (uint256 _votingWeight) {
+    _votingWeight = _getVotes(_account, _timepoint, _params);
+  }
+}
+
 ```
+### Available Commands
 
-## Running tests
+Make sure to set `OPTIMISM_RPC` environment variable before running integration tests.
 
-Unit tests should be isolated from any externalities, while Integration usually run in a fork of the blockchain. In this boilerplate you will find example of both.
-
-In order to run both unit and integration tests, run:
-
-```bash
-yarn test
-```
-
-In order to just run unit tests, run:
-
-```bash
-yarn test:unit
-```
-
-In order to run unit tests and run way more fuzzing than usual (5x), run:
-
-```bash
-yarn test:unit:deep
-```
-
-In order to just run integration tests, run:
-
-```bash
-yarn test:integration
-```
-
-In order to check your current code coverage, run:
-
-```bash
-yarn coverage
-```
-
-<br>
-
-## Deploy & verify
-
-### Setup
-
-Configure the `.env` variables.
-
-### Sepolia
-
-```bash
-yarn deploy:sepolia
-```
-
-### Mainnet
-
-```bash
-yarn deploy:mainnet
-```
-
-The deployments are stored in ./broadcast
-
-See the [Foundry Book for available options](https://book.getfoundry.sh/reference/forge/forge-create.html).
-
-## Export And Publish
-
-Export TypeScript interfaces from Solidity contracts and interfaces providing compatibility with TypeChain. Publish the exported packages to NPM.
-
-To enable this feature, make sure you've set the `NPM_TOKEN` on your org's secrets. Then set the job's conditional to `true`:
-
-```yaml
-jobs:
-  export:
-    name: Generate Interfaces And Contracts
-    # Remove the following line if you wish to export your Solidity contracts and interfaces and publish them to NPM
-    if: true
-    ...
-```
-
-Also, remember to update the `package_name` param to your package name:
-
-```yaml
-- name: Export Solidity - ${{ matrix.export_type }}
-  uses: defi-wonderland/solidity-exporter-action@1dbf5371c260add4a354e7a8d3467e5d3b9580b8
-  with:
-    # Update package_name with your package name
-    package_name: "my-cool-project"
-    ...
-
-
-- name: Publish to NPM - ${{ matrix.export_type }}
-  # Update `my-cool-project` with your package name
-  run: cd export/my-cool-project-${{ matrix.export_type }} && npm publish --access public
-  ...
-```
-
-You can take a look at our [solidity-exporter-action](https://github.com/defi-wonderland/solidity-exporter-action) repository for more information and usage examples.
+| Yarn Command            | Description                                                |
+| ----------------------- | ---------------------------------------------------------- |
+| `yarn build`            | Compile all contracts.                                     |
+| `yarn coverage`         | See `forge coverage` report.                               |
+| `yarn test`             | Run all unit and integration tests.                        |
+| `yarn test:unit`        | Run unit tests.                                            |
+| `yarn test:integration` | Run integration tests.                                     |
 
 ## Licensing
-The primary license for the boilerplate is MIT, see [`LICENSE`](https://github.com/defi-wonderland/solidity-foundry-boilerplate/blob/main/LICENSE)
+
+The primary license for Prophet contracts is MIT, see [`LICENSE`](./LICENSE).
+
+## Contributors
+
+GovernorWorldID was built with ❤️ by [Wonderland](https://defi.sucks).
+
+Wonderland is a team of top Web3 researchers, developers, and operators who believe that the future needs to be open-source, permissionless, and decentralized.
+
+[DeFi sucks](https://defi.sucks), but Wonderland is here to make it better.
