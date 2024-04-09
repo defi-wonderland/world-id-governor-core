@@ -10,8 +10,6 @@ import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {Strings} from 'open-zeppelin/utils/Strings.sol';
 
-import 'forge-std/Test.sol';
-
 /**
  * @title GovernorWorldID
  * @notice Governor contract that checks if the voter is a real human before proceeding with the vote.

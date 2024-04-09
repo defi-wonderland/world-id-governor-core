@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {DemocraticGovernanceForTest} from '../forTest/DemocraticGovernanceForTest.sol';
-import {UnitUtils} from './UnitUtils.sol';
+import {UnitUtils} from './utils/UnitUtils.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IDemocraticGovernance} from 'interfaces/IDemocraticGovernance.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';

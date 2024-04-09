@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {InternalCallsWatcherExtension} from '../unit/utils/CalledInternal.sol';
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
@@ -8,7 +9,13 @@ import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/Govern
 import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/GovernorVotes.sol';
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
 
-contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, GovernorVotesQuorumFraction, GovernorWorldID {
+contract GovernorWorldIDForTest is
+  GovernorCountingSimple,
+  GovernorVotes,
+  GovernorVotesQuorumFraction,
+  GovernorWorldID,
+  InternalCallsWatcherExtension
+{
   struct ConstructorArgs {
     uint256 groupID;
     IWorldIDRouter worldIdRouter;
@@ -49,6 +56,15 @@ contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, Govern
     _setConfig(_votingDelay, _votingPeriod, _proposalThreshold);
   }
 
+  // function _setConfig(uint32 _votingDelay, uint256 _votingPeriod, uint256 _proposalThreshold) internal virtual override {
+  //   _calledInternal(
+  //     abi.encodeWithSignature(
+  //       '_setConfig(_votingDelay, _votingPeriod, _proposalThreshold)', _votingDelay, _votingPeriod, _proposalThreshold
+  //     )
+  //   );
+  //   if (_callSuper) super._setConfig(_votingDelay, _votingPeriod, _proposalThreshold);
+  // }
+
   function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) public {
     nullifierHashes[_nullifierHash] = _isUsed;
   }
@@ -64,10 +80,6 @@ contract GovernorWorldIdForTest is GovernorCountingSimple, GovernorVotes, Govern
   function forTest_setVotingPeriodInternal(uint32 _newVotingPeriod) public {
     _setVotingPeriod(_newVotingPeriod);
   }
-
-  // function forTest_checkRootExpirationThreshold(uint256 _rootExpirationThreshold) public view {
-  //   return _checkRootExpirationThreshold(_rootExpirationThreshold);
-  // }
 
   function quorum(uint256 blockNumber)
     public
