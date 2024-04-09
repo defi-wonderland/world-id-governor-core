@@ -183,7 +183,6 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   {
     (, uint256 _forVotes, uint256 _abstainVotes) = proposalVotes(proposalId);
     uint256 _quorum = proposalsQuorumThreshold[proposalId];
-
     _reached = _quorum <= (_forVotes + _abstainVotes);
   }
 
