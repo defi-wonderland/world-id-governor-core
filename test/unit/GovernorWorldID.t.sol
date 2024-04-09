@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {ERC20VotesForTest} from '../forTest/ERC20VotesForTest.sol';
-import {GovernorWorldIDForTest} from '../forTest/GovernorWorldIDForTest.sol';
+import {GovernorWorldIdForTest} from '../forTest/GovernorWorldIdForTest.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {InternalCallsWatcher} from './utils/CalledInternal.sol';
 import {UnitUtils} from './utils/UnitUtils.sol';
@@ -35,7 +35,7 @@ abstract contract Base is Test, UnitUtils {
   address public user = makeAddr('user');
 
   IERC20 public token;
-  GovernorWorldIDForTest public governor;
+  GovernorWorldIdForTest public governor;
   IWorldIDRouter public worldIDRouter;
   IWorldIDIdentityManager public worldIDIdentityManager;
   GovernorSigUtils public sigUtils;
@@ -71,7 +71,7 @@ abstract contract Base is Test, UnitUtils {
     );
 
     // Deploy governor
-    GovernorWorldIDForTest.ConstructorArgs memory _cArgs = GovernorWorldIDForTest.ConstructorArgs(
+    GovernorWorldIdForTest.ConstructorArgs memory _cArgs = GovernorWorldIdForTest.ConstructorArgs(
       GROUP_ID,
       worldIDRouter,
       APP_ID,
@@ -81,7 +81,7 @@ abstract contract Base is Test, UnitUtils {
       INITIAL_PROPOSAL_THRESHOLD,
       ROOT_EXPIRATION_THRESHOLD
     );
-    governor = new GovernorWorldIDForTest(_cArgs);
+    governor = new GovernorWorldIdForTest(_cArgs);
 
     watcher = address(governor.watcher());
 
@@ -113,8 +113,8 @@ contract GovernorWorldID_Unit_Constructor is Base {
     vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
     vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
 
-    IGovernorWorldID _governor = new GovernorWorldIDForTest(
-      GovernorWorldIDForTest.ConstructorArgs(
+    IGovernorWorldID _governor = new GovernorWorldIdForTest(
+      GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,
         APP_ID,
