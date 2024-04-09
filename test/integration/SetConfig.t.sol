@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {IntegrationBase} from './IntegrationBase.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
-import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 
 contract Integration_SetConfig is IntegrationBase {
   /**
