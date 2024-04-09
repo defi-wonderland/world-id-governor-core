@@ -134,253 +134,19 @@ contract GovernorWorldID_Unit_Constructor is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CheckVoteValidity is Base {
-  using ByteHasher for bytes;
-  using Strings for uint256;
+contract GovernorWorldID_Unit_CheckVoteValidity_Public is Base {
+  function test_callCheckValidityVote(bytes memory _proofData) public {
+    bool _callSuper = false;
+    governor.setCallSuper(_callSuper);
 
-  /**
-   * @notice Test that the function reverts if the nullifier is already used
-   */
-  function test_revertIfNullifierAlreadyUsed(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    governor.forTest_setNullifierHash(_nullifierHash, true);
-
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
-    vm.prank(user);
-    governor.checkVoteValidity(SUPPORT, proposalId, _params);
-  }
-
-  /**
-   * @notice Test that the function calls the latestRoot function from the Router contract
-   */
-  function test_callRouteFor(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params =
-      _mockWorlIDCalls(SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
-
-    _mockAndExpect(
-      address(worldIDRouter),
-      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
-      abi.encode(address(worldIDIdentityManager))
-    );
-
-    vm.prank(user);
-    governor.checkVoteValidity(SUPPORT, proposalId, _params);
-  }
-
-  /**
-   * @notice Test that the function calls the latestRoot function from the IdentityManager contract
-   */
-  function test_callLatestRoot(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    // enforce threshold to be 0
-    governor.forTest_setRootExpirationThreshold(0);
-
-    // Encode the parameters
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    vm.mockCall(
-      address(worldIDRouter),
-      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector),
-      abi.encode(address(worldIDIdentityManager))
-    );
-
-    _mockAndExpect(
-      address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector),
-      abi.encode(_root)
-    );
-
-    vm.mockCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.verifyProof.selector), abi.encode(true));
-
-    vm.prank(user);
-    governor.checkVoteValidity(SUPPORT, proposalId, _params);
-  }
-
-  /**
-   * @notice Test that the function reverts if the root is outdated
-   */
-  function test_revertIfOutdatedRootWhenZeroThreshold(
-    uint256 _root,
-    uint256 _latestRoot,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) public {
-    vm.assume(_root != _latestRoot);
-
-    governor.forTest_setRootExpirationThreshold(0);
-
-    _mockAndExpect(
-      address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector),
-      abi.encode(_latestRoot)
-    );
-
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Try to cast a vote with an outdated root
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
-    vm.prank(user);
-    governor.checkVoteValidity(SUPPORT, proposalId, _params);
-  }
-
-  /**
-   * @notice Test that the function calls the `rootHistoryExpiry` function from the IdentityManager contract
-   */
-  function test_callRootHistoryExpiry(
-    uint128 _rootTimestamp,
-    uint256 _root,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) public {
-    vm.warp(1_000_000);
-    // Set a new root expiration threshold
-    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
-    vm.assume(_rootTimestamp > block.timestamp - _rootExpirationThreshold);
-    governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
-
-    vm.mockCall(
-      address(worldIDRouter),
-      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector),
-      abi.encode(address(worldIDIdentityManager))
-    );
-
-    _mockAndExpect(
-      address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
-      abi.encode(ROOT_HISTORY_EXPIRY)
-    );
-
-    vm.mockCall(
-      address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistory.selector),
-      abi.encode(_rootTimestamp)
-    );
-
-    vm.mockCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.verifyProof.selector), abi.encode(true));
-
-    vm.prank(user);
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-    governor.checkVoteValidity(SUPPORT, proposalId, _params);
-  }
-
-  /**
-   * @notice Test that the function calls the rootHistory function from the IdentityManager contract
-   */
-  function test_callRootHistory(
-    uint128 _rootTimestamp,
-    uint256 _root,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) public {
-    vm.warp(1_000_000);
-    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
-
-    vm.assume(_rootTimestamp > block.timestamp - _rootExpirationThreshold);
-
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    vm.mockCall(
-      address(worldIDRouter),
-      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector),
-      abi.encode(address(worldIDIdentityManager))
-    );
-
-    vm.mockCall(
-      address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
-      abi.encode(ROOT_HISTORY_EXPIRY)
-    );
-
-    _mockAndExpect(
-      address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistory.selector, _root),
-      abi.encode(_rootTimestamp)
-    );
-
-    vm.mockCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.verifyProof.selector), abi.encode(true));
-
-    // Set a new root expiration threshold
-    governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
-
-    vm.prank(user);
-    governor.checkVoteValidity(SUPPORT, proposalId, _params);
-  }
-
-  /**
-   * @notice Test that the function reverts if the root is outdated
-   */
-  function test_revertIfOutdatedRootWhenNonZeroThreshold(
-    uint128 _rootTimestamp,
-    uint256 _root,
-    uint256 _nullifierHash,
-    uint256[8] memory _proof
-  ) public {
-    vm.warp(1_000_000);
-    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
-
-    vm.assume(_rootTimestamp < block.timestamp - _rootExpirationThreshold);
-
-    _mockAndExpect(
-      address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistory.selector, _root),
-      abi.encode(_rootTimestamp)
-    );
-
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    // Set a new root expiration threshold
-    governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
-
-    // Try to cast a vote with an outdated root
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
-    vm.prank(user);
-    governor.checkVoteValidity(SUPPORT, proposalId, _params);
-  }
-
-  /**
-   * @notice Test that the function calls the verifyProof function from the WorldID contract
-   */
-  function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    governor.forTest_setRootExpirationThreshold(0);
-
-    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
-
-    vm.mockCall(
-      address(worldIDRouter),
-      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector),
-      abi.encode(address(worldIDIdentityManager))
-    );
-
-    vm.mockCall(
-      address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector),
-      abi.encode(_root)
-    );
-
-    uint256 _signal = abi.encodePacked(uint256(SUPPORT).toString()).hashToField();
-    uint256 _externalNullifier = abi.encodePacked(governor.APP_ID_HASH(), proposalId.toString()).hashToField();
-    _mockAndExpect(
-      address(worldIDRouter),
+    vm.expectCall(
+      watcher,
       abi.encodeWithSelector(
-        IWorldIDRouter.verifyProof.selector, _root, GROUP_ID, _signal, _nullifierHash, _externalNullifier, _proof
-      ),
-      abi.encode(true)
+        InternalCallsWatcher.calledInternal.selector,
+        abi.encodeWithSignature('_checkVoteValidity(uint8,uint256,bytes)', SUPPORT, proposalId, _proofData)
+      )
     );
-
-    vm.prank(user);
-    governor.checkVoteValidity(SUPPORT, proposalId, _params);
-  }
-
-  /**
-   * @notice Test that the function returns the nullifier hash
-   */
-  function test_returnNullifierHash(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
-    bytes memory _params =
-      _mockWorlIDCalls(SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
-
-    vm.prank(user);
-    uint256 _returnedNullifierHash = governor.checkVoteValidity(SUPPORT, proposalId, _params);
-    assertEq(_returnedNullifierHash, _nullifierHash);
+    governor.checkVoteValidity(SUPPORT, proposalId, _proofData);
   }
 }
 
@@ -444,6 +210,256 @@ contract GovernorWorldID_Unit_ProposalThreshold is Base {
    */
   function test_proposalThreshold() public {
     assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
+  }
+}
+
+contract GovernorWorldID_Unit_CheckVoteValidity_InternalPublic is Base {
+  using ByteHasher for bytes;
+  using Strings for uint256;
+
+  /**
+   * @notice Test that the function reverts if the nullifier is already used
+   */
+  function test_revertIfNullifierAlreadyUsed(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    governor.forTest_setNullifierHash(_nullifierHash, true);
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
+    vm.prank(user);
+    governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function calls the latestRoot function from the Router contract
+   */
+  function test_callRouteFor(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params =
+      _mockWorlIDCalls(SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+
+    _mockAndExpect(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
+      abi.encode(address(worldIDIdentityManager))
+    );
+
+    vm.prank(user);
+    governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function calls the latestRoot function from the IdentityManager contract
+   */
+  function test_callLatestRoot(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    // enforce threshold to be 0
+    governor.forTest_setRootExpirationThreshold(0);
+
+    // Encode the parameters
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    vm.mockCall(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector),
+      abi.encode(address(worldIDIdentityManager))
+    );
+
+    _mockAndExpect(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector),
+      abi.encode(_root)
+    );
+
+    vm.mockCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.verifyProof.selector), abi.encode(true));
+
+    vm.prank(user);
+    governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function reverts if the root is outdated
+   */
+  function test_revertIfOutdatedRootWhenZeroThreshold(
+    uint256 _root,
+    uint256 _latestRoot,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    vm.assume(_root != _latestRoot);
+
+    governor.forTest_setRootExpirationThreshold(0);
+
+    _mockAndExpect(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector),
+      abi.encode(_latestRoot)
+    );
+
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // Try to cast a vote with an outdated root
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
+    vm.prank(user);
+    governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function calls the `rootHistoryExpiry` function from the IdentityManager contract
+   */
+  function test_callRootHistoryExpiry(
+    uint128 _rootTimestamp,
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    vm.warp(1_000_000);
+    // Set a new root expiration threshold
+    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
+    vm.assume(_rootTimestamp > block.timestamp - _rootExpirationThreshold);
+    governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
+
+    vm.mockCall(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector),
+      abi.encode(address(worldIDIdentityManager))
+    );
+
+    _mockAndExpect(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
+      abi.encode(ROOT_HISTORY_EXPIRY)
+    );
+
+    vm.mockCall(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistory.selector),
+      abi.encode(_rootTimestamp)
+    );
+
+    vm.mockCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.verifyProof.selector), abi.encode(true));
+
+    vm.prank(user);
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+    governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function calls the rootHistory function from the IdentityManager contract
+   */
+  function test_callRootHistory(
+    uint128 _rootTimestamp,
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    vm.warp(1_000_000);
+    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
+
+    vm.assume(_rootTimestamp > block.timestamp - _rootExpirationThreshold);
+
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    vm.mockCall(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector),
+      abi.encode(address(worldIDIdentityManager))
+    );
+
+    vm.mockCall(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
+      abi.encode(ROOT_HISTORY_EXPIRY)
+    );
+
+    _mockAndExpect(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistory.selector, _root),
+      abi.encode(_rootTimestamp)
+    );
+
+    vm.mockCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.verifyProof.selector), abi.encode(true));
+
+    // Set a new root expiration threshold
+    governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
+
+    vm.prank(user);
+    governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function reverts if the root is outdated
+   */
+  function test_revertIfOutdatedRootWhenNonZeroThreshold(
+    uint128 _rootTimestamp,
+    uint256 _root,
+    uint256 _nullifierHash,
+    uint256[8] memory _proof
+  ) public {
+    vm.warp(1_000_000);
+    uint256 _rootExpirationThreshold = ROOT_EXPIRATION_THRESHOLD + 1;
+
+    vm.assume(_rootTimestamp < block.timestamp - _rootExpirationThreshold);
+
+    _mockAndExpect(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistory.selector, _root),
+      abi.encode(_rootTimestamp)
+    );
+
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    // Set a new root expiration threshold
+    governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
+
+    // Try to cast a vote with an outdated root
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
+    vm.prank(user);
+    governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function calls the verifyProof function from the WorldID contract
+   */
+  function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    governor.forTest_setRootExpirationThreshold(0);
+
+    bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
+
+    vm.mockCall(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector),
+      abi.encode(address(worldIDIdentityManager))
+    );
+
+    vm.mockCall(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector),
+      abi.encode(_root)
+    );
+
+    uint256 _signal = abi.encodePacked(uint256(SUPPORT).toString()).hashToField();
+    uint256 _externalNullifier = abi.encodePacked(governor.APP_ID_HASH(), proposalId.toString()).hashToField();
+    _mockAndExpect(
+      address(worldIDRouter),
+      abi.encodeWithSelector(
+        IWorldIDRouter.verifyProof.selector, _root, GROUP_ID, _signal, _nullifierHash, _externalNullifier, _proof
+      ),
+      abi.encode(true)
+    );
+
+    vm.prank(user);
+    governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
+  }
+
+  /**
+   * @notice Test that the function returns the nullifier hash
+   */
+  function test_returnNullifierHash(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    bytes memory _params =
+      _mockWorlIDCalls(SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
+
+    vm.prank(user);
+    uint256 _returnedNullifierHash = governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
+    assertEq(_returnedNullifierHash, _nullifierHash);
   }
 }
 
