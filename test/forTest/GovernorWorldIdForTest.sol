@@ -9,7 +9,7 @@ import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/Govern
 import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/GovernorVotes.sol';
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
 
-contract GovernorWorldIDForTest is
+contract GovernorWorldIdForTest is
   InternalCallsWatcherExtension,
   GovernorCountingSimple,
   GovernorVotes,
