@@ -385,9 +385,10 @@ contract GovernorWorldID_Unit_CheckVoteValidity is Base {
 }
 
 contract GovernorWorldID_Unit_SetConfig_Public is Base {
-  function test_revertIfCalledByNonGovernance() public {
-    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
-    vm.startPrank(user);
+  function test_revertIfCalledByNonGovernance(address _sender) public {
+    vm.assume(_sender != address(governor));
+    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, _sender));
+    vm.startPrank(_sender);
     governor.setConfig(INITIAL_VOTING_PERIOD, RESET_GRACE_PERIOD, ROOT_EXPIRATION_THRESHOLD);
   }
 
@@ -413,10 +414,11 @@ contract GovernorWorldID_Unit_SetConfig_Public is Base {
 }
 
 contract GovernorWorldID_Unit_SetVotingPeriod is Base {
-  function test_revertIfCalledByNonGovernance() public {
+  function test_revertIfCalled() public {
     vm.expectRevert(abi.encodeWithSelector(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector));
     vm.startPrank(user);
-    governor.setVotingPeriod(1);
+    uint32 _randomVotingPeriod = 1;
+    governor.setVotingPeriod(_randomVotingPeriod);
   }
 }
 

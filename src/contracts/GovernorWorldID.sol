@@ -172,7 +172,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
       revert GovernorWorldID_InvalidVotingPeriod();
     }
 
-    if (_newVotingPeriod != votingPeriod()) super._setVotingPeriod(uint32(_newVotingPeriod));
+    if (_newVotingPeriod != votingPeriod()) super._setVotingPeriod(_newVotingPeriod);
     uint256 _currentResetGracePeriod = resetGracePeriod;
     if (_newResetGracePeriod != _currentResetGracePeriod) {
       resetGracePeriod = _newResetGracePeriod;
