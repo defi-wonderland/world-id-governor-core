@@ -64,6 +64,14 @@ contract GovernorWorldIdForTest is
     _setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
+  function forTest_checkVoteValidity(
+    uint8 _support,
+    uint256 _proposalId,
+    bytes memory _proofData
+  ) public returns (uint256 _nullifierHash) {
+    _nullifierHash = _checkVoteValidity(_support, _proposalId, _proofData);
+  }
+
   function forTest_setNullifierHash(uint256 _nullifierHash, bool _isUsed) public {
     nullifierHashes[_nullifierHash] = _isUsed;
   }
@@ -108,6 +116,17 @@ contract GovernorWorldIdForTest is
 
   function proposalThreshold() public view virtual override(Governor, GovernorWorldID) returns (uint256) {
     return super.proposalThreshold();
+  }
+
+  function _checkVoteValidity(
+    uint8 _support,
+    uint256 _proposalId,
+    bytes memory _proofData
+  ) internal virtual override returns (uint256 _nullifierHash) {
+    _calledInternal(
+      abi.encodeWithSignature('_checkVoteValidity(uint8,uint256,bytes)', _support, _proposalId, _proofData)
+    );
+    if (_callSuper) _nullifierHash = super._checkVoteValidity(_support, _proposalId, _proofData);
   }
 
   function _setConfig(
