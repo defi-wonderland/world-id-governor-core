@@ -109,9 +109,11 @@ contract GovernorWorldID_Unit_Constructor is Base {
   /**
    * @notice Check that the constructor works as expected
    */
-  function test_correctDeploy(uint256 _rootExpirationThreshold) public {
+  function test_correctDeploy(uint32 _newVotingPeriod, uint256 _rootExpirationThreshold) public {
     vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
     vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
+    vm.assume(_newVotingPeriod != 0);
+    vm.assume(_newVotingPeriod < RESET_GRACE_PERIOD - _rootExpirationThreshold);
 
     IGovernorWorldID _governor = new GovernorWorldIdForTest(
       GovernorWorldIdForTest.ConstructorArgs(
@@ -131,6 +133,9 @@ contract GovernorWorldID_Unit_Constructor is Base {
     assertEq(_governor.APP_ID_HASH(), abi.encodePacked(APP_ID).hashToField());
     assertEq(_governor.resetGracePeriod(), RESET_GRACE_PERIOD);
     assertEq(_governor.rootExpirationThreshold(), _rootExpirationThreshold);
+    assertEq(_governor.votingDelay(), INITIAL_VOTING_DELAY);
+    assertEq(_governor.votingPeriod(), INITIAL_VOTING_PERIOD);
+    assertEq(_governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
   }
 }
 
