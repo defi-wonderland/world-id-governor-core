@@ -385,6 +385,33 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   }
 }
 
+contract GovernorWorldID_Unit_VotingDelay is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_votingDelay() public {
+    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
+  }
+}
+
+contract GovernorWorldID_Unit_VotingPeriod is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_votingPeriod() public {
+    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
+  }
+}
+
+contract GovernorWorldID_Unit_ProposalThreshold is Base {
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_proposalThreshold() public {
+    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
+  }
+}
+
 contract GovernorWorldID_Unit_SetConfig_Internal is Base {
   /**
    * @notice Test that it doesn't call the `rootHistoryExpiry` function if the root expiration threshold is 0
@@ -675,33 +702,6 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
 
     vm.prank(address(governor));
     governor.forTest_setConfig(_newVotingFlow, _newResetGracePeriod, _newRootExpirationThreshold);
-  }
-}
-
-contract GovernorWorldID_Unit_VotingDelay is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_votingDelay() public {
-    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
-  }
-}
-
-contract GovernorWorldID_Unit_VotingPeriod is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_votingPeriod() public {
-    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
-  }
-}
-
-contract GovernorWorldID_Unit_ProposalThreshold is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_proposalThreshold() public {
-    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
   }
 }
 

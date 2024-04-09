@@ -102,6 +102,9 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     _nullifierHash = _decodedNullifierHash;
   }
 
+  /**
+   * @inheritdoc IGovernorWorldID
+   */
   function setConfig(
     uint32 _newVotingPeriod,
     uint256 _newResetGracePeriod,
@@ -111,12 +114,42 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
-   * @notice disabled
+   * @notice Disabled because the `votingPeriod` must be updated using the `setConfig` function along with the other
+   * settings, to check the validity of the new configuration.
    */
-  function setVotingPeriod(uint32 newVotingPeriod) public virtual override {
+  function setVotingPeriod(uint32) public virtual override {
     revert GovernorWorldID_NotSupportedFunction();
   }
 
+  /**
+   * @inheritdoc IGovernor
+   */
+  function votingDelay() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+    return super.votingDelay();
+  }
+
+  /**
+   * @inheritdoc IGovernor
+   */
+  function votingPeriod() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+    return super.votingPeriod();
+  }
+
+  /**
+   * @inheritdoc IGovernor
+   */
+  function proposalThreshold() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+    return super.proposalThreshold();
+  }
+
+  /**
+   * @notice Sets the configuration parameters for the contract
+   * @param _newVotingPeriod The new voting period
+   * @param _newResetGracePeriod The new reset grace period
+   * @param _newRootExpirationThreshold The new root expiration threshold
+   * @dev The purpose of this function is to ensure that `votingPeriod` is smaller than `resetGracePeriod`
+   * less `rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   */
   function _setConfig(
     uint32 _newVotingPeriod,
     uint256 _newResetGracePeriod,
@@ -149,27 +182,6 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
-   * @inheritdoc IGovernor
-   */
-  function votingDelay() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
-    return super.votingDelay();
-  }
-
-  /**
-   * @inheritdoc IGovernor
-   */
-  function votingPeriod() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
-    return super.votingPeriod();
-  }
-
-  /**
-   * @inheritdoc IGovernor
-   */
-  function proposalThreshold() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
-    return super.proposalThreshold();
-  }
-
-  /**
    * @notice Cast a vote for a proposal
    * @dev It checks if the voter is a real human before proceeding with the vote
    * @param _proposalId The proposal id
@@ -192,7 +204,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
   }
 
   /**
-   * @notice This function is disabled because is not compatible with the new implementations.
+   * @notice Disabled because is not compatible with the new implementations.
    *  It will make revert the functions that implement it as: `castVote`, `castVoteWithReason`, `castVoteBySig`.
    */
   function _castVote(uint256, address, uint8, string memory) internal virtual override returns (uint256) {
