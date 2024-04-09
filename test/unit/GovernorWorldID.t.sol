@@ -220,7 +220,7 @@ contract GovernorWorldID_Unit_ProposalThreshold is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CheckVoteValidity_InternalPublic is Base {
+contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
   using ByteHasher for bytes;
   using Strings for uint256;
 
@@ -275,8 +275,6 @@ contract GovernorWorldID_Unit_CheckVoteValidity_InternalPublic is Base {
       abi.encodeWithSelector(IWorldIDIdentityManager.latestRoot.selector),
       abi.encode(_root)
     );
-
-    vm.mockCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.verifyProof.selector), abi.encode(true));
 
     vm.prank(user);
     governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
@@ -342,8 +340,6 @@ contract GovernorWorldID_Unit_CheckVoteValidity_InternalPublic is Base {
       abi.encode(_rootTimestamp)
     );
 
-    vm.mockCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.verifyProof.selector), abi.encode(true));
-
     vm.prank(user);
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
     governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
@@ -365,6 +361,9 @@ contract GovernorWorldID_Unit_CheckVoteValidity_InternalPublic is Base {
 
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
 
+    // Set a new root expiration threshold
+    governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
+
     vm.mockCall(
       address(worldIDRouter),
       abi.encodeWithSelector(IWorldIDRouter.routeFor.selector),
@@ -382,11 +381,6 @@ contract GovernorWorldID_Unit_CheckVoteValidity_InternalPublic is Base {
       abi.encodeWithSelector(IWorldIDIdentityManager.rootHistory.selector, _root),
       abi.encode(_rootTimestamp)
     );
-
-    vm.mockCall(address(worldIDRouter), abi.encodeWithSelector(IWorldIDRouter.verifyProof.selector), abi.encode(true));
-
-    // Set a new root expiration threshold
-    governor.forTest_setRootExpirationThreshold(_rootExpirationThreshold);
 
     vm.prank(user);
     governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
@@ -486,7 +480,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
   /**
    * @notice Test that it reverts if the root expiration threshold is less than the reset grace period
    */
-  function test_revertIfRootExpirationThresholdGreaterThanResetGracePeriod() public {
+  function test_revertIfRootExpirationThresholdGreaterThanResetPeriod() public {
     // Add 1 to the reset grace period just in case it is change to 0
     uint256 _newResetGracePeriod = RESET_GRACE_PERIOD + 1;
     uint256 _newRootExpirationThreshold = _newResetGracePeriod + 1;
@@ -507,7 +501,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
       abi.encode(address(worldIDIdentityManager))
     );
 
-    _mockAndExpect(
+    vm.mockCall(
       address(worldIDIdentityManager),
       abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
       abi.encode(_newRootExpirationThreshold)
@@ -525,7 +519,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
     vm.assume(_rootExpirationThreshold != 0);
 
-    _mockAndExpect(
+    vm.mockCall(
       address(worldIDRouter),
       abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
       abi.encode(address(worldIDIdentityManager))
@@ -569,7 +563,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
    * @notice Test that it reverts if the voting period is greater than the reset grace period less the root expiration threshold
    */
   function test_revertIfInvalidVotingPeriod(uint32 _newVotingPeriod, uint256 _newRootExpirationThreshold) public {
-    uint256 _newResetGracePeriod = (type(uint256).max);
+    uint256 _newResetGracePeriod = (type(uint256).max - 1);
     _newRootExpirationThreshold = bound(_newRootExpirationThreshold, 0, _newResetGracePeriod);
     vm.assume(_newVotingPeriod > _newResetGracePeriod - _newRootExpirationThreshold);
     // Set the reset grace period to the max value so it doesn't revert on that check
@@ -692,7 +686,6 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
    * @notice Test that it correctly sets the root expiration threshold
    */
   function test_setRootExpirationThreshold(uint256 _newRootExpirationThreshold) public {
-    vm.assume(_newRootExpirationThreshold != ROOT_EXPIRATION_THRESHOLD);
     // Just in case the `RESET_GRACE_PERIOD` is set to 0
     uint256 _newResetGracePeriod = RESET_GRACE_PERIOD + 1;
     // Assume the new root expiration threshold is smaller than the reset grace period
