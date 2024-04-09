@@ -433,7 +433,6 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     uint256 _newResetGracePeriod = RESET_GRACE_PERIOD + 1;
     uint256 _newRootExpirationThreshold = _newResetGracePeriod - 1;
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    vm.prank(address(governor));
     governor.forTest_setConfig(INITIAL_VOTING_PERIOD, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
@@ -456,7 +455,6 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
       abi.encode(_newRootExpirationThreshold)
     );
 
-    vm.prank(address(governor));
     governor.forTest_setConfig(_newVotingPeriod, RESET_GRACE_PERIOD, _newRootExpirationThreshold);
   }
 
@@ -506,7 +504,6 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     );
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    vm.prank(address(governor));
     governor.forTest_setConfig(INITIAL_VOTING_PERIOD, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
@@ -532,7 +529,6 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     );
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
-    vm.prank(address(governor));
     governor.forTest_setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
@@ -556,9 +552,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
       abi.encode(_newRootExpirationThreshold)
     );
 
-    vm.prank(address(governor));
     governor.forTest_setConfig(_newVotingPeriod, RESET_GRACE_PERIOD, _newRootExpirationThreshold);
-
     assertEq(governor.votingPeriod(), _newVotingPeriod);
   }
 
@@ -585,8 +579,6 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
 
     vm.expectEmit(true, true, true, true);
     emit GovernorSettings.VotingPeriodSet(INITIAL_VOTING_PERIOD, _newVotingPeriod);
-
-    vm.prank(address(governor));
     governor.forTest_setConfig(_newVotingPeriod, RESET_GRACE_PERIOD, _newRootExpirationThreshold);
   }
 
@@ -609,9 +601,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
       abi.encode(_newRootExpirationThreshold)
     );
 
-    vm.prank(address(governor));
     governor.forTest_setConfig(INITIAL_VOTING_PERIOD, _newResetGracePeriod, _newRootExpirationThreshold);
-
     assertEq(governor.resetGracePeriod(), _newResetGracePeriod);
   }
 
@@ -637,8 +627,6 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
 
     vm.expectEmit(true, true, true, true);
     emit IGovernorWorldID.ResetGracePeriodUpdated(RESET_GRACE_PERIOD, _newResetGracePeriod);
-
-    vm.prank(address(governor));
     governor.forTest_setConfig(INITIAL_VOTING_PERIOD, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
@@ -666,9 +654,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
       abi.encode(_newRootExpirationThreshold)
     );
 
-    vm.prank(address(governor));
     governor.forTest_setConfig(_newVotingFlow, _newResetGracePeriod, _newRootExpirationThreshold);
-
     assertEq(governor.rootExpirationThreshold(), _newRootExpirationThreshold);
   }
 
@@ -679,9 +665,9 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     // Ensure the event will be emitted
     vm.assume(_newRootExpirationThreshold != ROOT_EXPIRATION_THRESHOLD);
     // Just in case the `RESET_GRACE_PERIOD` is set to 0
-    uint256 _newResetGracePeriod = RESET_GRACE_PERIOD + 1;
+    vm.assume(RESET_GRACE_PERIOD != 0);
     // Assume the new root expiration threshold is smaller than the reset grace period
-    vm.assume(_newRootExpirationThreshold < _newResetGracePeriod);
+    vm.assume(_newRootExpirationThreshold < RESET_GRACE_PERIOD);
     // Set the new voting flow to a valid value
     uint32 _newVotingFlow = uint32(RESET_GRACE_PERIOD - _newRootExpirationThreshold);
 
@@ -699,9 +685,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
 
     vm.expectEmit(true, true, true, true);
     emit IGovernorWorldID.RootExpirationThresholdUpdated(ROOT_EXPIRATION_THRESHOLD, _newRootExpirationThreshold);
-
-    vm.prank(address(governor));
-    governor.forTest_setConfig(_newVotingFlow, _newResetGracePeriod, _newRootExpirationThreshold);
+    governor.forTest_setConfig(_newVotingFlow, RESET_GRACE_PERIOD, _newRootExpirationThreshold);
   }
 }
 
@@ -716,7 +700,6 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
     // Cast the vote
     vm.prank(user);
     governor.forTest_castVote(proposalId, user, SUPPORT, REASON, _params);
-
     assertTrue(governor.nullifierHashes(_nullifierHash));
   }
 
