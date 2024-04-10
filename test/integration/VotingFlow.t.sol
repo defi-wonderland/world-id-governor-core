@@ -68,6 +68,23 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
   }
 
   /**
+   * @notice Test a user votes correctly once, and then reverts when he tries to use the exact same
+   * proof but with a different nullifier
+   */
+  function test_revertIfInvalidNullifier(uint256 _invalidNullifierHash) public {
+    vm.assume(_invalidNullifierHash != NULLIFIER_HASH);
+
+    // Cast the vote
+    vm.startPrank(user);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+
+    // Expect the vote to revert when trying to use the same proof with a different nullifier
+    vm.expectRevert(InvalidProof.selector);
+    proofData = abi.encode(ROOT, _invalidNullifierHash, proof);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+  }
+
+  /**
    * @notice Test a user tries to use the valid proof, but with another support (signal) and expect the vote to revert.
    */
   function test_revertIfInvalidSupportSignal() public {
