@@ -55,7 +55,8 @@ A GovernorDemocratic implementation already exists and can be found at [Democrat
 In the WorldID protocol, users can choose to reset their account each certain amount of time. To prevent this, the contract has `resetGracePeriod` and `rootExpirationThreshold` variables. The `resetGracePeriod` is the time it takes for a user to reset their account after the last reset. The `rootExpirationThreshold` is the time it takes for a root provided by the user to expire.
 Then, when the `votingPeriod` variable is set, a check is performed to ensure that `votingPeriod` is less than the `resetGracePeriod` minus `rootExpirationThreshold`.
 This way, the user will not be able to reset their account and vote again in the same proposal.
-`rootExpirationThreshold` should never be 0 in Mainnet and Mainnet testnets due to a discrepancy between the WorldID protocol on Mainnet and L2s.
+
+`rootExpirationThreshold` should never be 0 in Mainnet and Mainnet testnets due to a discrepancy between the WorldID protocol on Ethereum and L2s.
 
 ## Licensing
 
