@@ -7,7 +7,10 @@ import {IDemocraticGovernance} from 'interfaces/IDemocraticGovernance.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
+
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
+import {GovernorPreventLateQuorum} from 'open-zeppelin/governance/extensions/GovernorPreventLateQuorum.sol';
+import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {Time} from 'open-zeppelin/utils/types/Time.sol';
 
 /**
@@ -15,7 +18,14 @@ import {Time} from 'open-zeppelin/utils/types/Time.sol';
  * @notice Implementation of the DemocraticGovernance contract, with 1 vote per voter that is verified on WorldID.
  * @dev For this specific case, only the owner can propose.
  */
-contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocratic, IDemocraticGovernance {
+contract DemocraticGovernance is
+  Ownable,
+  GovernorCountingSimple,
+  GovernorPreventLateQuorum,
+  GovernorWorldID,
+  GovernorDemocratic,
+  IDemocraticGovernance
+{
   /**
    * @inheritdoc IDemocraticGovernance
    */
@@ -48,7 +58,8 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     uint256 _rootExpirationThreshold
   )
     Ownable(msg.sender)
-    GovernorDemocratic(
+    GovernorPreventLateQuorum(1)
+    GovernorWorldID(
       _groupID,
       _worldIdRouter,
       _appId,
@@ -62,6 +73,10 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     quorumThreshold = _quorumThreshold;
   }
 
+  function proposalThreshold() public view override(Governor, GovernorSettings) returns (uint256) {
+    return super.proposalThreshold();
+  }
+
   /**
    * @inheritdoc IGovernor
    */
@@ -70,7 +85,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     uint256[] memory _values,
     bytes[] memory _calldatas,
     string memory _description
-  ) public virtual override(Governor, IGovernor) onlyOwner returns (uint256 _proposalId) {
+  ) public virtual override onlyOwner returns (uint256 _proposalId) {
     _proposalId = super.propose(_targets, _values, _calldatas, _description);
     proposalsQuorumThreshold[_proposalId] = quorumThreshold;
   }
@@ -87,61 +102,22 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   /**
    * @inheritdoc IGovernor
    */
-  function quorum(uint256) public view override(Governor, IGovernor) returns (uint256 _quorumThreshold) {
+  function quorum(uint256) public view override returns (uint256 _quorumThreshold) {
     _quorumThreshold = quorumThreshold;
   }
 
   /**
    * @inheritdoc IDemocraticGovernance
    */
-  function clock() public view override(Governor, IERC6372, IDemocraticGovernance) returns (uint48 _clock) {
+  function clock() public view override(Governor, IDemocraticGovernance) returns (uint48 _clock) {
     _clock = Time.timestamp();
-  }
-
-  /**
-   * @inheritdoc IGovernor
-   */
-  function votingDelay()
-    public
-    view
-    virtual
-    override(Governor, GovernorWorldID, IGovernor)
-    returns (uint256 _votingDelay)
-  {
-    _votingDelay = super.votingDelay();
-  }
-
-  /**
-   * @inheritdoc IGovernor
-   */
-  function votingPeriod()
-    public
-    view
-    virtual
-    override(Governor, GovernorWorldID, IGovernor)
-    returns (uint256 _votingPeriod)
-  {
-    _votingPeriod = super.votingPeriod();
-  }
-
-  /**
-   * @inheritdoc IGovernor
-   */
-  function proposalThreshold()
-    public
-    view
-    virtual
-    override(Governor, GovernorWorldID, IGovernor)
-    returns (uint256 _proposalThreshold)
-  {
-    _proposalThreshold = super.proposalThreshold();
   }
 
   /**
    * @inheritdoc IDemocraticGovernance
    */
   // solhint-disable-next-line func-name-mixedcase
-  function CLOCK_MODE() public pure override(Governor, IERC6372, IDemocraticGovernance) returns (string memory _mode) {
+  function CLOCK_MODE() public pure override(Governor, IDemocraticGovernance) returns (string memory _mode) {
     _mode = 'mode=blocktimestamp&from=default';
   }
 
@@ -166,7 +142,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     uint8 _support,
     string memory _reason,
     bytes memory _params
-  ) internal override(Governor, GovernorWorldID) returns (uint256 _votingWeight) {
+  ) internal override(GovernorPreventLateQuorum, Governor, GovernorWorldID) returns (uint256 _votingWeight) {
     _votingWeight = super._castVote(_proposalId, _account, _support, _reason, _params);
   }
 
@@ -185,14 +161,12 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     _reached = _quorum <= (_forVotes + _abstainVotes);
   }
 
-  /**
-   * @inheritdoc GovernorDemocratic
-   */
-  function _getVotes(
-    address _account,
-    uint256 _timepoint,
-    bytes memory _params
-  ) internal view virtual override(Governor, GovernorDemocratic) returns (uint256 _votingWeight) {
-    _votingWeight = super._getVotes(_account, _timepoint, _params);
+  function proposalDeadline(uint256 _proposalId)
+    public
+    view
+    override(Governor, GovernorPreventLateQuorum)
+    returns (uint256 _deadline)
+  {
+    _deadline = super.proposalDeadline(_proposalId);
   }
 }

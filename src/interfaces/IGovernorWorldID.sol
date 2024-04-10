@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 
-interface IGovernorWorldID is IGovernor {
+interface IGovernorWorldID {
   /**
    * @notice Emitted when the root expiration period is updated
    * @param _oldRootExpirationThreshold The previous expiration threshold

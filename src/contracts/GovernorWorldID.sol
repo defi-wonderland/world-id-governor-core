@@ -14,7 +14,7 @@ import {Strings} from 'open-zeppelin/utils/Strings.sol';
  * @title GovernorWorldID
  * @notice Governor contract that checks if the voter is a real human before proceeding with the vote.
  */
-abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldID {
+abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   using ByteHasher for bytes;
   using Strings for uint256;
 
@@ -81,7 +81,7 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
     uint8 _support,
     uint256 _proposalId,
     bytes memory _proofData
-  ) public override returns (uint256 _nullifierHash) {
+  ) public returns (uint256 _nullifierHash) {
     _nullifierHash = _checkVoteValidity(_support, _proposalId, _proofData);
   }
 
@@ -102,45 +102,6 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    */
   function setVotingPeriod(uint32) public virtual override {
     revert GovernorWorldID_NotSupportedFunction();
-  }
-
-  /**
-   * @inheritdoc IGovernor
-   */
-  function votingDelay()
-    public
-    view
-    virtual
-    override(Governor, GovernorSettings, IGovernor)
-    returns (uint256 _votingDelay)
-  {
-    _votingDelay = super.votingDelay();
-  }
-
-  /**
-   * @inheritdoc IGovernor
-   */
-  function votingPeriod()
-    public
-    view
-    virtual
-    override(Governor, GovernorSettings, IGovernor)
-    returns (uint256 _votingPeriod)
-  {
-    _votingPeriod = super.votingPeriod();
-  }
-
-  /**
-   * @inheritdoc IGovernor
-   */
-  function proposalThreshold()
-    public
-    view
-    virtual
-    override(Governor, GovernorSettings, IGovernor)
-    returns (uint256 _proposalThreshold)
-  {
-    _proposalThreshold = super.proposalThreshold();
   }
 
   /**
