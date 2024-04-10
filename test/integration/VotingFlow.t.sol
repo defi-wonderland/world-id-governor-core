@@ -45,7 +45,7 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
 
     // Try to cast the same vote over the same proposal again from another address and expect it to revert
-    changePrank(stranger);
+    vm.startPrank(stranger);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
   }
@@ -161,7 +161,7 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
 
     // Try to cast the same vote over the same proposal again from another address and expect it to revert
-    changePrank(stranger);
+    vm.startPrank(stranger);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
   }
