@@ -30,8 +30,13 @@ interface IGovernorWorldID is IGovernor {
   error GovernorWorldID_OutdatedRoot();
 
   /**
+   * @notice Thrown when the provided root expiration threshold is bigger than the reset grace period
+   */
+  error GovernorWorldID_ThresholdGreaterThanReset();
+
+  /**
    * @notice Thrown when the provided root expiration threshold
-   *  is bigger than the root history expiry from identity manager
+   * is bigger than the root history expiry from identity manager
    */
   error GovernorWorldID_InvalidRootExpirationThreshold();
 
@@ -42,7 +47,7 @@ interface IGovernorWorldID is IGovernor {
 
   /**
    * @notice Thrown when the provided voting period
-   *  is bigger than the reset grace period minus root expiration threshold
+   * is bigger than the reset grace period minus root expiration threshold
    */
   error GovernorWorldID_InvalidVotingPeriod();
 
@@ -77,6 +82,18 @@ interface IGovernorWorldID is IGovernor {
     uint256 _newResetGracePeriod,
     uint256 _newRootExpirationThreshold
   ) external;
+
+  /**
+   * @notice Sets the new reset grace period
+   * @param _newResetGracePeriod The new reset grace period
+   */
+  function setResetGracePeriod(uint256 _newResetGracePeriod) external;
+
+  /**
+   * @notice Sets the new root expiration threshold
+   * @param _newRootExpirationThreshold The new root expiration threshold
+   */
+  function setRootExpirationThreshold(uint256 _newRootExpirationThreshold) external;
 
   /**
    * @notice The World ID instance that will be used for verifying proofs
