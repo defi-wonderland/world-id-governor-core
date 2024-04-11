@@ -6,6 +6,7 @@ import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
+import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/GovernorVotes.sol';
 import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
 
@@ -106,15 +107,15 @@ contract GovernorWorldIdForTest is
     return super.clock();
   }
 
-  function votingDelay() public view virtual override(Governor, GovernorWorldID) returns (uint256) {
+  function votingDelay() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
     return super.votingDelay();
   }
 
-  function votingPeriod() public view virtual override(Governor, GovernorWorldID) returns (uint256) {
+  function votingPeriod() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
     return super.votingPeriod();
   }
 
-  function proposalThreshold() public view virtual override(Governor, GovernorWorldID) returns (uint256) {
+  function proposalThreshold() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
     return super.proposalThreshold();
   }
 

@@ -8,6 +8,7 @@ import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
+import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {Time} from 'open-zeppelin/utils/types/Time.sol';
 
 /**
@@ -105,7 +106,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     public
     view
     virtual
-    override(Governor, GovernorWorldID, IGovernor)
+    override(Governor, GovernorSettings, IGovernor)
     returns (uint256 _votingDelay)
   {
     _votingDelay = super.votingDelay();
@@ -118,7 +119,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     public
     view
     virtual
-    override(Governor, GovernorWorldID, IGovernor)
+    override(Governor, GovernorSettings, IGovernor)
     returns (uint256 _votingPeriod)
   {
     _votingPeriod = super.votingPeriod();
@@ -131,7 +132,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     public
     view
     virtual
-    override(Governor, GovernorWorldID, IGovernor)
+    override(Governor, GovernorSettings, IGovernor)
     returns (uint256 _proposalThreshold)
   {
     _proposalThreshold = super.proposalThreshold();

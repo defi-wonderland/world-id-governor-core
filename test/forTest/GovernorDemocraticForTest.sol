@@ -3,9 +3,11 @@ pragma solidity 0.8.23;
 
 import {GovernorDemocratic} from 'contracts/GovernorDemocratic.sol';
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
+import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
+import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 
 contract GovernorDemocraticForTest is GovernorCountingSimple, GovernorDemocratic {
   constructor(
@@ -49,15 +51,15 @@ contract GovernorDemocraticForTest is GovernorCountingSimple, GovernorDemocratic
     return clock();
   }
 
-  function votingDelay() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
+  function votingDelay() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
     return super.votingDelay();
   }
 
-  function votingPeriod() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
+  function votingPeriod() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
     return super.votingPeriod();
   }
 
-  function proposalThreshold() public view virtual override(Governor, GovernorWorldID, IGovernor) returns (uint256) {
+  function proposalThreshold() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
     return super.proposalThreshold();
   }
 
