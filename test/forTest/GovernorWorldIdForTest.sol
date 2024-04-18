@@ -29,16 +29,9 @@ contract GovernorWorldIdForTest is
   }
 
   constructor(ConstructorArgs memory _args)
-    GovernorWorldID(
-      _args.groupID,
-      _args.worldIdRouter,
-      _args.appId,
-      'Governor',
-      _args.initialVotingDelay,
-      _args.initialVotingPeriod,
-      _args.initialProposalThreshold,
-      _args.rootExpirationThreshold
-    )
+    Governor('GovernorWorldID')
+    GovernorSettings(_args.initialVotingDelay, _args.initialVotingPeriod, _args.initialProposalThreshold)
+    GovernorWorldID(_args.groupID, _args.worldIdRouter, _args.appId, _args.rootExpirationThreshold)
     GovernorVotes(_args.token)
     GovernorVotesQuorumFraction(4)
   {}

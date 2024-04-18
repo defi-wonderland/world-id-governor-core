@@ -18,16 +18,9 @@ contract GovernorDemocraticForTest is GovernorCountingSimple, GovernorDemocratic
     uint256 _initialProposalThreshold,
     uint256 _rootExpirationThreshold
   )
-    GovernorDemocratic(
-      _groupID,
-      _worldIdRouter,
-      _appId,
-      'Governor',
-      _initialVotingDelay,
-      _initialVotingPeriod,
-      _initialProposalThreshold,
-      _rootExpirationThreshold
-    )
+    Governor('GovernorDemocratic')
+    GovernorSettings(_initialVotingDelay, _initialVotingPeriod, _initialProposalThreshold)
+    GovernorWorldID(_groupID, _worldIdRouter, _appId, _rootExpirationThreshold)
   {}
 
   function forTest_getVotes(
