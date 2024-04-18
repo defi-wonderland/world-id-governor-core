@@ -35,7 +35,7 @@ interface IGovernorWorldID {
   error GovernorWorldID_InvalidRootExpirationThreshold();
 
   /**
-   * @notice Thrown when the provided reset grace period is less than the current root expiration threshold
+   * @notice Thrown when the provided reset grace period is minus than the current root expiration threshold
    */
   error GovernorWorldID_InvalidResetGracePeriod();
 
@@ -69,7 +69,7 @@ interface IGovernorWorldID {
    * @param _newResetGracePeriod The new reset grace period
    * @param _newRootExpirationThreshold The new root expiration threshold
    * @dev The purpose of this function is to ensure that `votingPeriod` is smaller than `resetGracePeriod`
-   * less `rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   * minus `rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
    */
   function setConfig(
     uint32 _newVotingPeriod,

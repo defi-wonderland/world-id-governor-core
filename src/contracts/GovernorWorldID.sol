@@ -133,7 +133,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
    * @param _newResetGracePeriod The new reset grace period
    * @param _newRootExpirationThreshold The new root expiration threshold
    * @dev The purpose of this function is to ensure that `votingPeriod` is smaller than `resetGracePeriod`
-   * less `rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   * minues `rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
    */
   function _setConfig(
     uint32 _newVotingPeriod,
@@ -148,7 +148,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
         revert GovernorWorldID_InvalidRootExpirationThreshold();
       }
     }
-    // Voting period should be smaller than reset grace period less root expiration threshold to prevent double-voting
+    // Voting period should be smaller than reset grace period minus root expiration threshold to prevent double-voting
     if (_newVotingPeriod > _newResetGracePeriod - _newRootExpirationThreshold) {
       revert GovernorWorldID_InvalidVotingPeriod();
     }
@@ -171,7 +171,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
    * @dev It checks if the voter is a real human before proceeding with the vote
    * @param _proposalId The proposal id
    * @param _account The account that is casting the vote
-   * @param _support The support value, 0 for against and 1 for in favor
+   * @param _support The support value, 0 for against, 1 for in favor and 2 for abstain
    * @param _reason The reason for the vote
    * @param _params The parameters for the vote
    * @return _votingWeight The voting weight of the voter

@@ -25,7 +25,7 @@ contract Integration_SetConfig is IntegrationBase {
   }
 
   /**
-   * @notice Test reverts when `rootExpirationThreshold` is less than `rootHistoryExpiry`
+   * @notice Test reverts when `rootExpirationThreshold` is smaller than `rootHistoryExpiry`
    */
   function test_revertIfInvalidRootExpirationThreshold() public {
     // Set the reset grace period to the maximum value so we are able to test the `rootHistoryExpiry` check
@@ -42,7 +42,7 @@ contract Integration_SetConfig is IntegrationBase {
   }
 
   /**
-   * @notice Test reverts when `votingPeriod` is greater than `resetGracePeriod` less `rootExpirationThreshold`
+   * @notice Test reverts when `votingPeriod` is greater than `resetGracePeriod` minus `rootExpirationThreshold`
    */
   function test_revertIfInvalidVotingPeriod() public {
     uint256 _newResetGracePeriod = governance.resetGracePeriod();
