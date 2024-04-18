@@ -113,7 +113,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
       if (_root != _identityManager.latestRoot()) revert GovernorWorldID_OutdatedRoot();
     } else {
       // The root expiration threshold can't be greater than `rootHistoryExpiry` in case it is updated. Suboptimal check
-      // since if it is smaller, it will revert on the calculation. But the revert message vebosity is prioritized.
+      // since if it is smaller, it will revert on the calculation. But the revert message vebosity is prioritized
       uint256 _rootHistoryExpiry = _identityManager.rootHistoryExpiry();
       uint256 _rootExpirationThreshold =
         rootExpirationThreshold < _rootHistoryExpiry ? rootExpirationThreshold : _rootHistoryExpiry;
@@ -185,7 +185,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     string memory _reason,
     bytes memory _params
   ) internal virtual override returns (uint256 _votingWeight) {
-    uint256 _nullifierHash = checkVoteValidity(_support, _proposalId, _params);
+    uint256 _nullifierHash = _checkVoteValidity(_support, _proposalId, _params);
     nullifierHashes[_nullifierHash] = true;
     _votingWeight = super._castVote(_proposalId, _account, _support, _reason, _params);
   }
