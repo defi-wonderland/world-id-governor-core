@@ -6,7 +6,6 @@ import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {Governor} from 'open-zeppelin/governance/Governor.sol';
-import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {Strings} from 'open-zeppelin/utils/Strings.sol';
 
@@ -14,7 +13,7 @@ import {Strings} from 'open-zeppelin/utils/Strings.sol';
  * @title GovernorWorldID
  * @notice Governor contract that checks if the voter is a real human before proceeding with the vote.
  */
-abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldID {
+abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   using ByteHasher for bytes;
   using Strings for uint256;
 
@@ -102,45 +101,6 @@ abstract contract GovernorWorldID is Governor, GovernorSettings, IGovernorWorldI
    */
   function setVotingPeriod(uint32) public virtual override {
     revert GovernorWorldID_NotSupportedFunction();
-  }
-
-  /**
-   * @inheritdoc IGovernor
-   */
-  function votingDelay()
-    public
-    view
-    virtual
-    override(Governor, GovernorSettings, IGovernor)
-    returns (uint256 _votingDelay)
-  {
-    _votingDelay = super.votingDelay();
-  }
-
-  /**
-   * @inheritdoc IGovernor
-   */
-  function votingPeriod()
-    public
-    view
-    virtual
-    override(Governor, GovernorSettings, IGovernor)
-    returns (uint256 _votingPeriod)
-  {
-    _votingPeriod = super.votingPeriod();
-  }
-
-  /**
-   * @inheritdoc IGovernor
-   */
-  function proposalThreshold()
-    public
-    view
-    virtual
-    override(Governor, GovernorSettings, IGovernor)
-    returns (uint256 _proposalThreshold)
-  {
-    _proposalThreshold = super.proposalThreshold();
   }
 
   /**

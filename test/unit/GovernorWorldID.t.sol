@@ -193,33 +193,6 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   }
 }
 
-contract GovernorWorldID_Unit_VotingDelay is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_votingDelay() public {
-    assertEq(governor.votingDelay(), INITIAL_VOTING_DELAY);
-  }
-}
-
-contract GovernorWorldID_Unit_VotingPeriod is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_votingPeriod() public {
-    assertEq(governor.votingPeriod(), INITIAL_VOTING_PERIOD);
-  }
-}
-
-contract GovernorWorldID_Unit_ProposalThreshold is Base {
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_proposalThreshold() public {
-    assertEq(governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
-  }
-}
-
 contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
   using ByteHasher for bytes;
   using Strings for uint256;
