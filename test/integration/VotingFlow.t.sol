@@ -45,7 +45,7 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
 
     // Try to cast the same vote over the same proposal again from another address and expect it to revert
-    changePrank(stranger);
+    vm.startPrank(stranger);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
   }
@@ -65,6 +65,23 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
     vm.expectRevert(InvalidProof.selector);
     vm.prank(user);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, _invalidSupport, REASON, _invalidProofData);
+  }
+
+  /**
+   * @notice Test a user votes correctly once, and then reverts when he tries to use the exact same
+   * proof but with a different nullifier
+   */
+  function test_revertIfInvalidNullifierHash(uint256 _invalidNullifierHash) public {
+    vm.assume(_invalidNullifierHash != NULLIFIER_HASH);
+
+    // Cast the vote
+    vm.startPrank(user);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+
+    // Expect the vote to revert when trying to use the same proof with a different nullifier
+    vm.expectRevert(InvalidProof.selector);
+    proofData = abi.encode(ROOT, _invalidNullifierHash, proof);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
   }
 
   /**
@@ -144,7 +161,7 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
 
     // Try to cast the same vote over the same proposal again from another address and expect it to revert
-    changePrank(stranger);
+    vm.startPrank(stranger);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
   }
@@ -164,6 +181,23 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
     vm.expectRevert(InvalidProof.selector);
     vm.prank(user);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, _invalidSupport, REASON, _invalidProofData);
+  }
+
+  /**
+   * @notice Test a user votes correctly once, and then reverts when he tries to use the exact same
+   * proof but with a different nullifier
+   */
+  function test_revertIfInvalidNullifierHash(uint256 _invalidNullifierHash) public {
+    vm.assume(_invalidNullifierHash != NULLIFIER_HASH);
+
+    // Cast the vote
+    vm.startPrank(user);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+
+    // Expect the vote to revert when trying to use the same proof with a different nullifier
+    vm.expectRevert(InvalidProof.selector);
+    proofData = abi.encode(ROOT, _invalidNullifierHash, proof);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
   }
 
   /**
