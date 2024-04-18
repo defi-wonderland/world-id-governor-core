@@ -5,7 +5,6 @@ import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
-import {Governor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {Strings} from 'open-zeppelin/utils/Strings.sol';
 
@@ -51,26 +50,15 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
    * @param _groupID The WorldID group ID for the verification level
    * @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
    * @param _appId The World ID app ID
-   * @param _governorName The governor name
-   * @param _initialVotingDelay The initial voting delay for the proposals
-   * @param _initialVotingPeriod The initial voting period for the proposals
-   * @param _initialProposalThreshold The initial proposal threshold
    * @param _rootExpirationThreshold The root expiration threshold
+   * @dev The `votingPeriod` will be the value passed on the `GovernorSettings` constructor. Beware that it is
+   * compatible with the `resetGracePeriod` and `rootExpirationThreshold` values to prevent double-voting risks
    */
-  constructor(
-    uint256 _groupID,
-    IWorldIDRouter _worldIdRouter,
-    string memory _appId,
-    string memory _governorName,
-    uint48 _initialVotingDelay,
-    uint32 _initialVotingPeriod,
-    uint256 _initialProposalThreshold,
-    uint256 _rootExpirationThreshold
-  ) Governor(_governorName) GovernorSettings(_initialVotingDelay, _initialVotingPeriod, _initialProposalThreshold) {
+  constructor(uint256 _groupID, IWorldIDRouter _worldIdRouter, string memory _appId, uint256 _rootExpirationThreshold) {
     WORLD_ID_ROUTER = _worldIdRouter;
     GROUP_ID = _groupID;
     APP_ID_HASH = abi.encodePacked(_appId).hashToField();
-    _setConfig(_initialVotingPeriod, resetGracePeriod, _rootExpirationThreshold);
+    _setConfig(uint32(votingPeriod()), resetGracePeriod, _rootExpirationThreshold);
   }
 
   /**

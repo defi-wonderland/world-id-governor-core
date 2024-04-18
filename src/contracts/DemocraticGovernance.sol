@@ -16,7 +16,7 @@ import {Time} from 'open-zeppelin/utils/types/Time.sol';
  * @notice Implementation of the DemocraticGovernance contract, with 1 vote per voter that is verified on WorldID.
  * @dev For this specific case, only the owner can propose.
  */
-contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocratic, IDemocraticGovernance {
+contract DemocraticGovernance is Ownable, Governor, GovernorCountingSimple, GovernorDemocratic, IDemocraticGovernance {
   /**
    * @inheritdoc IDemocraticGovernance
    */
@@ -49,16 +49,9 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     uint256 _rootExpirationThreshold
   )
     Ownable(msg.sender)
-    GovernorDemocratic(
-      _groupID,
-      _worldIdRouter,
-      _appId,
-      'DemocraticGovernor',
-      _initialVotingDelay,
-      _initialVotingPeriod,
-      _initialProposalThreshold,
-      _rootExpirationThreshold
-    )
+    Governor('DemocraticGovernor')
+    GovernorSettings(_initialVotingDelay, _initialVotingPeriod, _initialProposalThreshold)
+    GovernorWorldID(_groupID, _worldIdRouter, _appId, _rootExpirationThreshold)
   {
     quorumThreshold = _quorumThreshold;
   }
