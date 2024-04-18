@@ -451,7 +451,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
   }
 
   /**
-   * @notice Test that it reverts if the root expiration threshold is less than the reset grace period
+   * @notice Test that it reverts if the root expiration threshold is smaller than the reset grace period
    */
   function test_revertIfRootExpirationThresholdGreaterThanResetPeriod() public {
     // Add 1 to the reset grace period just in case it is change to 0
@@ -533,7 +533,8 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
   }
 
   /**
-   * @notice Test that it reverts if the voting period is greater than the reset grace period less the root expiration threshold
+   * @notice Test that it reverts if the voting period is greater than the reset grace period minus
+   * the root expiration threshold
    */
   function test_revertIfInvalidVotingPeriod(uint32 _newVotingPeriod, uint256 _newRootExpirationThreshold) public {
     uint256 _newResetGracePeriod = (type(uint256).max - 1);
