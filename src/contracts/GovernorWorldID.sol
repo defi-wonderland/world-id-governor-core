@@ -68,7 +68,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     uint8 _support,
     uint256 _proposalId,
     bytes memory _proofData
-  ) public override returns (uint256 _nullifierHash) {
+  ) public returns (uint256 _nullifierHash) {
     _nullifierHash = _checkVoteValidity(_support, _proposalId, _proofData);
   }
 

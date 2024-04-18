@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
-
-interface IGovernorDemocratic is IGovernorWorldID {
+interface IGovernorDemocratic {
   /**
    * @notice The constant holding the votes for every voter (1 since it's a democratic system)
    * @return _oneVote One as voting power

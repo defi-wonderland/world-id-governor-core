@@ -115,7 +115,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
     vm.assume(_newVotingPeriod != 0);
     vm.assume(_newVotingPeriod < RESET_GRACE_PERIOD - _rootExpirationThreshold);
 
-    IGovernorWorldID _governor = new GovernorWorldIdForTest(
+    GovernorWorldIdForTest _governor = new GovernorWorldIdForTest(
       GovernorWorldIdForTest.ConstructorArgs(
         GROUP_ID,
         worldIDRouter,

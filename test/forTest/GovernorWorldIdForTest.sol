@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {InternalCallsWatcherExtension} from '../unit/utils/CalledInternal.sol';
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
-import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
+import {Governor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
 import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/GovernorVotes.sol';
@@ -82,33 +82,28 @@ contract GovernorWorldIdForTest is
     _setVotingPeriod(_newVotingPeriod);
   }
 
-  function quorum(uint256 blockNumber)
-    public
-    view
-    override(Governor, IGovernor, GovernorVotesQuorumFraction)
-    returns (uint256)
-  {
+  function quorum(uint256 blockNumber) public view override(Governor, GovernorVotesQuorumFraction) returns (uint256) {
     return super.quorum(blockNumber);
   }
 
   // solhint-disable-next-line
-  function CLOCK_MODE() public view override(Governor, GovernorVotes, IERC6372) returns (string memory) {
+  function CLOCK_MODE() public view override(Governor, GovernorVotes) returns (string memory) {
     return super.CLOCK_MODE();
   }
 
-  function clock() public view override(Governor, GovernorVotes, IERC6372) returns (uint48) {
+  function clock() public view override(Governor, GovernorVotes) returns (uint48) {
     return super.clock();
   }
 
-  function votingDelay() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+  function votingDelay() public view virtual override(Governor, GovernorSettings) returns (uint256) {
     return super.votingDelay();
   }
 
-  function votingPeriod() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+  function votingPeriod() public view virtual override(Governor, GovernorSettings) returns (uint256) {
     return super.votingPeriod();
   }
 
-  function proposalThreshold() public view virtual override(Governor, GovernorSettings, IGovernor) returns (uint256) {
+  function proposalThreshold() public view virtual override(Governor, GovernorSettings) returns (uint256) {
     return super.proposalThreshold();
   }
 
