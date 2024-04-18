@@ -205,7 +205,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
 
     governor.forTest_setNullifierHash(_nullifierHash, true);
 
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_DuplicateNullifier.selector);
     vm.prank(user);
     governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
   }

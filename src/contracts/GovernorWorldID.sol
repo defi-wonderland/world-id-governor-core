@@ -105,7 +105,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   ) internal virtual returns (uint256 _nullifierHash) {
     (uint256 _root, uint256 _decodedNullifierHash, uint256[8] memory _proof) =
       abi.decode(_proofData, (uint256, uint256, uint256[8]));
-    if (nullifierHashes[_decodedNullifierHash]) revert GovernorWorldID_NullifierHashAlreadyUsed();
+    if (nullifierHashes[_decodedNullifierHash]) revert GovernorWorldID_DuplicateNullifier();
 
     // Validate the root timestamp
     IWorldIDIdentityManager _identityManager = IWorldIDIdentityManager(WORLD_ID_ROUTER.routeFor(GROUP_ID));
