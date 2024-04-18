@@ -112,7 +112,8 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     if (rootExpirationThreshold == 0) {
       if (_root != _identityManager.latestRoot()) revert GovernorWorldID_OutdatedRoot();
     } else {
-      // The root expiration threshold can't be greater than `rootHistoryExpiry` in case it is updated
+      // The root expiration threshold can't be greater than `rootHistoryExpiry` in case it is updated. Suboptimal check
+      // since if it is smaller, it will revert on the calculation. But the revert message vebosity is prioritized.
       uint256 _rootHistoryExpiry = _identityManager.rootHistoryExpiry();
       uint256 _rootExpirationThreshold =
         rootExpirationThreshold < _rootHistoryExpiry ? rootExpirationThreshold : _rootHistoryExpiry;
@@ -142,6 +143,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   ) internal virtual {
     // Check that `_rootExpirationThreshold` is valid. If set to 0, no need to check the `rootHistoryExpiry`
     if (_newRootExpirationThreshold != 0) {
+      // Suboptimal check since if it smaller, it will revert on the calculation. But the revert message is more clear
       if (_newRootExpirationThreshold > _newResetGracePeriod) revert GovernorWorldID_InvalidRootExpirationThreshold();
       IWorldIDIdentityManager _identityManager = WORLD_ID_ROUTER.routeFor(GROUP_ID);
       if (_newRootExpirationThreshold > _identityManager.rootHistoryExpiry()) {
