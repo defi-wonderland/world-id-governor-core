@@ -171,7 +171,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
    * @dev It checks if the voter is a real human before proceeding with the vote
    * @param _proposalId The proposal id
    * @param _account The account that is casting the vote
-   * @param _support The support value, 0 for against and 1 for in favor
+   * @param _support The support value, 0 for against, 1 for in favor and 2 for abstain
    * @param _reason The reason for the vote
    * @param _params The parameters for the vote
    * @return _votingWeight The voting weight of the voter
