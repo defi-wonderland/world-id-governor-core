@@ -47,9 +47,9 @@ interface IGovernorWorldID is IGovernor {
   error GovernorWorldID_InvalidVotingPeriod();
 
   /**
-   * @notice Thrown when the provided nullifier hash is already used
+   * @notice Thrown when the provided nullifier hash was already used
    */
-  error GovernorWorldID_NullifierHashAlreadyUsed();
+  error GovernorWorldID_DuplicateNullifier();
 
   /**
    * @notice Checks the validity of a vote

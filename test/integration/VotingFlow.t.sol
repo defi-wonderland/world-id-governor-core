@@ -41,12 +41,12 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
     assertTrue(governance.hasVoted(PROPOSAL_ID, user));
 
     // Try to cast the same vote over the same proposal again and expect it to revert
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_DuplicateNullifier.selector);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
 
     // Try to cast the same vote over the same proposal again from another address and expect it to revert
     vm.startPrank(stranger);
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_DuplicateNullifier.selector);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
   }
 
@@ -157,12 +157,12 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
     assertTrue(governance.hasVoted(PROPOSAL_ID, user));
 
     // Try to cast the same vote over the same proposal again and expect it to revert
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_DuplicateNullifier.selector);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
 
     // Try to cast the same vote over the same proposal again from another address and expect it to revert
     vm.startPrank(stranger);
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_NullifierHashAlreadyUsed.selector);
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_DuplicateNullifier.selector);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
   }
 
