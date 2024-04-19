@@ -23,8 +23,16 @@ contract Integration_SetConfig is IntegrationBase {
     // Set the `votingPeriod` to a valid value
     _newVotingPeriod = uint32(bound(_newVotingPeriod, 1, _newResetGracePeriod - _newRootExpirationThreshold - 1));
 
+    // Set the new config values
     vm.prank(address(governance));
     governance.setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
+
+    // Assert the values were correctly updated
+    assertEq(governance.votingPeriod(), _newVotingPeriod);
+    assertEq(governance.resetGracePeriod(), _newResetGracePeriod);
+    assertEq(governance.rootExpirationThreshold(), _newRootExpirationThreshold);
+    // Assert the invariant is never broken
+    assertTrue(governance.votingPeriod() < governance.resetGracePeriod() - governance.rootExpirationThreshold());
   }
 
   /**
