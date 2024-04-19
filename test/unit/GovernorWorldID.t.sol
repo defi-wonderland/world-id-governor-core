@@ -587,8 +587,8 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
    */
   function test_emitVotingPeriodSetEvent(uint32 _newVotingPeriod) public {
     vm.assume(_newVotingPeriod != 0);
+    vm.assume(_newVotingPeriod != INITIAL_VOTING_PERIOD);
     vm.assume(_newVotingPeriod < RESET_GRACE_PERIOD);
-    vm.assume(_newVotingPeriod < INITIAL_VOTING_PERIOD);
 
     vm.mockCall(
       address(worldIDRouter),
@@ -612,7 +612,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
    * @notice Test that it correctly sets the reset grace period
    */
   function test_setResetGracePeriod(uint256 _newResetGracePeriod) public {
-    vm.assume(_newResetGracePeriod >= INITIAL_VOTING_PERIOD);
+    vm.assume(_newResetGracePeriod > INITIAL_VOTING_PERIOD);
 
     vm.mockCall(
       address(worldIDRouter),
@@ -636,7 +636,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
    */
   function test_emitSetResetPeriodEvent(uint256 _newResetGracePeriod) public {
     vm.assume(_newResetGracePeriod != RESET_GRACE_PERIOD);
-    vm.assume(_newResetGracePeriod >= INITIAL_VOTING_PERIOD);
+    vm.assume(_newResetGracePeriod > INITIAL_VOTING_PERIOD);
 
     vm.mockCall(
       address(worldIDRouter),
@@ -663,9 +663,9 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     // Just in case the `RESET_GRACE_PERIOD` is set to 0
     uint256 _newResetGracePeriod = RESET_GRACE_PERIOD + 1;
     // Assume the new root expiration threshold is smaller than the reset grace period
-    vm.assume(_newRootExpirationThreshold < _newResetGracePeriod);
+    vm.assume(_newRootExpirationThreshold < _newResetGracePeriod - 1);
     // Set the new voting flow to a valid value
-    uint32 _newVotingPeriod = uint32(RESET_GRACE_PERIOD - _newRootExpirationThreshold) + 1;
+    uint32 _newVotingPeriod = uint32(RESET_GRACE_PERIOD - _newRootExpirationThreshold) - 1;
 
     vm.mockCall(
       address(worldIDRouter),
@@ -690,11 +690,11 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     // Ensure the event will be emitted
     vm.assume(_newRootExpirationThreshold != ROOT_EXPIRATION_THRESHOLD);
     // Just in case the `RESET_GRACE_PERIOD` is set to 0
-    vm.assume(RESET_GRACE_PERIOD != 0);
+    uint256 _resetGracePeriod = RESET_GRACE_PERIOD + 1;
     // Assume the new root expiration threshold is smaller than the reset grace period
-    vm.assume(_newRootExpirationThreshold < RESET_GRACE_PERIOD);
-    // Set the new voting flow to a valid value
-    uint32 _newVotingFlow = uint32(RESET_GRACE_PERIOD - _newRootExpirationThreshold);
+    vm.assume(_newRootExpirationThreshold < _resetGracePeriod - 1);
+    // Set the new voting period to a valid value
+    uint32 _newVotingPeriod = uint32(_resetGracePeriod - _newRootExpirationThreshold) - 1;
 
     vm.mockCall(
       address(worldIDRouter),
@@ -710,7 +710,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
 
     vm.expectEmit(true, true, true, true);
     emit IGovernorWorldID.RootExpirationThresholdUpdated(ROOT_EXPIRATION_THRESHOLD, _newRootExpirationThreshold);
-    governor.forTest_setConfig(_newVotingFlow, RESET_GRACE_PERIOD, _newRootExpirationThreshold);
+    governor.forTest_setConfig(_newVotingPeriod, _resetGracePeriod, _newRootExpirationThreshold);
   }
 }
 

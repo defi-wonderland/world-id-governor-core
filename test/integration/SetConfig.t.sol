@@ -17,8 +17,11 @@ contract Integration_SetConfig is IntegrationBase {
     vm.assume(_newRootExpirationThreshold < _newResetGracePeriod);
     uint256 _rootHistoryExpiry = governance.WORLD_ID_ROUTER().routeFor(governance.GROUP_ID()).rootHistoryExpiry();
     vm.assume(_newRootExpirationThreshold < _rootHistoryExpiry);
+    // Check needed since the `votingPeriod` can't be `0` and needs to be smaller than the
+    // `resetGracePeriod` minus `rootExpirationThreshold`, so the min value for it is `1`
+    vm.assume(_newResetGracePeriod - _newRootExpirationThreshold > 1);
     // Set the `votingPeriod` to a valid value
-    _newVotingPeriod = uint32(bound(_newVotingPeriod, 1, _newResetGracePeriod - _newRootExpirationThreshold));
+    _newVotingPeriod = uint32(bound(_newVotingPeriod, 1, _newResetGracePeriod - _newRootExpirationThreshold - 1));
 
     vm.prank(address(governance));
     governance.setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);

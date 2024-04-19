@@ -151,7 +151,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
       }
     }
     // Voting period should be smaller than reset grace period minus root expiration threshold to prevent double-voting
-    if (_newVotingPeriod > _newResetGracePeriod - _newRootExpirationThreshold) {
+    if (_newVotingPeriod >= _newResetGracePeriod - _newRootExpirationThreshold) {
       revert GovernorWorldID_InvalidVotingPeriod();
     }
 
