@@ -56,7 +56,9 @@ In the WorldID protocol, users can choose to reset their account each certain am
 Then, when the `votingPeriod` variable is set, a check is performed to ensure that `votingPeriod` is less than the `resetGracePeriod` minus `rootExpirationThreshold`.
 This way, the user will not be able to reset their account and vote again in the same proposal.
 
-`rootExpirationThreshold` should never be 0 in Mainnet and Mainnet testnets due to a discrepancy between the WorldID protocol on Ethereum and L2s.
+`rootExpirationThreshold` should never be 0 in Mainnet and Mainnet testnets due to a discrepancy between the WorldID protocol on Ethereum and L2s. 
+
+We recommend setting `rootExpirationThreshold` as small as possible, but always greater than 0. For example: 20 minutes, so it forces the root to be recent while giving the user enough time to generate the proof and vote.
 
 ## Licensing
 
