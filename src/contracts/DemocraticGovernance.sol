@@ -159,6 +159,19 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
+   * @inheritdoc GovernorWorldID
+   */
+  function _propose(
+    address[] memory _targets,
+    uint256[] memory _values,
+    bytes[] memory _calldatas,
+    string memory _description,
+    address _proposer
+  ) internal virtual override(Governor, GovernorWorldID) returns (uint256 _proposalId) {
+    _proposalId = super._propose(_targets, _values, _calldatas, _description, _proposer);
+  }
+
+  /**
    * @inheritdoc GovernorCountingSimple
    */
   function _quorumReached(uint256 proposalId)
