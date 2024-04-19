@@ -652,7 +652,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     );
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernorWorldID.ResetGracePeriodUpdated(RESET_GRACE_PERIOD, _newResetGracePeriod);
+    emit IGovernorWorldID.ResetGracePeriodSet(RESET_GRACE_PERIOD, _newResetGracePeriod);
     governor.forTest_setConfig(INITIAL_VOTING_PERIOD, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
@@ -684,7 +684,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
   }
 
   /**
-   * @notice Test that it emits the `RootExpirationThresholdUpdated` event
+   * @notice Test that it emits the `RootExpirationThresholdSet` event
    */
   function test_emitRootExpirationThresholdEvent(uint256 _newRootExpirationThreshold) public {
     // Ensure the event will be emitted
@@ -709,7 +709,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     );
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernorWorldID.RootExpirationThresholdUpdated(ROOT_EXPIRATION_THRESHOLD, _newRootExpirationThreshold);
+    emit IGovernorWorldID.RootExpirationThresholdSet(ROOT_EXPIRATION_THRESHOLD, _newRootExpirationThreshold);
     governor.forTest_setConfig(_newVotingPeriod, _resetGracePeriod, _newRootExpirationThreshold);
   }
 }
