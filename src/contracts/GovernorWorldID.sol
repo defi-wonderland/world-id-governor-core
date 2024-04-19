@@ -93,8 +93,8 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
    * @notice Disabled because the `votingPeriod` must be updated using the `setConfig` function along with the other
    * settings, to check the validity of the new configuration.
    */
-  function setVotingPeriod(uint32) public virtual override {
-    revert GovernorWorldID_NotSupportedFunction();
+  function setVotingPeriod(uint32 _newVotingPeriod) public virtual override {
+    _setConfig(_newVotingPeriod, resetGracePeriod, rootExpirationThreshold);
   }
 
   /**
@@ -149,7 +149,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   ) internal virtual {
     // Check that `_rootExpirationThreshold` is valid. If set to 0, no need to check the `rootHistoryExpiry`
     if (_newRootExpirationThreshold != 0) {
-      // Suboptimal check since if it smaller, it will revert on the calculation. But the revert message is more clear
+      // Suboptimal check since if smaller, it will revert on the calculation. But the revert message is more clear
       if (_newRootExpirationThreshold > _newResetGracePeriod) revert GovernorWorldID_InvalidRootExpirationThreshold();
       IWorldIDIdentityManager _identityManager = WORLD_ID_ROUTER.routeFor(GROUP_ID);
       if (_newRootExpirationThreshold > _identityManager.rootHistoryExpiry()) {
