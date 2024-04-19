@@ -93,10 +93,20 @@ interface IGovernorWorldID {
 
   /**
    * @notice The hash of the developer portal app ID used to verify the proofs
-   * @return _appIdHash The app ID
+   * @return _appIdHash The hash of the app ID
+   * @dev Already hashed to be used as part of the external nullifier hash on the on-chain proof verification
    */
   // solhint-disable-next-line func-name-mixedcase
   function APP_ID_HASH() external view returns (uint256 _appIdHash);
+
+  /**
+   * @notice The developer portal app ID used to verify the proofs
+   * @return _appId The app ID
+   * @dev This will be needed for the off-chain to generate valid proofs using the correct app ID
+   * @dev Can't be defined as immutable because its type is string, but is never updated
+   */
+  // solhint-disable-next-line func-name-mixedcase
+  function appId() external view returns (string memory _appId);
 
   /**
    * @notice The nullifier hashes used to prevent double voting

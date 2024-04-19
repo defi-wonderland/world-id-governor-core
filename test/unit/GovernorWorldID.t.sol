@@ -131,6 +131,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
     assertEq(address(_governor.WORLD_ID_ROUTER()), address(worldIDRouter));
     assertEq(_governor.GROUP_ID(), GROUP_ID);
     assertEq(_governor.APP_ID_HASH(), abi.encodePacked(APP_ID).hashToField());
+    assertEq(_governor.appId(), APP_ID);
     assertEq(_governor.resetGracePeriod(), RESET_GRACE_PERIOD);
     assertEq(_governor.rootExpirationThreshold(), _rootExpirationThreshold);
     assertEq(_governor.votingDelay(), INITIAL_VOTING_DELAY);

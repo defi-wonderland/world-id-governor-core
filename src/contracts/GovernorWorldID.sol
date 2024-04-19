@@ -34,6 +34,11 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   /**
    * @inheritdoc IGovernorWorldID
    */
+  string public appId;
+
+  /**
+   * @inheritdoc IGovernorWorldID
+   */
   uint256 public resetGracePeriod = 13 days + 22 hours;
 
   /**
@@ -57,6 +62,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   constructor(uint256 _groupID, IWorldIDRouter _worldIdRouter, string memory _appId, uint256 _rootExpirationThreshold) {
     WORLD_ID_ROUTER = _worldIdRouter;
     GROUP_ID = _groupID;
+    appId = _appId;
     APP_ID_HASH = abi.encodePacked(_appId).hashToField();
     _setConfig(uint32(votingPeriod()), resetGracePeriod, _rootExpirationThreshold);
   }
