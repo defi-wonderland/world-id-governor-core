@@ -56,6 +56,8 @@ In the WorldID protocol, users can choose to reset their account each certain am
 Then, when the `votingPeriod` variable is set, a check is performed to ensure that `votingPeriod` is less than the `resetGracePeriod` minus `rootExpirationThreshold`.
 This way, the user will not be able to reset their account and vote again in the same proposal.
 
+New WorldID accounts are inserted into the tree at a fast pace (currently 20 mins to 1 hour) changing the root from the Merkle tree. This means `latestRoot` changes very often, that's when `rootExpirationThreshold` comes into play. It adds some flexibility preventing a user from voting in a proposal with an old root.
+
 `rootExpirationThreshold` should never be 0 in Mainnet and Mainnet testnets due to a discrepancy between the WorldID protocol on Ethereum and L2s. 
 
 We recommend setting `rootExpirationThreshold` as small as possible, but always greater than 0. For example: 20 minutes, so it forces the root to be recent while giving the user enough time to generate the proof and vote. At the same time, Governance should be aware of changes in the `rootHistoryExpiry` in the Router contract, and update the variables accordingly.
