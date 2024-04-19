@@ -662,11 +662,11 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
    */
   function test_setRootExpirationThreshold(uint256 _newRootExpirationThreshold) public {
     // Just in case the `RESET_GRACE_PERIOD` is set to 0
-    uint256 _newResetGracePeriod = RESET_GRACE_PERIOD + 1;
+    uint256 _newResetGracePeriod = type(uint256).max;
     // Assume the new root expiration threshold is smaller than the reset grace period
     vm.assume(_newRootExpirationThreshold < _newResetGracePeriod - 1);
     // Set the new voting flow to a valid value
-    uint32 _newVotingPeriod = uint32(RESET_GRACE_PERIOD - _newRootExpirationThreshold) - 1;
+    uint32 _newVotingPeriod = uint32(bound(1, 1, _newResetGracePeriod - _newRootExpirationThreshold - 1));
 
     vm.mockCall(
       address(worldIDRouter),
@@ -691,11 +691,11 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     // Ensure the event will be emitted
     vm.assume(_newRootExpirationThreshold != ROOT_EXPIRATION_THRESHOLD);
     // Just in case the `RESET_GRACE_PERIOD` is set to 0
-    uint256 _resetGracePeriod = RESET_GRACE_PERIOD + 1;
+    uint256 _newResetGracePeriod = type(uint256).max;
     // Assume the new root expiration threshold is smaller than the reset grace period
-    vm.assume(_newRootExpirationThreshold < _resetGracePeriod - 1);
-    // Set the new voting period to a valid value
-    uint32 _newVotingPeriod = uint32(_resetGracePeriod - _newRootExpirationThreshold) - 1;
+    vm.assume(_newRootExpirationThreshold < _newResetGracePeriod - 1);
+    // Set the new voting flow to a valid value
+    uint32 _newVotingPeriod = uint32(bound(1, 1, _newResetGracePeriod - _newRootExpirationThreshold - 1));
 
     vm.mockCall(
       address(worldIDRouter),
@@ -711,7 +711,7 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
 
     vm.expectEmit(true, true, true, true);
     emit IGovernorWorldID.RootExpirationThresholdSet(ROOT_EXPIRATION_THRESHOLD, _newRootExpirationThreshold);
-    governor.forTest_setConfig(_newVotingPeriod, _resetGracePeriod, _newRootExpirationThreshold);
+    governor.forTest_setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 }
 
