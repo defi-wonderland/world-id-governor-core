@@ -18,12 +18,31 @@ contract E2E_GoatsDAO is E2EBase {
     vm.warp(block.timestamp + INITIAL_VOTING_DELAY + 1);
 
     // Call setConfig and check that does not apply to the live proposal
+    uint32 _newVotingPeriod = INITIAL_VOTING_PERIOD + 1;
+    uint256 _newResetGracePeriod = 15 days;
+    uint256 _newRootExpirationThreshold = rootExpirationThreshold + 2 hours;
+    vm.prank(address(governance));
+    governance.setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
+    assert(governance.proposalDeadline(PROPOSAL_ID) == INITIAL_VOTING_PERIOD);
 
     // The two users vote `for`
+    vm.prank(userOne);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, userOneProofData);
+
+    vm.prank(userTwo);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, userTwoProofData);
+
+    // Save balance before exec
+    uint256 _goatGuyBalanceBefore = IERC20(WLD).balanceOf(GOAT_GUY);
 
     // After the voting period has ended, the proposal is executed
+    vm.warp(block.timestamp + INITIAL_VOTING_PERIOD);
+
+    vm.prank(owner);
+    governance.execute(targets, values, calldatas, keccak256(abi.encodePacked(description)));
 
     // Check that the Goat Guy has received the WLD tokens
+    assert(IERC20(WLD).balanceOf(GOAT_GUY) == _goatGuyBalanceBefore + WLD_AMOUNT);
   }
 
   /**
@@ -39,8 +58,15 @@ contract E2E_GoatsDAO is E2EBase {
     vm.warp(block.timestamp + INITIAL_VOTING_DELAY + 1);
 
     // Only one user votes `for`
+    vm.prank(userOne);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, userOneProofData);
 
     // After the voting period has ended, the proposal is executed but fails
+    vm.warp(block.timestamp + INITIAL_VOTING_PERIOD);
+
+    vm.prank(owner);
+    // TODO: add expect revert
+    governance.execute(targets, values, calldatas, keccak256(abi.encodePacked(description)));
   }
 
   /**
@@ -56,7 +82,15 @@ contract E2E_GoatsDAO is E2EBase {
     vm.warp(block.timestamp + INITIAL_VOTING_DELAY + 1);
 
     // The two users vote `for`
+    vm.prank(userOne);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, userOneProofData);
+
+    vm.prank(userTwo);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, userTwoProofData);
 
     // The voting period has not ended, the proposal is executed but fails
+    vm.prank(owner);
+    // TODO: add expect revert
+    governance.execute(targets, values, calldatas, keccak256(abi.encodePacked(description)));
   }
 }
