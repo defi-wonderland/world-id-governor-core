@@ -58,7 +58,7 @@ This way, the user will not be able to reset their account and vote again in the
 
 `rootExpirationThreshold` should never be 0 in Mainnet and Mainnet testnets due to a discrepancy between the WorldID protocol on Ethereum and L2s. 
 
-We recommend setting `rootExpirationThreshold` as small as possible, but always greater than 0. For example: 20 minutes, so it forces the root to be recent while giving the user enough time to generate the proof and vote.
+We recommend setting `rootExpirationThreshold` as small as possible, but always greater than 0. For example: 20 minutes, so it forces the root to be recent while giving the user enough time to generate the proof and vote. At the same time, Governance should be aware of changes in the `rootHistoryExpiry` in the Router contract, and update the variables accordingly.
 
 ## Licensing
 
