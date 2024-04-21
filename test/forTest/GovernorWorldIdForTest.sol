@@ -74,12 +74,12 @@ contract GovernorWorldIdForTest is
     rootExpirationThreshold = _newRootExpirationThreshold;
   }
 
-  function forTest_setResetGracePeriod(uint256 _newResetGracePeriod) public {
-    resetGracePeriod = _newResetGracePeriod;
-  }
-
-  function forTest_setVotingPeriodInternal(uint32 _newVotingPeriod) public {
-    _setVotingPeriod(_newVotingPeriod);
+  function forTest_checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) public view {
+    _checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 
   function quorum(uint256 blockNumber) public view override(Governor, GovernorVotesQuorumFraction) returns (uint256) {
@@ -129,6 +129,19 @@ contract GovernorWorldIdForTest is
       )
     );
     if (_callSuper) super._setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
+  }
+
+  function _checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) internal view virtual override {
+    _calledInternal(
+      abi.encodeWithSignature(
+        '_checkConfigValidity(uint32,uint256,uint256)', _votingPeriod, _resetGracePeriod, _rootExpirationThreshold
+      )
+    );
+    if (_callSuper) super._checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 
   function _castVote(

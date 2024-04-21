@@ -90,11 +90,25 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   }
 
   /**
-   * @notice Disabled because the `votingPeriod` must be updated using the `setConfig` function along with the other
-   * settings, to check the validity of the new configuration.
+   * @notice Updateds the voting period
+   * @param _newVotingPeriod The new voting period
+   * @dev The combination between the `_newVotingPeriod` and the current `resetGracePeriod`
+   * and `rootExpirationThreshold` is valid
    */
   function setVotingPeriod(uint32 _newVotingPeriod) public virtual override {
-    _setConfig(_newVotingPeriod, resetGracePeriod, rootExpirationThreshold);
+    _checkConfigValidity(_newVotingPeriod, resetGracePeriod, rootExpirationThreshold);
+    super.setVotingPeriod(_newVotingPeriod);
+  }
+
+  /**
+   * @inheritdoc IGovernorWorldID
+   */
+  function checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) public view virtual {
+    _checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 
   /**
@@ -139,27 +153,14 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
    * @param _newVotingPeriod The new voting period
    * @param _newResetGracePeriod The new reset grace period
    * @param _newRootExpirationThreshold The new root expiration threshold
-   * @dev The purpose of this function is to ensure that `votingPeriod` is smaller than `resetGracePeriod`
-   * minues `rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
    */
   function _setConfig(
     uint32 _newVotingPeriod,
     uint256 _newResetGracePeriod,
     uint256 _newRootExpirationThreshold
   ) internal virtual {
-    // Check that `_rootExpirationThreshold` is valid. If set to 0, no need to check the `rootHistoryExpiry`
-    if (_newRootExpirationThreshold != 0) {
-      // Suboptimal check since if smaller, it will revert on the calculation. But the revert message is more clear
-      if (_newRootExpirationThreshold > _newResetGracePeriod) revert GovernorWorldID_InvalidRootExpirationThreshold();
-      IWorldIDIdentityManager _identityManager = WORLD_ID_ROUTER.routeFor(GROUP_ID);
-      if (_newRootExpirationThreshold > _identityManager.rootHistoryExpiry()) {
-        revert GovernorWorldID_InvalidRootExpirationThreshold();
-      }
-    }
-    // Voting period should be smaller than reset grace period minus root expiration threshold to prevent double-voting
-    if (_newVotingPeriod >= _newResetGracePeriod - _newRootExpirationThreshold) {
-      revert GovernorWorldID_InvalidVotingPeriod();
-    }
+    if (_newRootExpirationThreshold > _newResetGracePeriod) revert GovernorWorldID_InvalidRootExpirationThreshold();
+    _checkConfigValidity(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
 
     if (_newVotingPeriod != votingPeriod()) super._setVotingPeriod(_newVotingPeriod);
     uint256 _currentResetGracePeriod = resetGracePeriod;
@@ -202,5 +203,33 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
    */
   function _castVote(uint256, address, uint8, string memory) internal virtual override returns (uint256) {
     revert GovernorWorldID_NotSupportedFunction();
+  }
+
+  /**
+   * @notice Checks if the configuration parameters are valid
+   * @param _votingPeriod The voting period to check
+   * @param _resetGracePeriod The reset grace period to check
+   * @param _rootExpirationThreshold The root expiration threshold to check
+   * @dev The `_rootExpirationThreshold` can't be greater than IdentityManager's `rootHistoryExpiry`
+   * @dev This function aims to ensure that `_votingPeriod` is smaller than `_resetGracePeriod`
+   * minues `_rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   */
+  function _checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) internal view virtual {
+    // Check that `_rootExpirationThreshold` is valid. If set to 0, no need to check the `rootHistoryExpiry`
+    if (_rootExpirationThreshold != 0) {
+      // Suboptimal check since if smaller, it will revert on the calculation. But the revert message is more clear
+      IWorldIDIdentityManager _identityManager = WORLD_ID_ROUTER.routeFor(GROUP_ID);
+      if (_rootExpirationThreshold > _identityManager.rootHistoryExpiry()) {
+        revert GovernorWorldID_InvalidRootExpirationThreshold();
+      }
+    }
+    // Voting period should be smaller than reset grace period minus root expiration threshold to prevent double-voting
+    if (_votingPeriod >= _resetGracePeriod - _rootExpirationThreshold) {
+      revert GovernorWorldID_InvalidVotingPeriod();
+    }
   }
 }

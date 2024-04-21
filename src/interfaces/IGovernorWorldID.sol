@@ -78,6 +78,21 @@ interface IGovernorWorldID {
   ) external;
 
   /**
+   * @notice Checks if the configuration parameters are valid
+   * @param _votingPeriod The voting period to check
+   * @param _resetGracePeriod The reset grace period to check
+   * @param _rootExpirationThreshold The root expiration threshold to check
+   * @dev The `_rootExpirationThreshold` can't be greater than IdentityManager's `rootHistoryExpiry`
+   * @dev This function aims to ensure that `_votingPeriod` is smaller than `_resetGracePeriod`
+   * minues `_rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   */
+  function checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) external view;
+
+  /**
    * @notice The World ID instance that will be used for verifying proofs
    * @return _worldId The World ID Router instance
    */

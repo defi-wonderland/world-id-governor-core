@@ -186,6 +186,9 @@ contract GovernorWorldID_Unit_SetConfig_Public is Base {
 }
 
 contract GovernorWorldID_Unit_SetVotingPeriod is Base {
+  /**
+   * @notice Test that the function reverts if the caller is not the governance
+   */
   function test_revertIfCalledByNonGovernance(address _sender) public {
     vm.assume(_sender != address(governor));
     vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, _sender));
@@ -193,7 +196,10 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
     governor.setVotingPeriod(INITIAL_VOTING_PERIOD);
   }
 
-  function test_callSetConfig(uint32 _newVotingPeriod) public {
+  /**
+   * @notice Test that the function properly calls `_checkConfigValidity`
+   */
+  function test_callCheckConfigValidity(uint32 _newVotingPeriod) public {
     vm.assume(_newVotingPeriod != 0);
     // Set the callSuper to false since we are only testing that it calls the internal function correctly
     bool _callSuper = false;
@@ -205,7 +211,10 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
       abi.encodeWithSelector(
         InternalCallsWatcher.calledInternal.selector,
         abi.encodeWithSignature(
-          '_setConfig(uint32,uint256,uint256)', _newVotingPeriod, RESET_GRACE_PERIOD, ROOT_EXPIRATION_THRESHOLD
+          '_checkConfigValidity(uint32,uint256,uint256)',
+          _newVotingPeriod,
+          RESET_GRACE_PERIOD,
+          ROOT_EXPIRATION_THRESHOLD
         )
       )
     );
@@ -214,7 +223,9 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
     governor.setVotingPeriod(_newVotingPeriod);
   }
 
-  // TODO delete after test
+  /**
+   * @notice Test that the function properly calls the high-order function with super
+   */
   function test_setVotingPeriod(uint32 _newVotingPeriod) public {
     vm.assume(_newVotingPeriod != 0);
     vm.assume(_newVotingPeriod < RESET_GRACE_PERIOD);
@@ -232,8 +243,35 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
       abi.encode(_newRootExpirationThreshold)
     );
 
+    vm.prank(address(governor));
     governor.setVotingPeriod(_newVotingPeriod);
     assertEq(governor.votingPeriod(), _newVotingPeriod);
+  }
+}
+
+contract GovernorWorldID_Unit_CheckConfigValidity is Base {
+  /**
+   * @notice Test that the function properly calls `_checkConfigValidity`
+   */
+  function test_callCheckConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) public {
+    // Only testing the internal call
+    bool _callSuper = false;
+    governor.setCallSuper(_callSuper);
+
+    vm.expectCall(
+      watcher,
+      abi.encodeWithSelector(
+        InternalCallsWatcher.calledInternal.selector,
+        abi.encodeWithSignature(
+          '_checkConfigValidity(uint32,uint256,uint256)', _votingPeriod, _resetGracePeriod, _rootExpirationThreshold
+        )
+      )
+    );
+    governor.checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 }
 
@@ -483,18 +521,6 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
 
 contract GovernorWorldID_Unit_SetConfig_Internal is Base {
   /**
-   * @notice Test that it doesn't call the `rootHistoryExpiry` function if the root expiration threshold is 0
-   */
-  function test_dontCallRootHistoryExpiryIfZero() public {
-    uint32 _newVotingPeriod = uint32(RESET_GRACE_PERIOD - 1);
-    uint256 _newRootExpirationThreshold = 0;
-    vm.expectCall(
-      address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector), 0
-    );
-    governor.forTest_setConfig(_newVotingPeriod, RESET_GRACE_PERIOD, _newRootExpirationThreshold);
-  }
-
-  /**
    * @notice Test that it reverts if the root expiration threshold is smaller than the reset grace period
    */
   function test_revertIfRootExpirationThresholdGreaterThanResetPeriod() public {
@@ -503,6 +529,31 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     uint256 _newRootExpirationThreshold = _newResetGracePeriod + 1;
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
     governor.forTest_setConfig(INITIAL_VOTING_PERIOD, _newResetGracePeriod, _newRootExpirationThreshold);
+  }
+
+  /**
+   * @notice Test that it properly calls `_checkConfigValidity`. The root expiration threshold is set to 0 so there is
+   * no need to mock other calls
+   */
+  function test_callCheckConfigValidity() public {
+    // Ensure the root expiration threshold is 0 just in case the constant is updated in the future
+    uint256 _newRootExpirationThreshold = 0;
+
+    // Expect the internal function to be called
+    vm.expectCall(
+      watcher,
+      abi.encodeWithSelector(
+        InternalCallsWatcher.calledInternal.selector,
+        abi.encodeWithSignature(
+          '_checkConfigValidity(uint32,uint256,uint256)',
+          INITIAL_VOTING_PERIOD,
+          RESET_GRACE_PERIOD,
+          _newRootExpirationThreshold
+        )
+      )
+    );
+
+    governor.forTest_setConfig(INITIAL_VOTING_PERIOD, RESET_GRACE_PERIOD, _newRootExpirationThreshold);
   }
 
   /**
@@ -525,81 +576,6 @@ contract GovernorWorldID_Unit_SetConfig_Internal is Base {
     );
 
     governor.forTest_setConfig(_newVotingPeriod, RESET_GRACE_PERIOD, _newRootExpirationThreshold);
-  }
-
-  /**
-   * @notice Check that the function calls the `rootHistoryExpiry` function from the IdentityManager contract if
-   * the root expiration threshold is not 0
-   */
-  function test_callRootHistoryExpiry(uint256 _rootExpirationThreshold) public {
-    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
-    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
-    vm.assume(_rootExpirationThreshold != 0);
-
-    vm.mockCall(
-      address(worldIDRouter),
-      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
-      abi.encode(address(worldIDIdentityManager))
-    );
-
-    _mockAndExpect(
-      address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
-      abi.encode(ROOT_HISTORY_EXPIRY)
-    );
-
-    governor.forTest_setConfig(INITIAL_VOTING_PERIOD, RESET_GRACE_PERIOD, _rootExpirationThreshold);
-  }
-
-  /**
-   * @notice Test that it reverts if the root expiration threshold is greater than the root history expiry
-   */
-  function test_revertIfRootExpirationThresholdGreaterThanRotHistoryExpiry(uint256 _newRootExpirationThreshold) public {
-    vm.assume(_newRootExpirationThreshold != 0);
-    // Set the reset grace period to the max value so it doesn't revert on that check
-    uint256 _newResetGracePeriod = type(uint256).max;
-
-    _mockAndExpect(
-      address(worldIDRouter),
-      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
-      abi.encode(address(worldIDIdentityManager))
-    );
-
-    uint256 _rootHistoryExpiry = _newRootExpirationThreshold - 1;
-    _mockAndExpect(
-      address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
-      abi.encode(_rootHistoryExpiry)
-    );
-
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    governor.forTest_setConfig(INITIAL_VOTING_PERIOD, _newResetGracePeriod, _newRootExpirationThreshold);
-  }
-
-  /**
-   * @notice Test that it reverts if the voting period is greater than the reset grace period minus
-   * the root expiration threshold
-   */
-  function test_revertIfInvalidVotingPeriod(uint32 _newVotingPeriod, uint256 _newRootExpirationThreshold) public {
-    uint256 _newResetGracePeriod = (type(uint256).max - 1);
-    _newRootExpirationThreshold = bound(_newRootExpirationThreshold, 0, _newResetGracePeriod);
-    vm.assume(_newVotingPeriod > _newResetGracePeriod - _newRootExpirationThreshold);
-    // Set the reset grace period to the max value so it doesn't revert on that check
-
-    vm.mockCall(
-      address(worldIDRouter),
-      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
-      abi.encode(address(worldIDIdentityManager))
-    );
-
-    vm.mockCall(
-      address(worldIDIdentityManager),
-      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
-      abi.encode(_newRootExpirationThreshold)
-    );
-
-    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
-    governor.forTest_setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
   /**
@@ -793,5 +769,116 @@ contract GovernorWorldID_Unit_CastVote_WithoutParams is Base {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     vm.startPrank(user);
     governor.forTest_castVote(proposalId, user, SUPPORT, REASON);
+  }
+}
+
+contract GovernorWorldID_Unit_CheckConfigValidity_Internal is Base {
+  /**
+   * @notice Test that it doesn't call the `rootHistoryExpiry` function if the root expiration threshold is 0
+   */
+  function test_dontCallRootHistoryExpiryIfZero() public {
+    uint32 _newVotingPeriod = uint32(RESET_GRACE_PERIOD - 1);
+    uint256 _newRootExpirationThreshold = 0;
+    vm.expectCall(
+      address(worldIDIdentityManager), abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector), 0
+    );
+    governor.forTest_checkConfigValidity(_newVotingPeriod, RESET_GRACE_PERIOD, _newRootExpirationThreshold);
+  }
+
+  /**
+   * @notice Test that it calls the `routeFor` function if the root expiration threshold is not 0
+   */
+  function test_callRouteFor() public {
+    uint256 _newRootExpirationThreshold = 1;
+    uint32 _newVotingPeriod = uint32(RESET_GRACE_PERIOD - _newRootExpirationThreshold - 1);
+
+    _mockAndExpect(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
+      abi.encode(address(worldIDIdentityManager))
+    );
+
+    vm.mockCall(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
+      abi.encode(_newRootExpirationThreshold)
+    );
+
+    governor.forTest_checkConfigValidity(_newVotingPeriod, RESET_GRACE_PERIOD, _newRootExpirationThreshold);
+  }
+
+  /**
+   * @notice Check that the function calls the `rootHistoryExpiry` function from the IdentityManager contract if
+   * the root expiration threshold is not 0
+   */
+  function test_callRootHistoryExpiry(uint256 _rootExpirationThreshold) public {
+    vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
+    vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
+    vm.assume(_rootExpirationThreshold != 0);
+
+    vm.mockCall(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
+      abi.encode(address(worldIDIdentityManager))
+    );
+
+    _mockAndExpect(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
+      abi.encode(ROOT_HISTORY_EXPIRY)
+    );
+
+    governor.forTest_checkConfigValidity(INITIAL_VOTING_PERIOD, RESET_GRACE_PERIOD, _rootExpirationThreshold);
+  }
+
+  /**
+   * @notice Test that it reverts if the root expiration threshold is greater than the root history expiry
+   */
+  function test_revertIfRootExpirationThresholdGreaterThanRotHistoryExpiry(uint256 _newRootExpirationThreshold) public {
+    vm.assume(_newRootExpirationThreshold != 0);
+    // Set the reset grace period to the max value so it doesn't revert on that check
+    uint256 _newResetGracePeriod = type(uint256).max;
+
+    _mockAndExpect(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
+      abi.encode(address(worldIDIdentityManager))
+    );
+
+    uint256 _rootHistoryExpiry = _newRootExpirationThreshold - 1;
+    _mockAndExpect(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
+      abi.encode(_rootHistoryExpiry)
+    );
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
+    governor.forTest_checkConfigValidity(INITIAL_VOTING_PERIOD, _newResetGracePeriod, _newRootExpirationThreshold);
+  }
+
+  /**
+   * @notice Test that it reverts if the voting period is greater than the reset grace period minus
+   * the root expiration threshold
+   */
+  function test_revertIfInvalidVotingPeriod(uint32 _newVotingPeriod, uint256 _newRootExpirationThreshold) public {
+    uint256 _newResetGracePeriod = (type(uint256).max - 1);
+    _newRootExpirationThreshold = bound(_newRootExpirationThreshold, 0, _newResetGracePeriod);
+    vm.assume(_newVotingPeriod > _newResetGracePeriod - _newRootExpirationThreshold);
+    // Set the reset grace period to the max value so it doesn't revert on that check
+
+    vm.mockCall(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
+      abi.encode(address(worldIDIdentityManager))
+    );
+
+    vm.mockCall(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
+      abi.encode(_newRootExpirationThreshold)
+    );
+
+    vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
+    governor.forTest_checkConfigValidity(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 }
