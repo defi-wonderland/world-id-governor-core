@@ -5,6 +5,8 @@ import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
+import 'forge-std/Test.sol';
+
 contract IntegrationBase is Test {
   /* DAO constant settings */
   uint256 public constant QUORUM = 5;
@@ -17,12 +19,12 @@ contract IntegrationBase is Test {
   IWorldIDRouter public constant WORLD_ID_ROUTER = IWorldIDRouter(0x57f928158C3EE7CDad1e4D8642503c4D0201f611);
 
   // Op block number on which the `ROOT` returned on the SDK was the latest one
-  uint256 public constant FORK_BLOCK = 118_332_222;
+  uint256 public constant FORK_BLOCK = 118_985_674;
 
   /* Proof Inputs (on the SDK, everything was passed as a string) */
   string public constant APP_ID = 'app_40cfae76904f7231cf7dc28ce48a40e7';
   uint256 public constant PROPOSAL_ID =
-    101_464_408_321_971_908_304_756_596_521_565_750_541_773_429_674_425_130_310_070_172_912_535_081_945_163;
+    51_384_813_360_217_536_574_306_829_156_715_988_407_631_161_679_419_797_722_877_853_216_538_059_873_527;
   uint8 public constant FOR_SUPPORT = 1;
   uint256 public constant GROUP_ID = 1;
 
@@ -78,6 +80,8 @@ contract IntegrationBase is Test {
 
     vm.prank(owner);
     uint256 _proposalId = governance.propose(targets, values, calldatas, description);
+    console.log('Proposal ID:', _proposalId);
+    console.log('Expected Proposal ID:', PROPOSAL_ID);
     assert(_proposalId == PROPOSAL_ID);
 
     // Advance the time to make the proposal active

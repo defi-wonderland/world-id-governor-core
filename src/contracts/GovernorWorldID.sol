@@ -16,7 +16,7 @@ import 'forge-std/Test.sol';
  */
 abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   using ByteHasher for bytes;
-  using Strings for uint256;
+  using Strings for *;
 
   /**
    * @inheritdoc IGovernorWorldID
@@ -74,8 +74,10 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     _setConfig(uint32(votingPeriod()), resetGracePeriod, _rootExpirationThreshold);
     // Create the proposal uniqueness salt
     string memory _descriptionText = ' #### Proposal Uniqueness Salt: ';
-    bytes memory salt = abi.encodePacked(block.chainid, address(this));
-    proposalUniquenessSalt = string.concat(_descriptionText, string(salt));
+    string memory _chainIdText = '**Chain ID:** ';
+    string memory _addressText = '**Contract Address:** ';
+    proposalUniquenessSalt =
+      string.concat(_descriptionText, _chainIdText, block.chainid.toString(), _addressText, address(this).toHexString());
   }
 
   /**
