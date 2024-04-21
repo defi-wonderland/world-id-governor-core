@@ -186,11 +186,54 @@ contract GovernorWorldID_Unit_SetConfig_Public is Base {
 }
 
 contract GovernorWorldID_Unit_SetVotingPeriod is Base {
-  function test_revertIfCalled() public {
-    vm.expectRevert(abi.encodeWithSelector(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector));
-    vm.startPrank(user);
-    uint32 _randomVotingPeriod = 1;
-    governor.setVotingPeriod(_randomVotingPeriod);
+  function test_revertIfCalledByNonGovernance(address _sender) public {
+    vm.assume(_sender != address(governor));
+    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, _sender));
+    vm.startPrank(_sender);
+    governor.setVotingPeriod(INITIAL_VOTING_PERIOD);
+  }
+
+  function test_callSetConfig(uint32 _newVotingPeriod) public {
+    vm.assume(_newVotingPeriod != 0);
+    // Set the callSuper to false since we are only testing that it calls the internal function correctly
+    bool _callSuper = false;
+    governor.setCallSuper(_callSuper);
+
+    // Expect the internal function to be called
+    vm.expectCall(
+      watcher,
+      abi.encodeWithSelector(
+        InternalCallsWatcher.calledInternal.selector,
+        abi.encodeWithSignature(
+          '_setConfig(uint32,uint256,uint256)', _newVotingPeriod, RESET_GRACE_PERIOD, ROOT_EXPIRATION_THRESHOLD
+        )
+      )
+    );
+
+    vm.prank(address(governor));
+    governor.setVotingPeriod(_newVotingPeriod);
+  }
+
+  // TODO delete after test
+  function test_setVotingPeriod(uint32 _newVotingPeriod) public {
+    vm.assume(_newVotingPeriod != 0);
+    vm.assume(_newVotingPeriod < RESET_GRACE_PERIOD);
+
+    vm.mockCall(
+      address(worldIDRouter),
+      abi.encodeWithSelector(IWorldIDRouter.routeFor.selector, GROUP_ID),
+      abi.encode(address(worldIDIdentityManager))
+    );
+
+    uint256 _newRootExpirationThreshold = 0;
+    vm.mockCall(
+      address(worldIDIdentityManager),
+      abi.encodeWithSelector(IWorldIDIdentityManager.rootHistoryExpiry.selector),
+      abi.encode(_newRootExpirationThreshold)
+    );
+
+    governor.setVotingPeriod(_newVotingPeriod);
+    assertEq(governor.votingPeriod(), _newVotingPeriod);
   }
 }
 
