@@ -4,8 +4,11 @@ pragma solidity 0.8.23;
 import {E2EBase} from './E2EBase.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
+import {Strings} from 'open-zeppelin/utils/Strings.sol';
 
 contract E2E_GoatsDAO is E2EBase {
+  using Strings for *;
+
   /**
    * @notice Test a successful flow on the GoatsDAO contract
    */
@@ -45,8 +48,9 @@ contract E2E_GoatsDAO is E2EBase {
     // After the voting period has ended, the proposal is executed
     vm.warp(block.timestamp + INITIAL_VOTING_PERIOD);
 
+    bytes32 _description = keccak256(abi.encodePacked(string.concat(description, governance.proposalUniquenessSalt())));
     vm.prank(owner);
-    governance.execute(targets, values, calldatas, keccak256(abi.encodePacked(description)));
+    governance.execute(targets, values, calldatas, _description);
 
     // Check that the Goat Guy has received the WLD tokens
     assert(IERC20(WLD).balanceOf(GOAT_GUY) == _goatGuyBalanceBefore + WLD_AMOUNT);
@@ -73,13 +77,16 @@ contract E2E_GoatsDAO is E2EBase {
 
     bytes32 _succeededStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Succeeded));
     bytes32 _queuedStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Queued));
-    vm.prank(owner);
+    IGovernor.ProposalState _currentState = IGovernor.ProposalState.Defeated;
+    bytes32 _expectedStateBitmap = _succeededStateBitmap | _queuedStateBitmap;
+    bytes32 _description = keccak256(abi.encodePacked(string.concat(description, governance.proposalUniquenessSalt())));
     vm.expectRevert(
       abi.encodeWithSelector(
-        IGovernor.GovernorUnexpectedProposalState.selector, PROPOSAL_ID, _succeededStateBitmap, _queuedStateBitmap
+        IGovernor.GovernorUnexpectedProposalState.selector, PROPOSAL_ID, _currentState, _expectedStateBitmap
       )
     );
-    governance.execute(targets, values, calldatas, keccak256(abi.encodePacked(description)));
+    vm.prank(owner);
+    governance.execute(targets, values, calldatas, _description);
   }
 
   /**
@@ -104,12 +111,15 @@ contract E2E_GoatsDAO is E2EBase {
     // The voting period has not ended, the proposal is executed but fails
     bytes32 _succeededStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Succeeded));
     bytes32 _queuedStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Queued));
-    vm.prank(owner);
+    IGovernor.ProposalState _currentState = IGovernor.ProposalState.Active;
+    bytes32 _expectedStateBitmap = _succeededStateBitmap | _queuedStateBitmap;
+    bytes32 _description = keccak256(abi.encodePacked(string.concat(description, governance.proposalUniquenessSalt())));
     vm.expectRevert(
       abi.encodeWithSelector(
-        IGovernor.GovernorUnexpectedProposalState.selector, PROPOSAL_ID, _succeededStateBitmap, _queuedStateBitmap
+        IGovernor.GovernorUnexpectedProposalState.selector, PROPOSAL_ID, _currentState, _expectedStateBitmap
       )
     );
-    governance.execute(targets, values, calldatas, keccak256(abi.encodePacked(description)));
+    vm.prank(owner);
+    governance.execute(targets, values, calldatas, _description);
   }
 }
