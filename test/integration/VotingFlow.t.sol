@@ -214,11 +214,11 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
   }
 
   /**
-   * @notice Test a user tries to vote when the `ROOT` from the proof is not the current one
+   * @notice Test a user tries to vote when the `ROOT` from the proof is not the current one anymore
    */
   function test_revertIfNotLatestRoot() public {
     // Update the block number to a moment where the `latestRoot()` is different than the one on the proof
-    uint256 _currentBlockNumber = 119_096_457;
+    uint256 _currentBlockNumber = 119_101_850;
 
     // Make persisten the deployed governance contract
     vm.makePersistent(address(governance));

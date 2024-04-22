@@ -5,8 +5,6 @@ import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
-import 'forge-std/Test.sol';
-
 contract IntegrationBase is Test {
   /* DAO constant settings */
   uint256 public constant QUORUM = 5;
@@ -80,8 +78,6 @@ contract IntegrationBase is Test {
 
     vm.prank(owner);
     uint256 _proposalId = governance.propose(targets, values, calldatas, description);
-    console.log('Proposal ID:', _proposalId);
-    console.log('Expected Proposal ID:', PROPOSAL_ID);
     assert(_proposalId == PROPOSAL_ID);
 
     // Advance the time to make the proposal active
