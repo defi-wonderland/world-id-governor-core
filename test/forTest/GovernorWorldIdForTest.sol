@@ -63,14 +63,6 @@ contract GovernorWorldIdForTest is InternalCallsWatcherExtension, GovernorCounti
     rootExpirationThreshold = _newRootExpirationThreshold;
   }
 
-  function forTest_checkConfigValidity(
-    uint32 _votingPeriod,
-    uint256 _resetGracePeriod,
-    uint256 _rootExpirationThreshold
-  ) public view {
-    _checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
-  }
-
   function forTest_propose(
     address[] memory _targets,
     uint256[] memory _values,
@@ -87,6 +79,14 @@ contract GovernorWorldIdForTest is InternalCallsWatcherExtension, GovernorCounti
 
   function clock() public view override returns (uint48) {
     return uint48(block.timestamp);
+  }
+
+  function forTest_checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) public view {
+    _checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 
   function votingDelay() public view virtual override(Governor, GovernorSettings) returns (uint256) {
