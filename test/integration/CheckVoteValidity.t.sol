@@ -10,8 +10,8 @@ contract Integration_CheckVoteValidity is IntegrationBase {
   function test_callSucceeds() public {
     // Use a valid vote to be checked
     vm.prank(user);
-    uint256 _nullifierHash = governance.checkVoteValidity(FOR_SUPPORT, PROPOSAL_ID, proofData);
+    uint256 _nullifierHash = governance.checkVoteValidity(FOR_SUPPORT, PROPOSAL_ID, proofDataOne);
     // Assert the nullifier hash is the expected one
-    assertEq(_nullifierHash, NULLIFIER_HASH);
+    assertEq(_nullifierHash, NULLIFIER_HASH_ONE);
   }
 }
