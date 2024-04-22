@@ -99,13 +99,13 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   ) external view virtual {
     _checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
+
   /**
-   * @notice Updateds the voting period
+   * @notice Updates the voting period
    * @param _newVotingPeriod The new voting period
    * @dev The combination between the `_newVotingPeriod` and the current `resetGracePeriod`
    * and `rootExpirationThreshold` is valid
    */
-
   function setVotingPeriod(uint32 _newVotingPeriod) public virtual override {
     _checkConfigValidity(_newVotingPeriod, resetGracePeriod, rootExpirationThreshold);
     super.setVotingPeriod(_newVotingPeriod);
