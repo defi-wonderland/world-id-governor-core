@@ -37,7 +37,7 @@ Make sure to set `OPTIMISM_RPC` environment variable before running integration 
 
 You can implement [GovernorWorldID](src/contracts/GovernorWorldID.sol) and [GovernorDemocratic](src/contracts/GovernorDemocratic.sol) abstract contracts and use it as base to create your own governance protocols.
 When implementing the contracts, other functions related to OpenZeppelin standard contracts should be implemented as well, depending on the implemented OZ extensions.
-A GovernorDemocratic implementation already exists and can be found at [GoatsDAO.sol](src/contracts/GoatsDAO.sol).
+A `GovernorDemocratic` implementation already exists and can be found at [GoatsDAO.sol](src/contracts/GoatsDAO.sol).
 
 ### Deployment considerations
 
