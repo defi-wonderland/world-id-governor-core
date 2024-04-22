@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity 0.8.23;
 
-import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
+import {GoatsDAO} from 'contracts/example/GoatsDAO.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
@@ -18,7 +18,7 @@ contract E2EBase is Test, Common {
   string public description;
 
   // Contracts, addresses and other values
-  DemocraticGovernance public governance;
+  GoatsDAO public governance;
   address public owner = makeAddr('owner');
   address public userOne = makeAddr('userOne');
   address public userTwo = makeAddr('userTwo');
@@ -29,9 +29,9 @@ contract E2EBase is Test, Common {
   function setUp() public virtual {
     vm.createSelectFork(vm.rpcUrl('optimism'), forkBlock);
 
-    // Deploy a DemocraticGovernance instance
+    // Deploy a GoatsDAO instance
     vm.prank(owner);
-    governance = new DemocraticGovernance(
+    governance = new GoatsDAO(
       GROUP_ID,
       WORLD_ID_ROUTER,
       APP_ID,
