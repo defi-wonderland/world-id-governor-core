@@ -8,11 +8,7 @@ contract Integration_CheckConfigValidity is IntegrationBase {
   /**
    * @notice Test the call doesn't revert when the parameters are valid
    */
-  function test_callSucceeds(
-    uint32 _votingPeriod,
-    uint256 _resetGracePeriod,
-    uint256 _rootExpirationThreshold
-  ) public view {
+  function test_callSucceeds(uint32 _votingPeriod, uint256 _resetGracePeriod, uint256 _rootExpirationThreshold) public {
     uint256 _rootHistoryExpiry = governance.WORLD_ID_ROUTER().routeFor(governance.GROUP_ID()).rootHistoryExpiry();
     // Set the `rootExpirationThreshold` to a valid value
     _rootExpirationThreshold = bound(_rootExpirationThreshold, 0, _rootHistoryExpiry);
@@ -22,6 +18,7 @@ contract Integration_CheckConfigValidity is IntegrationBase {
     _votingPeriod = uint32(bound(_votingPeriod, 1, _resetGracePeriod - _rootExpirationThreshold - 1));
 
     // Call the function
+    vm.prank(address(user));
     governance.checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 
@@ -38,7 +35,7 @@ contract Integration_CheckConfigValidity is IntegrationBase {
     uint256 _rootExpirationThreshold = _rootHistoryExpiry + 1;
 
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidRootExpirationThreshold.selector);
-    vm.prank(address(governance));
+    vm.prank(address(user));
     governance.checkConfigValidity(_votingPeriod, _newResetGracePeriod, _rootExpirationThreshold);
   }
 
@@ -54,7 +51,7 @@ contract Integration_CheckConfigValidity is IntegrationBase {
 
     // Expect the call to revert
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_InvalidVotingPeriod.selector);
-    vm.prank(address(governance));
+    vm.prank(address(user));
     governance.checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 }
