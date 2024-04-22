@@ -140,7 +140,7 @@ contract GovernorWorldID_Unit_Constructor is Base {
   }
 }
 
-contract GovernorWorldID_Unit_CheckVoteValidity_Public is Base {
+contract GovernorWorldID_Unit_CheckVoteValidity_External is Base {
   function test_callCheckValidityVote(bytes memory _proofData) public {
     bool _callSuper = false;
     governor.setCallSuper(_callSuper);
@@ -156,7 +156,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Public is Base {
   }
 }
 
-contract GovernorWorldID_Unit_SetConfig_Public is Base {
+contract GovernorWorldID_Unit_SetConfig_External is Base {
   function test_revertIfCalledByNonGovernance(address _sender) public {
     vm.assume(_sender != address(governor));
     vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, _sender));
@@ -182,6 +182,32 @@ contract GovernorWorldID_Unit_SetConfig_Public is Base {
 
     vm.prank(address(governor));
     governor.setConfig(INITIAL_VOTING_PERIOD, RESET_GRACE_PERIOD, ROOT_EXPIRATION_THRESHOLD);
+  }
+}
+
+contract GovernorWorldID_Unit_CheckConfigValidity_External is Base {
+  /**
+   * @notice Test that the function properly calls `_checkConfigValidity`
+   */
+  function test_callCheckConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) public {
+    // Only testing the internal call
+    bool _callSuper = false;
+    governor.setCallSuper(_callSuper);
+
+    vm.expectCall(
+      watcher,
+      abi.encodeWithSelector(
+        InternalCallsWatcher.calledInternal.selector,
+        abi.encodeWithSignature(
+          '_checkConfigValidity(uint32,uint256,uint256)', _votingPeriod, _resetGracePeriod, _rootExpirationThreshold
+        )
+      )
+    );
+    governor.checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 }
 
@@ -246,32 +272,6 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
     vm.prank(address(governor));
     governor.setVotingPeriod(_newVotingPeriod);
     assertEq(governor.votingPeriod(), _newVotingPeriod);
-  }
-}
-
-contract GovernorWorldID_Unit_CheckConfigValidity is Base {
-  /**
-   * @notice Test that the function properly calls `_checkConfigValidity`
-   */
-  function test_callCheckConfigValidity(
-    uint32 _votingPeriod,
-    uint256 _resetGracePeriod,
-    uint256 _rootExpirationThreshold
-  ) public {
-    // Only testing the internal call
-    bool _callSuper = false;
-    governor.setCallSuper(_callSuper);
-
-    vm.expectCall(
-      watcher,
-      abi.encodeWithSelector(
-        InternalCallsWatcher.calledInternal.selector,
-        abi.encodeWithSignature(
-          '_checkConfigValidity(uint32,uint256,uint256)', _votingPeriod, _resetGracePeriod, _rootExpirationThreshold
-        )
-      )
-    );
-    governor.checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 }
 

@@ -74,7 +74,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     uint8 _support,
     uint256 _proposalId,
     bytes memory _proofData
-  ) public returns (uint256 _nullifierHash) {
+  ) external returns (uint256 _nullifierHash) {
     _nullifierHash = _checkVoteValidity(_support, _proposalId, _proofData);
   }
 
@@ -85,19 +85,8 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     uint32 _newVotingPeriod,
     uint256 _newResetGracePeriod,
     uint256 _newRootExpirationThreshold
-  ) public virtual onlyGovernance {
+  ) external virtual onlyGovernance {
     _setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
-  }
-
-  /**
-   * @notice Updateds the voting period
-   * @param _newVotingPeriod The new voting period
-   * @dev The combination between the `_newVotingPeriod` and the current `resetGracePeriod`
-   * and `rootExpirationThreshold` is valid
-   */
-  function setVotingPeriod(uint32 _newVotingPeriod) public virtual override {
-    _checkConfigValidity(_newVotingPeriod, resetGracePeriod, rootExpirationThreshold);
-    super.setVotingPeriod(_newVotingPeriod);
   }
 
   /**
@@ -107,8 +96,19 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     uint32 _votingPeriod,
     uint256 _resetGracePeriod,
     uint256 _rootExpirationThreshold
-  ) public view virtual {
+  ) external view virtual {
     _checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
+  }
+
+  /**
+   * @notice Updates the voting period
+   * @param _newVotingPeriod The new voting period
+   * @dev The combination between the `_newVotingPeriod` and the current `resetGracePeriod`
+   * and `rootExpirationThreshold` is valid
+   */
+  function setVotingPeriod(uint32 _newVotingPeriod) public virtual override {
+    _checkConfigValidity(_newVotingPeriod, resetGracePeriod, rootExpirationThreshold);
+    super.setVotingPeriod(_newVotingPeriod);
   }
 
   /**

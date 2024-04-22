@@ -131,19 +131,6 @@ contract GovernorWorldIdForTest is
     if (_callSuper) super._setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
-  function _checkConfigValidity(
-    uint32 _votingPeriod,
-    uint256 _resetGracePeriod,
-    uint256 _rootExpirationThreshold
-  ) internal view virtual override {
-    _calledInternal(
-      abi.encodeWithSignature(
-        '_checkConfigValidity(uint32,uint256,uint256)', _votingPeriod, _resetGracePeriod, _rootExpirationThreshold
-      )
-    );
-    if (_callSuper) super._checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
-  }
-
   function _castVote(
     uint256 _proposalId,
     address _account,
@@ -161,5 +148,18 @@ contract GovernorWorldIdForTest is
     bytes memory _params
   ) internal override(Governor, GovernorWorldID) returns (uint256) {
     return super._castVote(_proposalId, _account, _support, _reason, _params);
+  }
+
+  function _checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) internal view virtual override {
+    _calledInternal(
+      abi.encodeWithSignature(
+        '_checkConfigValidity(uint32,uint256,uint256)', _votingPeriod, _resetGracePeriod, _rootExpirationThreshold
+      )
+    );
+    if (_callSuper) super._checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 }

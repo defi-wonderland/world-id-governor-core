@@ -57,6 +57,15 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
+   * @inheritdoc IDemocraticGovernance
+   */
+  function setQuorum(uint256 _newQuorumThreshold) external onlyGovernance {
+    uint256 _oldQuorumThreshold = quorumThreshold;
+    quorumThreshold = _newQuorumThreshold;
+    emit QuorumSet(_oldQuorumThreshold, _newQuorumThreshold);
+  }
+
+  /**
    * @inheritdoc Governor
    */
   function propose(
@@ -67,15 +76,6 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   ) public virtual override onlyOwner returns (uint256 _proposalId) {
     _proposalId = super.propose(_targets, _values, _calldatas, _description);
     proposalsQuorumThreshold[_proposalId] = quorumThreshold;
-  }
-
-  /**
-   * @inheritdoc IDemocraticGovernance
-   */
-  function setQuorum(uint256 _newQuorumThreshold) public onlyGovernance {
-    uint256 _oldQuorumThreshold = quorumThreshold;
-    quorumThreshold = _newQuorumThreshold;
-    emit QuorumSet(_oldQuorumThreshold, _newQuorumThreshold);
   }
 
   /**

@@ -86,6 +86,38 @@ abstract contract Base is Test, UnitUtils {
   }
 }
 
+contract DemocraticGovernance_Unit_SetQuorum is Base {
+  /**
+   * @notice Check that only the governance can set the quorum
+   */
+  function test_revertWithOnlyGovernance(uint256 _newQuorumThreshold) public {
+    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
+    vm.prank(user);
+    governor.setQuorum(_newQuorumThreshold);
+  }
+
+  /**
+   * @notice Check that the function works as expected
+   */
+  function test_setQuorum(uint256 _newQuorumThreshold) public {
+    vm.prank(address(governor));
+    governor.setQuorum(_newQuorumThreshold);
+    uint256 _quorumFromGovernor = governor.quorum(block.number);
+    assertEq(_quorumFromGovernor, _newQuorumThreshold);
+  }
+
+  /**
+   * @notice Check that the function emits the QuorumSet event
+   */
+  function test_emitQuorumSet(uint256 _newQuorumThreshold) public {
+    vm.expectEmit(true, true, true, true);
+    emit IDemocraticGovernance.QuorumSet(QUORUM, _newQuorumThreshold);
+
+    vm.prank(address(governor));
+    governor.setQuorum(_newQuorumThreshold);
+  }
+}
+
 contract DemocraticGovernance_Unit_Constructor is Base {
   using ByteHasher for bytes;
 
@@ -191,38 +223,6 @@ contract DemocraticGovernance_Unit_Propose is Base {
     uint256 _proposalIdCreated = governor.propose(_targets, _values, _calldatas, _description);
 
     assertEq(_proposalId, _proposalIdCreated);
-  }
-}
-
-contract DemocraticGovernance_Unit_SetQuorum is Base {
-  /**
-   * @notice Check that only the governance can set the quorum
-   */
-  function test_revertWithOnlyGovernance(uint256 _newQuorumThreshold) public {
-    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, user));
-    vm.prank(user);
-    governor.setQuorum(_newQuorumThreshold);
-  }
-
-  /**
-   * @notice Check that the function works as expected
-   */
-  function test_setQuorum(uint256 _newQuorumThreshold) public {
-    vm.prank(address(governor));
-    governor.setQuorum(_newQuorumThreshold);
-    uint256 _quorumFromGovernor = governor.quorum(block.number);
-    assertEq(_quorumFromGovernor, _newQuorumThreshold);
-  }
-
-  /**
-   * @notice Check that the function emits the QuorumSet event
-   */
-  function test_emitQuorumSet(uint256 _newQuorumThreshold) public {
-    vm.expectEmit(true, true, true, true);
-    emit IDemocraticGovernance.QuorumSet(QUORUM, _newQuorumThreshold);
-
-    vm.prank(address(governor));
-    governor.setQuorum(_newQuorumThreshold);
   }
 }
 
