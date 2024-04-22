@@ -5,6 +5,8 @@ import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
+import 'forge-std/Test.sol';
+
 contract IntegrationBase is Test {
   // Op block number on which the `ROOT` returned on the SDK was the latest one
   uint256 public constant FORK_BLOCK = 119_101_146;
@@ -85,16 +87,23 @@ contract IntegrationBase is Test {
     );
 
     // Create a proposal that matches the proposal id used as action id when generating the proof
+    address _wldOpAddr = 0xdC6fF44d5d932Cbd77B52E5612Ba0529DC6226F1;
+    address _to = 0xD075Caa6e58702E028D0e43Cb796B73d23ab3eA5;
+    uint256 _amount = 250 ether; // 18 decimals token
     address[] memory targets = new address[](1);
-    targets[0] = address(0);
+    targets[0] = _wldOpAddr;
     uint256[] memory values = new uint256[](1);
-    values[0] = 1 ether;
+    values[0] = 0;
     bytes[] memory calldatas = new bytes[](1);
-    calldatas[0] = '';
-    string memory description = 'Burn an eth';
+    calldatas[0] = abi.encodeWithSignature('transfer(address,uint256)', _to, _amount);
+    string memory description =
+      'Donate 250WLD tokens to the Goat guy, so he can buy some more goats and build a shelter';
 
     vm.prank(owner);
     uint256 _proposalId = governance.propose(targets, values, calldatas, description);
+
+    console.log('Proposal ID: %s', _proposalId);
+
     assert(_proposalId == PROPOSAL_ID);
 
     // Advance the time to make the proposal active
