@@ -141,6 +141,9 @@ contract GovernorWorldID_Unit_Constructor is Base {
 }
 
 contract GovernorWorldID_Unit_CheckVoteValidity_External is Base {
+  /**
+   * @notice Test that properly calls the internal function
+   */
   function test_callCheckValidityVote(bytes memory _proofData) public {
     bool _callSuper = false;
     governor.setCallSuper(_callSuper);
@@ -157,6 +160,9 @@ contract GovernorWorldID_Unit_CheckVoteValidity_External is Base {
 }
 
 contract GovernorWorldID_Unit_SetConfig_External is Base {
+  /**
+   * @notice Test that reverts if the caller is not the governance
+   */
   function test_revertIfCalledByNonGovernance(address _sender) public {
     vm.assume(_sender != address(governor));
     vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, _sender));
@@ -164,6 +170,9 @@ contract GovernorWorldID_Unit_SetConfig_External is Base {
     governor.setConfig(INITIAL_VOTING_PERIOD, RESET_GRACE_PERIOD, ROOT_EXPIRATION_THRESHOLD);
   }
 
+  /**
+   * @notice Test that properly calls the internal function
+   */
   function test_callInternalSetConfig() public {
     // Set the callSuper to false since we are only testing that it calls the internal function correctly
     bool _callSuper = false;
@@ -187,7 +196,7 @@ contract GovernorWorldID_Unit_SetConfig_External is Base {
 
 contract GovernorWorldID_Unit_CheckConfigValidity_External is Base {
   /**
-   * @notice Test that the function properly calls `_checkConfigValidity`
+   * @notice Test that properly calls `_checkConfigValidity`
    */
   function test_callCheckConfigValidity(
     uint32 _votingPeriod,
@@ -213,7 +222,7 @@ contract GovernorWorldID_Unit_CheckConfigValidity_External is Base {
 
 contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   /**
-   * @notice Test that the function reverts if the caller is not the governance
+   * @notice Test that reverts if the caller is not the governance
    */
   function test_revertIfCalledByNonGovernance(address _sender) public {
     vm.assume(_sender != address(governor));
@@ -223,7 +232,7 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   }
 
   /**
-   * @notice Test that the function properly calls `_checkConfigValidity`
+   * @notice Test that properly calls `_checkConfigValidity`
    */
   function test_callCheckConfigValidity(uint32 _newVotingPeriod) public {
     vm.assume(_newVotingPeriod != 0);
@@ -250,7 +259,7 @@ contract GovernorWorldID_Unit_SetVotingPeriod is Base {
   }
 
   /**
-   * @notice Test that the function properly calls the high-order function with super
+   * @notice Test that properly calls the high-order function with super
    */
   function test_setVotingPeriod(uint32 _newVotingPeriod) public {
     vm.assume(_newVotingPeriod != 0);
@@ -280,7 +289,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
   using Strings for uint256;
 
   /**
-   * @notice Test that the function reverts if the nullifier is already used
+   * @notice Test that reverts if the nullifier is already used
    */
   function test_revertIfNullifierAlreadyUsed(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params = abi.encode(_root, _nullifierHash, _proof);
@@ -293,7 +302,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
   }
 
   /**
-   * @notice Test that the function calls the latestRoot function from the Router contract
+   * @notice Test that calls the latestRoot function from the Router contract
    */
   function test_callRouteFor(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params =
@@ -310,7 +319,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
   }
 
   /**
-   * @notice Test that the function calls the latestRoot function from the IdentityManager contract
+   * @notice Test that calls the latestRoot function from the IdentityManager contract
    */
   function test_callLatestRoot(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     // enforce threshold to be 0
@@ -336,7 +345,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
   }
 
   /**
-   * @notice Test that the function reverts if the root is outdated
+   * @notice Test that reverts if the root is outdated
    */
   function test_revertIfOutdatedRootWhenZeroThreshold(
     uint256 _root,
@@ -363,7 +372,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
   }
 
   /**
-   * @notice Test that the function calls the `rootHistoryExpiry` function from the IdentityManager contract
+   * @notice Test that calls the `rootHistoryExpiry` function from the IdentityManager contract
    */
   function test_callRootHistoryExpiry(
     uint128 _rootTimestamp,
@@ -401,7 +410,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
   }
 
   /**
-   * @notice Test that the function calls the rootHistory function from the IdentityManager contract
+   * @notice Test that calls the rootHistory function from the IdentityManager contract
    */
   function test_callRootHistory(
     uint128 _rootTimestamp,
@@ -442,7 +451,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
   }
 
   /**
-   * @notice Test that the function reverts if the root is outdated
+   * @notice Test that reverts if the root is outdated
    */
   function test_revertIfOutdatedRootWhenNonZeroThreshold(
     uint128 _rootTimestamp,
@@ -473,7 +482,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
   }
 
   /**
-   * @notice Test that the function calls the verifyProof function from the WorldID contract
+   * @notice Test that calls the verifyProof function from the WorldID contract
    */
   function test_callVerifyProof(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     governor.forTest_setRootExpirationThreshold(0);
@@ -507,7 +516,7 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
   }
 
   /**
-   * @notice Test that the function returns the nullifier hash
+   * @notice Test that returns the nullifier hash
    */
   function test_returnNullifierHash(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params =
@@ -786,6 +795,9 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
 }
 
 contract GovernorWorldID_Unit_CastVote_WithoutParams is Base {
+  /**
+   * @notice Check that it reverts when called, since the function is not supported
+   */
   function test_revertWhenCalled() public {
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_NotSupportedFunction.selector);
     vm.startPrank(user);

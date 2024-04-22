@@ -90,7 +90,7 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
     uint256[8] memory _invalidProof
   ) public {
     // Get the invalid proof data
-    bytes memory _invalidProofData = abi.encode(ROOT, _invalidNullifierHash, _invalidProof);
+    bytes memory _invalidProofData = abi.encode(ROOT_ONE, _invalidNullifierHash, _invalidProof);
 
     // Try to vote with the invalid proof and expect it to revert
     vm.expectRevert(InvalidProof.selector);
@@ -111,7 +111,7 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
 
     // Expect the vote to revert when trying to use the same proof with a different nullifier
     vm.expectRevert(InvalidProof.selector);
-    proofDataOne = abi.encode(ROOT, _invalidNullifierHash, proofOne);
+    proofDataOne = abi.encode(ROOT_TWO, _invalidNullifierHash, proofOne);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
   }
 
@@ -151,6 +151,7 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
    */
   function setUp() public override {
     rootExpirationThreshold = 0;
+    forkBlock = BLOCK_NUMBER_PROOF_ONE;
     super.setUp();
   }
 
@@ -189,6 +190,10 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
     // Cast the vote from the first user
     vm.prank(user);
     uint256 _votingWeigthOne = governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
+
+    // Advance the time to the moment where the `ROOT_TWO` is the latest root
+    vm.makePersistent(address(governance));
+    vm.createSelectFork(vm.rpcUrl('optimism'), BLOCK_NUMBER_PROOF_TWO);
 
     // Cast the vote from the second user
     vm.startPrank(userTwo);
@@ -237,7 +242,7 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
     uint256[8] memory _invalidProof
   ) public {
     // Get the invalid proof data
-    bytes memory _invalidProofData = abi.encode(ROOT, _invalidNullifierHash, _invalidProof);
+    bytes memory _invalidProofData = abi.encode(ROOT_ONE, _invalidNullifierHash, _invalidProof);
 
     // Try to vote with the invalid proof and expect it to revert
     vm.expectRevert(InvalidProof.selector);
@@ -258,7 +263,7 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
 
     // Expect the vote to revert when trying to use the same proof with a different nullifier
     vm.expectRevert(InvalidProof.selector);
-    proofDataOne = abi.encode(ROOT, _invalidNullifierHash, proofOne);
+    proofDataOne = abi.encode(ROOT_ONE, _invalidNullifierHash, proofOne);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
   }
 
@@ -290,6 +295,6 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
     // Try to vote with the outdated root and expect it to revert
     vm.prank(user);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataTwo);
   }
 }
