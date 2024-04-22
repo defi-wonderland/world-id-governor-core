@@ -16,8 +16,8 @@ abstract contract Deploy is Script, Constants {
     uint32 _initialVotingPeriod,
     uint256 _initialProposalThreshold,
     uint256 _rootExpirationThreshold
-  ) internal returns (GoatsDAO _GoatsDAO) {
-    _GoatsDAO = new GoatsDAO(
+  ) internal returns (GoatsDAO _goatsDAO) {
+    _goatsDAO = new GoatsDAO(
       _groupId,
       _worldIdRouter,
       _appId,
@@ -27,6 +27,6 @@ abstract contract Deploy is Script, Constants {
       _initialProposalThreshold,
       _rootExpirationThreshold
     );
-    console.log('Democratic Governance deployed at:', address(_GoatsDAO));
+    console.log('Democratic Governance deployed at:', address(_goatsDAO));
   }
 }
