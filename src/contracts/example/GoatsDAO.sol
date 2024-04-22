@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {GovernorDemocratic} from 'contracts/GovernorDemocratic.sol';
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
-import {IDemocraticGovernance} from 'interfaces/example/IDemocraticGovernance.sol';
+import {IGoatsDAO} from 'interfaces/example/IGoatsDAO.sol';
 import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {Governor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
@@ -12,23 +12,24 @@ import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSett
 import {Time} from 'open-zeppelin/utils/types/Time.sol';
 
 /**
- * @title DemocraticGovernance
- * @notice Implementation of the DemocraticGovernance contract, with 1 vote per voter that is verified on WorldID.
+ * @title GoatsDAO
+ * @notice Implementation of the GovernorDemocratic contract, with 1 vote per voter that is verified on WorldID. It aims
+ * to be a simple DAO for donate WLD to the Goat guy.
  * @dev For this specific case, only the owner can propose.
  */
-contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocratic, IDemocraticGovernance {
+contract GoatsDAO is Ownable, GovernorCountingSimple, GovernorDemocratic, IGoatsDAO {
   /**
-   * @inheritdoc IDemocraticGovernance
+   * @inheritdoc IGoatsDAO
    */
   uint256 public quorumThreshold;
 
   /**
-   * @inheritdoc IDemocraticGovernance
+   * @inheritdoc IGoatsDAO
    */
   mapping(uint256 proposalId => uint256 quorumThreshold) public proposalsQuorumThreshold;
 
   /**
-   * @notice The constructor for the DemocraticGovernance contract
+   * @notice The constructor for the GoatsDAO contract
    * @param _groupID The WorldID group ID, 1 for orb verification level
    * @param _worldIdRouter The WorldID router instance to obtain the WorldID contract address
    * @param _appId The World ID app ID
@@ -57,7 +58,7 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
-   * @inheritdoc IDemocraticGovernance
+   * @inheritdoc IGoatsDAO
    */
   function setQuorum(uint256 _newQuorumThreshold) external onlyGovernance {
     uint256 _oldQuorumThreshold = quorumThreshold;

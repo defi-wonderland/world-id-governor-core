@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Constants} from './Constants.sol';
-import {DemocraticGovernance} from 'contracts/example/DemocraticGovernance.sol';
+import {GoatsDAO} from 'contracts/example/GoatsDAO.sol';
 import {Script, console} from 'forge-std/Script.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
@@ -16,8 +16,8 @@ abstract contract Deploy is Script, Constants {
     uint32 _initialVotingPeriod,
     uint256 _initialProposalThreshold,
     uint256 _rootExpirationThreshold
-  ) internal returns (DemocraticGovernance _democraticGovernance) {
-    _democraticGovernance = new DemocraticGovernance(
+  ) internal returns (GoatsDAO _GoatsDAO) {
+    _GoatsDAO = new GoatsDAO(
       _groupId,
       _worldIdRouter,
       _appId,
@@ -27,6 +27,6 @@ abstract contract Deploy is Script, Constants {
       _initialProposalThreshold,
       _rootExpirationThreshold
     );
-    console.log('Democratic Governance deployed at:', address(_democraticGovernance));
+    console.log('Democratic Governance deployed at:', address(_GoatsDAO));
   }
 }

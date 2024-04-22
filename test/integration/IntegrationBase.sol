@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 pragma solidity 0.8.23;
 
-import {DemocraticGovernance} from 'contracts/example/DemocraticGovernance.sol';
+import {GoatsDAO} from 'contracts/example/GoatsDAO.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
@@ -61,7 +61,7 @@ contract IntegrationBase is Test {
   // Root expiration threshold set to 1 hour so we test the `rootHistory` flow first
   uint256 public rootExpirationThreshold = 1 hours;
   // Contracts, addresses and other values
-  DemocraticGovernance public governance;
+  GoatsDAO public governance;
   address public owner = makeAddr('owner');
   address public user = makeAddr('user');
   address public userTwo = makeAddr('userTwo');
@@ -72,9 +72,9 @@ contract IntegrationBase is Test {
   function setUp() public virtual {
     vm.createSelectFork(vm.rpcUrl('optimism'), forkBlock);
 
-    // Deploy a DemocraticGovernance instance
+    // Deploy a GoatsDAO instance
     vm.prank(owner);
-    governance = new DemocraticGovernance(
+    governance = new GoatsDAO(
       GROUP_ID,
       WORLD_ID_ROUTER,
       APP_ID,
