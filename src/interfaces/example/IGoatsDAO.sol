@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-interface IDemocraticGovernance {
+interface IGoatsDAO {
   /**
    * @notice Emitted when the quorum threshold is set
    * @param _oldQuorumThreshold The previous quorum threshold

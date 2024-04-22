@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
+import {GoatsDAO} from 'contracts/example/GoatsDAO.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
-contract DemocraticGovernanceForTest is DemocraticGovernance {
+contract GoatsDAOForTest is GoatsDAO {
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
@@ -15,7 +15,7 @@ contract DemocraticGovernanceForTest is DemocraticGovernance {
     uint256 _initialProposalThreshold,
     uint256 _rootExpirationThreshold
   )
-    DemocraticGovernance(
+    GoatsDAO(
       _groupID,
       _worldIdRouter,
       _appId,
