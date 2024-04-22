@@ -24,6 +24,9 @@ contract E2E_GoatsDAO is E2EBase {
     vm.prank(address(governance));
     governance.setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
     assert(governance.proposalDeadline(PROPOSAL_ID) == INITIAL_VOTING_PERIOD);
+    assert(governance.votingPeriod() == _newVotingPeriod);
+    assert(governance.resetGracePeriod() == _newResetGracePeriod);
+    assert(governance.rootExpirationThreshold() == _newRootExpirationThreshold);
 
     // The two users vote `for`
     vm.prank(userOne);
