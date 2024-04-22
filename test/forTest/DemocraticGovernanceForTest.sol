@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
+import {DemocraticGovernance} from 'contracts/example/DemocraticGovernance.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
 contract DemocraticGovernanceForTest is DemocraticGovernance {

@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Constants} from './Constants.sol';
-import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
+import {DemocraticGovernance} from 'contracts/example/DemocraticGovernance.sol';
 import {Script, console} from 'forge-std/Script.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 

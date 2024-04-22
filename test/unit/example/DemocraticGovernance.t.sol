@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {DemocraticGovernanceForTest} from '../forTest/DemocraticGovernanceForTest.sol';
-import {UnitUtils} from './utils/UnitUtils.sol';
+import {DemocraticGovernanceForTest} from '../../forTest/DemocraticGovernanceForTest.sol';
+import {UnitUtils} from '../utils/UnitUtils.sol';
 import {Test} from 'forge-std/Test.sol';
-import {IDemocraticGovernance} from 'interfaces/IDemocraticGovernance.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
+import {IDemocraticGovernance} from 'interfaces/example/IDemocraticGovernance.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
