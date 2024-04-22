@@ -157,6 +157,9 @@ contract GovernorWorldID_Unit_CheckVoteValidity_External is Base {
 }
 
 contract GovernorWorldID_Unit_SetConfig_External is Base {
+  /**
+   * @notice Test that the function reverts if the caller is not the governance
+   */
   function test_revertIfCalledByNonGovernance(address _sender) public {
     vm.assume(_sender != address(governor));
     vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyExecutor.selector, _sender));
@@ -164,6 +167,9 @@ contract GovernorWorldID_Unit_SetConfig_External is Base {
     governor.setConfig(INITIAL_VOTING_PERIOD, RESET_GRACE_PERIOD, ROOT_EXPIRATION_THRESHOLD);
   }
 
+  /**
+   * @notice Test that the function properly calls the internal function
+   */
   function test_callInternalSetConfig() public {
     // Set the callSuper to false since we are only testing that it calls the internal function correctly
     bool _callSuper = false;
