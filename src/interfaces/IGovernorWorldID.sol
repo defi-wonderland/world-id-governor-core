@@ -2,22 +2,21 @@
 pragma solidity 0.8.23;
 
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
-import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 
-interface IGovernorWorldID is IGovernor {
+interface IGovernorWorldID {
   /**
    * @notice Emitted when the root expiration period is updated
    * @param _oldRootExpirationThreshold The previous expiration threshold
    * @param _newRootExpirationThreshold The new expiration threshold
    */
-  event RootExpirationThresholdUpdated(uint256 _oldRootExpirationThreshold, uint256 _newRootExpirationThreshold);
+  event RootExpirationThresholdSet(uint256 _oldRootExpirationThreshold, uint256 _newRootExpirationThreshold);
 
   /**
    * @notice Emitted when the reset grace period is updated
    * @param _oldResetGracePeriod The previous reset grace period
    * @param _newResetGracePeriod The new reset grace period
    */
-  event ResetGracePeriodUpdated(uint256 _oldResetGracePeriod, uint256 _newResetGracePeriod);
+  event ResetGracePeriodSet(uint256 _oldResetGracePeriod, uint256 _newResetGracePeriod);
 
   /**
    * @notice Thrown when attempting to call a non supported function
@@ -36,7 +35,7 @@ interface IGovernorWorldID is IGovernor {
   error GovernorWorldID_InvalidRootExpirationThreshold();
 
   /**
-   * @notice Thrown when the provided reset grace period is less than the current root expiration threshold
+   * @notice Thrown when the provided reset grace period is minus than the current root expiration threshold
    */
   error GovernorWorldID_InvalidResetGracePeriod();
 
@@ -47,9 +46,9 @@ interface IGovernorWorldID is IGovernor {
   error GovernorWorldID_InvalidVotingPeriod();
 
   /**
-   * @notice Thrown when the provided nullifier hash is already used
+   * @notice Thrown when the provided nullifier hash was already used
    */
-  error GovernorWorldID_NullifierHashAlreadyUsed();
+  error GovernorWorldID_DuplicateNullifier();
 
   /**
    * @notice Checks the validity of a vote
@@ -70,13 +69,28 @@ interface IGovernorWorldID is IGovernor {
    * @param _newResetGracePeriod The new reset grace period
    * @param _newRootExpirationThreshold The new root expiration threshold
    * @dev The purpose of this function is to ensure that `votingPeriod` is smaller than `resetGracePeriod`
-   * less `rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   * minus `rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
    */
   function setConfig(
     uint32 _newVotingPeriod,
     uint256 _newResetGracePeriod,
     uint256 _newRootExpirationThreshold
   ) external;
+
+  /**
+   * @notice Checks if the configuration parameters are valid
+   * @param _votingPeriod The voting period to check
+   * @param _resetGracePeriod The reset grace period to check
+   * @param _rootExpirationThreshold The root expiration threshold to check
+   * @dev The `_rootExpirationThreshold` can't be greater than IdentityManager's `rootHistoryExpiry`
+   * @dev This function aims to ensure that `_votingPeriod` is smaller than `_resetGracePeriod`
+   * minues `_rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   */
+  function checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) external view;
 
   /**
    * @notice The World ID instance that will be used for verifying proofs
@@ -94,10 +108,20 @@ interface IGovernorWorldID is IGovernor {
 
   /**
    * @notice The hash of the developer portal app ID used to verify the proofs
-   * @return _appIdHash The app ID
+   * @return _appIdHash The hash of the app ID
+   * @dev Already hashed to be used as part of the external nullifier hash on the on-chain proof verification
    */
   // solhint-disable-next-line func-name-mixedcase
   function APP_ID_HASH() external view returns (uint256 _appIdHash);
+
+  /**
+   * @notice The developer portal app ID used to verify the proofs
+   * @return _appId The app ID
+   * @dev This will be needed for the off-chain to generate valid proofs using the correct app ID
+   * @dev Can't be defined as immutable because its type is string, but is never updated
+   */
+  // solhint-disable-next-line func-name-mixedcase
+  function appId() external view returns (string memory _appId);
 
   /**
    * @notice The nullifier hashes used to prevent double voting
@@ -121,4 +145,12 @@ interface IGovernorWorldID is IGovernor {
    * @return _rootExpirationThreshold The expiration threshold
    */
   function rootExpirationThreshold() external view returns (uint256 _rootExpirationThreshold);
+
+  /**
+   * @notice The salt used to generate a more unique proposal id by concatenating the text to the proposal's description
+   * @return _proposalUniquenessSalt The salt
+   * @dev Is composed of the `block.chainid` and the `address(this)` to ensure proposal id
+   * uniqueness across different chains
+   */
+  function proposalUniquenessSalt() external view returns (string memory _proposalUniquenessSalt);
 }

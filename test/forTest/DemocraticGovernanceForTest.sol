@@ -69,4 +69,14 @@ contract DemocraticGovernanceForTest is DemocraticGovernance {
   function forTest_quorumReached(uint256 _proposalId) public view returns (bool _reached) {
     return _quorumReached(_proposalId);
   }
+
+  function _propose(
+    address[] memory _targets,
+    uint256[] memory _values,
+    bytes[] memory _calldatas,
+    string memory _description,
+    address _proposer
+  ) internal virtual override returns (uint256 _proposalId) {
+    _proposalId = super._propose(_targets, _values, _calldatas, _description, _proposer);
+  }
 }

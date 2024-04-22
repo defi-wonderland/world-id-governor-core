@@ -6,6 +6,9 @@ import {Test} from 'forge-std/Test.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
 contract IntegrationBase is Test {
+  // Op block number on which the `ROOT` returned on the SDK was the latest one
+  uint256 public constant FORK_BLOCK = 119_101_146;
+
   /* DAO constant settings */
   uint256 public constant QUORUM = 5;
   uint48 public constant INITIAL_VOTING_DELAY = 0;
@@ -15,30 +18,42 @@ contract IntegrationBase is Test {
 
   // Worldcoin WorldID Id Router
   IWorldIDRouter public constant WORLD_ID_ROUTER = IWorldIDRouter(0x57f928158C3EE7CDad1e4D8642503c4D0201f611);
-
-  // Op block number on which the `ROOT` returned on the SDK was the latest one
-  uint256 public constant FORK_BLOCK = 118_332_222;
-
   /* Proof Inputs (on the SDK, everything was passed as a string) */
   string public constant APP_ID = 'app_40cfae76904f7231cf7dc28ce48a40e7';
   uint256 public constant PROPOSAL_ID =
-    101_464_408_321_971_908_304_756_596_521_565_750_541_773_429_674_425_130_310_070_172_912_535_081_945_163;
+    106_577_505_442_014_505_943_404_266_464_302_158_257_799_032_234_014_016_284_339_566_831_169_708_743_166;
   uint8 public constant FOR_SUPPORT = 1;
   uint256 public constant GROUP_ID = 1;
 
   /* Proof Outputs */
-  uint256 public constant ROOT = 0x1439b1b8294e4bfe71a81c29daa378947b8d35dfc9faffe1debb6f8d206f48f5;
-  uint256 public constant NULLIFIER_HASH = 0x1bf6089762e46ab249c0f9bc0c22abbe4899242e8a26100a9bd8b2930d959c24;
+  // The root used to verify the proofs against. Is the same one for both proofs
+  uint256 public constant ROOT = 0x2584efcf00afa67ba1ae71824a8bcc3251e701eac0a90989e4c5913b22b8af9f;
+  // Nullifier hash returned on the first proof
+  uint256 public constant NULLIFIER_HASH_ONE = 0x2c53c570a35d1be954f54e61e7cd5450a296da343d65526eece86f38fd160524;
+  // Nullifier hash returned on the second proof
+  uint256 public constant NULLIFIER_HASH_TWO = 0x2a159ced77346857b815e3a87b89e80c2053465d60f30f1ece8dbf0d64a0e948;
 
-  uint256[8] public proof = [
-    3_760_598_054_540_594_155_029_024_146_631_356_293_075_449_310_750_183_967_209_540_083_464_580_805_636,
-    14_266_988_862_502_978_857_050_537_875_878_333_925_982_355_850_577_134_788_643_719_311_387_202_613_638,
-    17_873_660_279_405_525_056_302_559_996_088_651_413_064_182_719_356_902_638_215_452_965_177_623_394_966,
-    21_736_299_499_104_254_386_576_981_348_601_493_571_392_056_631_833_464_029_184_838_065_221_924_752_655,
-    15_787_026_394_355_203_071_521_523_844_939_361_024_486_617_581_670_194_364_947_511_686_465_884_280_370,
-    20_532_460_566_312_490_442_475_878_880_610_515_425_992_179_120_150_991_150_240_322_255_624_195_925_212,
-    6_537_684_568_486_212_583_837_058_966_639_634_826_708_352_721_970_088_019_204_610_021_119_760_399_401,
-    7_331_490_139_911_688_804_012_066_906_648_538_202_966_281_497_035_287_928_547_886_203_592_112_338_875
+  // First proof
+  uint256[8] public proofOne = [
+    17_298_594_450_504_095_928_573_905_046_613_811_236_495_425_910_590_491_665_353_511_413_057_809_511_545,
+    9_047_028_332_619_994_998_366_755_021_759_186_969_273_021_221_767_585_535_733_666_265_215_352_634_459,
+    3_724_084_942_664_922_351_382_940_642_020_091_796_802_097_766_745_928_138_179_448_688_429_110_867_902,
+    4_091_910_746_958_985_710_785_581_866_768_732_859_413_649_063_976_557_080_494_123_049_571_444_868_189,
+    19_783_552_022_621_175_293_954_700_120_213_737_235_478_945_187_506_239_391_200_379_147_215_377_778_426,
+    16_513_999_292_974_954_684_191_510_361_028_159_145_071_755_700_512_828_314_240_227_198_783_547_265_788,
+    8_779_450_418_910_007_478_954_590_309_291_575_355_423_787_460_340_624_387_859_248_575_320_432_026_427,
+    6_028_265_999_733_374_904_078_498_901_003_041_477_508_320_394_950_080_276_055_761_020_501_346_820_500
+  ];
+  // Second proof
+  uint256[8] public proofTwo = [
+    4_983_254_650_178_237_226_008_566_151_718_294_129_267_564_064_299_841_713_596_385_448_142_203_084_765,
+    5_073_157_229_225_444_679_629_839_878_233_418_289_539_698_211_104_536_192_374_353_158_664_006_240_008,
+    9_122_450_844_371_991_817_815_705_538_853_466_617_717_135_437_879_606_191_271_858_595_217_762_505_196,
+    20_981_944_681_478_618_714_610_786_461_463_673_102_147_192_560_151_250_471_875_968_557_683_218_973_175,
+    5_648_489_007_004_166_857_493_005_846_171_912_025_107_981_478_607_594_774_694_509_955_156_288_090_984,
+    9_854_128_642_308_402_570_366_562_497_596_762_856_350_007_145_386_749_907_674_573_033_755_490_539_186,
+    15_748_436_860_229_916_704_483_490_209_007_528_729_076_345_431_228_178_048_587_072_845_213_205_063_522,
+    9_982_174_027_642_271_703_490_516_682_225_859_616_159_055_029_304_363_662_763_559_605_071_755_077_130
   ];
 
   // Root expiration threshold set to 1 hour so we test the `rootHistory` flow first
@@ -47,8 +62,10 @@ contract IntegrationBase is Test {
   DemocraticGovernance public governance;
   address public owner = makeAddr('owner');
   address public user = makeAddr('user');
+  address public userTwo = makeAddr('userTwo');
   address public stranger = makeAddr('stranger');
-  bytes public proofData;
+  bytes public proofDataOne;
+  bytes public proofDataTwo;
   uint256 public forkId;
 
   function setUp() public virtual {
@@ -83,7 +100,9 @@ contract IntegrationBase is Test {
     // Advance the time to make the proposal active
     vm.warp(block.timestamp + INITIAL_VOTING_DELAY + 1);
 
-    // Pack the all the proof data together
-    proofData = abi.encodePacked(ROOT, NULLIFIER_HASH, proof);
+    // Pack all the first proof data together
+    proofDataOne = abi.encodePacked(ROOT, NULLIFIER_HASH_ONE, proofOne);
+    // Pack all the second proof data together
+    proofDataTwo = abi.encodePacked(ROOT, NULLIFIER_HASH_TWO, proofTwo);
   }
 }
