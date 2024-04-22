@@ -70,8 +70,14 @@ contract E2E_GoatsDAO is E2EBase {
     // After the voting period has ended, the proposal is executed but fails
     vm.warp(block.timestamp + INITIAL_VOTING_PERIOD);
 
+    bytes32 _succeededStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Succeeded));
+    bytes32 _queuedStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Queued));
     vm.prank(owner);
-    // TODO: add expect revert
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernor.GovernorUnexpectedProposalState.selector, PROPOSAL_ID, _succeededStateBitmap, _queuedStateBitmap
+      )
+    );
     governance.execute(targets, values, calldatas, keccak256(abi.encodePacked(description)));
   }
 
@@ -95,8 +101,14 @@ contract E2E_GoatsDAO is E2EBase {
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, userTwoProofData);
 
     // The voting period has not ended, the proposal is executed but fails
+    bytes32 _succeededStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Succeeded));
+    bytes32 _queuedStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Queued));
     vm.prank(owner);
-    // TODO: add expect revert
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernor.GovernorUnexpectedProposalState.selector, PROPOSAL_ID, _succeededStateBitmap, _queuedStateBitmap
+      )
+    );
     governance.execute(targets, values, calldatas, keccak256(abi.encodePacked(description)));
   }
 }

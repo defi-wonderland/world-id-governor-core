@@ -24,8 +24,7 @@ contract E2EBase is Test {
   address public constant WLD_HOLDER = 0xacD03D601e5bB1B275Bb94076fF46ED9D753435A;
 
   // Goat Guy address
-  // TODO: Update this address with the actual address of the Goat Guy
-  address public constant GOAT_GUY = 0x0000000000000000000000000000000000000000;
+  address public constant GOAT_GUY = 0xD075Caa6e58702E028D0e43Cb796B73d23ab3eA5;
 
   // Transfer amount
   uint256 public constant WLD_AMOUNT = 250 ether;
