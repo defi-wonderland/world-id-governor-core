@@ -9,6 +9,7 @@ contract E2E_GoatsDAO is E2EBase {
    * @notice Test a successful flow on the GoatsDAO contract
    */
   function test_flowSuccessful() public {
+    uint256 _startVoteTimestamp = block.timestamp;
     // Create a proposal that matches the proposal id used as action id when generating the proof
     vm.prank(owner);
     uint256 _proposalId = governance.propose(targets, values, calldatas, description);
@@ -23,7 +24,9 @@ contract E2E_GoatsDAO is E2EBase {
     uint256 _newRootExpirationThreshold = rootExpirationThreshold + 2 hours;
     vm.prank(address(governance));
     governance.setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
-    assert(governance.proposalDeadline(PROPOSAL_ID) == INITIAL_VOTING_PERIOD);
+    assert(
+      governance.proposalDeadline(PROPOSAL_ID) == _startVoteTimestamp + INITIAL_VOTING_DELAY + INITIAL_VOTING_PERIOD
+    );
     assert(governance.votingPeriod() == _newVotingPeriod);
     assert(governance.resetGracePeriod() == _newResetGracePeriod);
     assert(governance.rootExpirationThreshold() == _newRootExpirationThreshold);

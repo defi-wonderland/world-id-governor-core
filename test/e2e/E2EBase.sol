@@ -36,7 +36,7 @@ contract E2EBase is Test {
   /* Proof Inputs (on the SDK, everything was passed as a string) */
   string public constant APP_ID = 'app_40cfae76904f7231cf7dc28ce48a40e7';
   uint256 public constant PROPOSAL_ID =
-    10_467_299_091_588_577_546_660_515_669_373_747_805_634_349_486_758_589_455_564_133_415_350_057_221_038;
+    77_823_588_015_622_942_641_017_816_319_824_682_081_015_295_770_649_418_991_585_439_929_318_545_793_475;
   uint8 public constant FOR_SUPPORT = 1;
   uint256 public constant GROUP_ID = 1;
 
