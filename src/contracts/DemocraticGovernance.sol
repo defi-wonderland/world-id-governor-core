@@ -57,6 +57,15 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   }
 
   /**
+   * @inheritdoc IDemocraticGovernance
+   */
+  function setQuorum(uint256 _newQuorumThreshold) external onlyGovernance {
+    uint256 _oldQuorumThreshold = quorumThreshold;
+    quorumThreshold = _newQuorumThreshold;
+    emit QuorumSet(_oldQuorumThreshold, _newQuorumThreshold);
+  }
+
+  /**
    * @inheritdoc Governor
    */
   function propose(
@@ -67,15 +76,6 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
   ) public virtual override onlyOwner returns (uint256 _proposalId) {
     _proposalId = super.propose(_targets, _values, _calldatas, _description);
     proposalsQuorumThreshold[_proposalId] = quorumThreshold;
-  }
-
-  /**
-   * @inheritdoc IDemocraticGovernance
-   */
-  function setQuorum(uint256 _newQuorumThreshold) public onlyGovernance {
-    uint256 _oldQuorumThreshold = quorumThreshold;
-    quorumThreshold = _newQuorumThreshold;
-    emit QuorumSet(_oldQuorumThreshold, _newQuorumThreshold);
   }
 
   /**
@@ -156,6 +156,19 @@ contract DemocraticGovernance is Ownable, GovernorCountingSimple, GovernorDemocr
     bytes memory _params
   ) internal override(Governor, GovernorWorldID) returns (uint256 _votingWeight) {
     _votingWeight = super._castVote(_proposalId, _account, _support, _reason, _params);
+  }
+
+  /**
+   * @inheritdoc GovernorWorldID
+   */
+  function _propose(
+    address[] memory _targets,
+    uint256[] memory _values,
+    bytes[] memory _calldatas,
+    string memory _description,
+    address _proposer
+  ) internal virtual override(Governor, GovernorWorldID) returns (uint256 _proposalId) {
+    _proposalId = super._propose(_targets, _values, _calldatas, _description, _proposer);
   }
 
   /**

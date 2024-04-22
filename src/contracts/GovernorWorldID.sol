@@ -14,7 +14,7 @@ import {Strings} from 'open-zeppelin/utils/Strings.sol';
  */
 abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   using ByteHasher for bytes;
-  using Strings for uint256;
+  using Strings for *;
 
   /**
    * @inheritdoc IGovernorWorldID
@@ -49,6 +49,11 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   /**
    * @inheritdoc IGovernorWorldID
    */
+  string public proposalUniquenessSalt;
+
+  /**
+   * @inheritdoc IGovernorWorldID
+   */
   mapping(uint256 _nullifierHash => bool _isUsed) public nullifierHashes;
 
   /**
@@ -65,6 +70,14 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     appId = _appId;
     APP_ID_HASH = abi.encodePacked(_appId).hashToField();
     _setConfig(uint32(votingPeriod()), resetGracePeriod, _rootExpirationThreshold);
+    // Create the proposal uniqueness salt to give more uniqueness to the proposal description
+    proposalUniquenessSalt = string.concat(
+      ' ### Proposal Uniqueness Salt:',
+      ' - **Chain ID:** ',
+      block.chainid.toString(),
+      ' - **Contract Address:** ',
+      address(this).toHexString()
+    );
   }
 
   /**
@@ -74,7 +87,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     uint8 _support,
     uint256 _proposalId,
     bytes memory _proofData
-  ) public returns (uint256 _nullifierHash) {
+  ) external returns (uint256 _nullifierHash) {
     _nullifierHash = _checkVoteValidity(_support, _proposalId, _proofData);
   }
 
@@ -85,16 +98,30 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     uint32 _newVotingPeriod,
     uint256 _newResetGracePeriod,
     uint256 _newRootExpirationThreshold
-  ) public virtual onlyGovernance {
+  ) external virtual onlyGovernance {
     _setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
   }
 
   /**
-   * @notice Disabled because the `votingPeriod` must be updated using the `setConfig` function along with the other
-   * settings, to check the validity of the new configuration.
+   * @inheritdoc IGovernorWorldID
    */
-  function setVotingPeriod(uint32) public virtual override {
-    revert GovernorWorldID_NotSupportedFunction();
+  function checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) external view virtual {
+    _checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
+  }
+
+  /**
+   * @notice Updates the voting period
+   * @param _newVotingPeriod The new voting period
+   * @dev The combination between the `_newVotingPeriod` and the current `resetGracePeriod`
+   * and `rootExpirationThreshold` is valid
+   */
+  function setVotingPeriod(uint32 _newVotingPeriod) public virtual override {
+    _checkConfigValidity(_newVotingPeriod, resetGracePeriod, rootExpirationThreshold);
+    super.setVotingPeriod(_newVotingPeriod);
   }
 
   /**
@@ -135,31 +162,41 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   }
 
   /**
+   * @notice Creates the proposal after validating the `_targets`, `_values`, `_calldatas` and the `proposer` inputs
+   * @param _targets The target addresses for the proposal calls
+   * @param _values The values to be sent to the proposal calls
+   * @param _calldatas The calldatas for the proposal calls
+   * @param _description The description of the proposal
+   * @param _proposer The proposer address
+   * @return _proposalId The proposal id
+   * @dev It concatenates the proposal uniqueness salt to the proposal description to ensure uniqueness of the proposal
+   * between different chains. The description is validated before calling this function so we are not altering the
+   * behaviour of the Governor contract more than adding the uniqueness salt.
+   */
+  function _propose(
+    address[] memory _targets,
+    uint256[] memory _values,
+    bytes[] memory _calldatas,
+    string memory _description,
+    address _proposer
+  ) internal virtual override returns (uint256 _proposalId) {
+    _description = string.concat(_description, proposalUniquenessSalt);
+    _proposalId = super._propose(_targets, _values, _calldatas, _description, _proposer);
+  }
+
+  /**
    * @notice Sets the configuration parameters for the contract
    * @param _newVotingPeriod The new voting period
    * @param _newResetGracePeriod The new reset grace period
    * @param _newRootExpirationThreshold The new root expiration threshold
-   * @dev The purpose of this function is to ensure that `votingPeriod` is smaller than `resetGracePeriod`
-   * minues `rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
    */
   function _setConfig(
     uint32 _newVotingPeriod,
     uint256 _newResetGracePeriod,
     uint256 _newRootExpirationThreshold
   ) internal virtual {
-    // Check that `_rootExpirationThreshold` is valid. If set to 0, no need to check the `rootHistoryExpiry`
-    if (_newRootExpirationThreshold != 0) {
-      // Suboptimal check since if it smaller, it will revert on the calculation. But the revert message is more clear
-      if (_newRootExpirationThreshold > _newResetGracePeriod) revert GovernorWorldID_InvalidRootExpirationThreshold();
-      IWorldIDIdentityManager _identityManager = WORLD_ID_ROUTER.routeFor(GROUP_ID);
-      if (_newRootExpirationThreshold > _identityManager.rootHistoryExpiry()) {
-        revert GovernorWorldID_InvalidRootExpirationThreshold();
-      }
-    }
-    // Voting period should be smaller than reset grace period minus root expiration threshold to prevent double-voting
-    if (_newVotingPeriod >= _newResetGracePeriod - _newRootExpirationThreshold) {
-      revert GovernorWorldID_InvalidVotingPeriod();
-    }
+    if (_newRootExpirationThreshold > _newResetGracePeriod) revert GovernorWorldID_InvalidRootExpirationThreshold();
+    _checkConfigValidity(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
 
     if (_newVotingPeriod != votingPeriod()) super._setVotingPeriod(_newVotingPeriod);
     uint256 _currentResetGracePeriod = resetGracePeriod;
@@ -202,5 +239,33 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
    */
   function _castVote(uint256, address, uint8, string memory) internal virtual override returns (uint256) {
     revert GovernorWorldID_NotSupportedFunction();
+  }
+
+  /**
+   * @notice Checks if the configuration parameters are valid
+   * @param _votingPeriod The voting period to check
+   * @param _resetGracePeriod The reset grace period to check
+   * @param _rootExpirationThreshold The root expiration threshold to check
+   * @dev The `_rootExpirationThreshold` can't be greater than IdentityManager's `rootHistoryExpiry`
+   * @dev This function aims to ensure that `_votingPeriod` is smaller than `_resetGracePeriod`
+   * minues `_rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   */
+  function _checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) internal view virtual {
+    // Check that `_rootExpirationThreshold` is valid. If set to 0, no need to check the `rootHistoryExpiry`
+    if (_rootExpirationThreshold != 0) {
+      // Suboptimal check since if smaller, it will revert on the calculation. But the revert message is more clear
+      IWorldIDIdentityManager _identityManager = WORLD_ID_ROUTER.routeFor(GROUP_ID);
+      if (_rootExpirationThreshold > _identityManager.rootHistoryExpiry()) {
+        revert GovernorWorldID_InvalidRootExpirationThreshold();
+      }
+    }
+    // Voting period should be smaller than reset grace period minus root expiration threshold to prevent double-voting
+    if (_votingPeriod >= _resetGracePeriod - _rootExpirationThreshold) {
+      revert GovernorWorldID_InvalidVotingPeriod();
+    }
   }
 }

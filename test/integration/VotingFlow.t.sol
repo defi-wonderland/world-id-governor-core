@@ -17,7 +17,7 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
 
     // Cast the vote
     vm.prank(user);
-    uint256 _votingWeigth = governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    uint256 _votingWeigth = governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
 
     // Get the proposals votes after the vote
     (uint256 _againstVotesAfter, uint256 _forVotesAfter, uint256 _abstainVotesAfter) =
@@ -32,22 +32,53 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
   }
 
   /**
+   * @notice Test there are 2 different valid votes over the same proposal and expect the votes to be counted correctly.
+   */
+  function test_twoVotesOverProposal() public {
+    // Get the proposals votes before the vote
+    (uint256 _againstVotesBefore, uint256 _forVotesBefore, uint256 _abstainVotesBefore) =
+      governance.proposalVotes(PROPOSAL_ID);
+
+    // Cast the vote from the first user
+    vm.prank(user);
+    uint256 _votingWeigthOne = governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
+
+    // Cast the vote from the second user
+    vm.startPrank(userTwo);
+    uint256 _votingWeigthTwo = governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataTwo);
+
+    // Get the proposals votes after the vote
+    (uint256 _againstVotesAfter, uint256 _forVotesAfter, uint256 _abstainVotesAfter) =
+      governance.proposalVotes(PROPOSAL_ID);
+
+    // Assert the users have voted, with 1 as voting weight supporting the proposal.
+    assertTrue(governance.hasVoted(PROPOSAL_ID, user));
+    assertTrue(governance.hasVoted(PROPOSAL_ID, userTwo));
+    assertEq(_votingWeigthOne, 1);
+    assertEq(_votingWeigthTwo, 1);
+    // Assert the votes have been counted correctly
+    assertEq(_forVotesAfter, _forVotesBefore + 2);
+    assertEq(_abstainVotesAfter, _abstainVotesBefore);
+    assertEq(_againstVotesAfter, _againstVotesBefore);
+  }
+
+  /**
    * @notice Test a user tries to vote twice on the same proposal and expect the second vote to revert.
    */
   function test_revertIfVotingTwiceOnSameProposal() public {
     // Cast the vote
     vm.startPrank(user);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
     assertTrue(governance.hasVoted(PROPOSAL_ID, user));
 
     // Try to cast the same vote over the same proposal again and expect it to revert
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_DuplicateNullifier.selector);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
 
     // Try to cast the same vote over the same proposal again from another address and expect it to revert
     vm.startPrank(stranger);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_DuplicateNullifier.selector);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
   }
 
   /**
@@ -72,16 +103,16 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
    * proof but with a different nullifier
    */
   function test_revertIfInvalidNullifierHash(uint256 _invalidNullifierHash) public {
-    vm.assume(_invalidNullifierHash != NULLIFIER_HASH);
+    vm.assume(_invalidNullifierHash != NULLIFIER_HASH_ONE);
 
     // Cast the vote
     vm.startPrank(user);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
 
     // Expect the vote to revert when trying to use the same proof with a different nullifier
     vm.expectRevert(InvalidProof.selector);
-    proofData = abi.encode(ROOT, _invalidNullifierHash, proof);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    proofDataOne = abi.encode(ROOT, _invalidNullifierHash, proofOne);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
   }
 
   /**
@@ -94,7 +125,7 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
     // Try to vote with the invalid support signal and expect it to revert
     vm.expectRevert(InvalidProof.selector);
     vm.prank(user);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, _againstSupport, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, _againstSupport, REASON, proofDataOne);
   }
 
   /**
@@ -107,7 +138,7 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
     // Try to vote with the outdated root and expect it to revert
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
     vm.prank(user);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
   }
 }
 
@@ -133,7 +164,7 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
 
     // Cast the vote
     vm.prank(user);
-    uint256 _votingWeigth = governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    uint256 _votingWeigth = governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
 
     // Get the proposals votes after the vote
     (uint256 _againstVotesAfter, uint256 _forVotesAfter, uint256 _abstainVotesAfter) =
@@ -148,22 +179,53 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
   }
 
   /**
+   * @notice Test there are 2 different valid votes over the same proposal and expect the votes to be counted correctly.
+   */
+  function test_twoVotesOverProposal() public {
+    // Get the proposals votes before the vote
+    (uint256 _againstVotesBefore, uint256 _forVotesBefore, uint256 _abstainVotesBefore) =
+      governance.proposalVotes(PROPOSAL_ID);
+
+    // Cast the vote from the first user
+    vm.prank(user);
+    uint256 _votingWeigthOne = governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
+
+    // Cast the vote from the second user
+    vm.startPrank(userTwo);
+    uint256 _votingWeigthTwo = governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataTwo);
+
+    // Get the proposals votes after the vote
+    (uint256 _againstVotesAfter, uint256 _forVotesAfter, uint256 _abstainVotesAfter) =
+      governance.proposalVotes(PROPOSAL_ID);
+
+    // Assert the users have voted, with 1 as voting weight supporting the proposal.
+    assertTrue(governance.hasVoted(PROPOSAL_ID, user));
+    assertTrue(governance.hasVoted(PROPOSAL_ID, userTwo));
+    assertEq(_votingWeigthOne, 1);
+    assertEq(_votingWeigthTwo, 1);
+    // Assert the votes have been counted correctly
+    assertEq(_forVotesAfter, _forVotesBefore + 2);
+    assertEq(_abstainVotesAfter, _abstainVotesBefore);
+    assertEq(_againstVotesAfter, _againstVotesBefore);
+  }
+
+  /**
    * @notice Test a user tries to vote twice on the same proposal and expect the second vote to revert.
    */
   function test_revertIfVotingTwiceOnSameProposal() public {
     // Cast the vote
     vm.startPrank(user);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
     assertTrue(governance.hasVoted(PROPOSAL_ID, user));
 
     // Try to cast the same vote over the same proposal again and expect it to revert
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_DuplicateNullifier.selector);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
 
     // Try to cast the same vote over the same proposal again from another address and expect it to revert
     vm.startPrank(stranger);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_DuplicateNullifier.selector);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
   }
 
   /**
@@ -188,16 +250,16 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
    * proof but with a different nullifier
    */
   function test_revertIfInvalidNullifierHash(uint256 _invalidNullifierHash) public {
-    vm.assume(_invalidNullifierHash != NULLIFIER_HASH);
+    vm.assume(_invalidNullifierHash != NULLIFIER_HASH_ONE);
 
     // Cast the vote
     vm.startPrank(user);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
 
     // Expect the vote to revert when trying to use the same proof with a different nullifier
     vm.expectRevert(InvalidProof.selector);
-    proofData = abi.encode(ROOT, _invalidNullifierHash, proof);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    proofDataOne = abi.encode(ROOT, _invalidNullifierHash, proofOne);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
   }
 
   /**
@@ -210,15 +272,15 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
     // Try to vote with the invalid support signal and expect it to revert
     vm.expectRevert(InvalidProof.selector);
     vm.prank(user);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, _againstSupport, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, _againstSupport, REASON, proofDataOne);
   }
 
   /**
-   * @notice Test a user tries to vote when the `ROOT` from the proof is not anymore the current one
+   * @notice Test a user tries to vote when the `ROOT` from the proof is not the current one anymore
    */
   function test_revertIfNotLatestRoot() public {
-    // Current block number where the `latestRoot()` has already changed
-    uint256 _currentBlockNumber = 118_381_402;
+    // Update the block number to a moment where the `latestRoot()` is different than the one on the proof
+    uint256 _currentBlockNumber = 119_101_850;
 
     // Make persisten the deployed governance contract
     vm.makePersistent(address(governance));
@@ -228,6 +290,6 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
     // Try to vote with the outdated root and expect it to revert
     vm.prank(user);
     vm.expectRevert(IGovernorWorldID.GovernorWorldID_OutdatedRoot.selector);
-    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofData);
+    governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, proofDataOne);
   }
 }

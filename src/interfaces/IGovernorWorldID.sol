@@ -78,6 +78,21 @@ interface IGovernorWorldID {
   ) external;
 
   /**
+   * @notice Checks if the configuration parameters are valid
+   * @param _votingPeriod The voting period to check
+   * @param _resetGracePeriod The reset grace period to check
+   * @param _rootExpirationThreshold The root expiration threshold to check
+   * @dev The `_rootExpirationThreshold` can't be greater than IdentityManager's `rootHistoryExpiry`
+   * @dev This function aims to ensure that `_votingPeriod` is smaller than `_resetGracePeriod`
+   * minues `_rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   */
+  function checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) external view;
+
+  /**
    * @notice The World ID instance that will be used for verifying proofs
    * @return _worldId The World ID Router instance
    */
@@ -130,4 +145,12 @@ interface IGovernorWorldID {
    * @return _rootExpirationThreshold The expiration threshold
    */
   function rootExpirationThreshold() external view returns (uint256 _rootExpirationThreshold);
+
+  /**
+   * @notice The salt used to generate a more unique proposal id by concatenating the text to the proposal's description
+   * @return _proposalUniquenessSalt The salt
+   * @dev Is composed of the `block.chainid` and the `address(this)` to ensure proposal id
+   * uniqueness across different chains
+   */
+  function proposalUniquenessSalt() external view returns (string memory _proposalUniquenessSalt);
 }
