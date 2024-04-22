@@ -40,7 +40,7 @@ abstract contract Base is Test, UnitUtils {
 
 contract GovernorDemocratic_Unit_GetVotes is Base {
   /**
-   * @notice Check that the voting weight is 1
+   * @notice Test that the returned voting weight is always 1
    */
   function test_returnsOne(address _account, uint256 _timepoint, bytes memory _params) public {
     uint256 _votingWeight = governor.forTest_getVotes(_account, _timepoint, _params);

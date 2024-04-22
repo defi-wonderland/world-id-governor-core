@@ -13,8 +13,6 @@ import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {Time} from 'open-zeppelin/utils/types/Time.sol';
 
-import 'forge-std/Test.sol';
-
 abstract contract Base is Test, UnitUtils {
   uint8 public constant SUPPORT = 1;
   uint256 public constant GROUP_ID = _GROUP_ID;
@@ -387,7 +385,7 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
 
 contract DemocraticGovernance_Unit_GetVotes is Base {
   /**
-   * @notice Check that the voting weight is 1
+   * @notice Check that returns is 1
    */
   function test_returnsOne(address _account, uint256 _timepoint, bytes memory _params) public {
     uint256 _votingWeight = governor.forTest_getVotes(_account, _timepoint, _params);
