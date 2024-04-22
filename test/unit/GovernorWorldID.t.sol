@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {ERC20VotesForTest} from '../forTest/ERC20VotesForTest.sol';
 import {GovernorWorldIdForTest} from '../forTest/GovernorWorldIdForTest.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
 import {InternalCallsWatcher} from './utils/CalledInternal.sol';
@@ -13,15 +12,12 @@ import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
-import {IVotes} from 'open-zeppelin/governance/utils/IVotes.sol';
-import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 import {Strings} from 'open-zeppelin/utils/Strings.sol';
 
 abstract contract Base is Test, UnitUtils {
   uint8 public constant SUPPORT = 1;
   uint256 public constant GROUP_ID = _GROUP_ID;
   string public constant REASON = '';
-  uint256 public constant WEIGHT = 0;
   string public constant APP_ID = _APP_ID;
   uint48 public constant INITIAL_VOTING_DELAY = 1 days;
   uint32 public constant INITIAL_VOTING_PERIOD = 3 days;
@@ -34,7 +30,6 @@ abstract contract Base is Test, UnitUtils {
   Vm.Wallet public signer = vm.createWallet('signer');
   address public user = makeAddr('user');
 
-  IERC20 public token;
   GovernorWorldIdForTest public governor;
   IWorldIDRouter public worldIDRouter;
   IWorldIDIdentityManager public worldIDIdentityManager;
@@ -45,9 +40,6 @@ abstract contract Base is Test, UnitUtils {
   bytes public signature;
 
   function setUp() public {
-    // Deploy token
-    token = new ERC20VotesForTest();
-
     // Deploy mock worldIDRouter
     worldIDRouter = _worldIDRouter;
     vm.etch(address(worldIDRouter), new bytes(0x1));
@@ -75,7 +67,6 @@ abstract contract Base is Test, UnitUtils {
       GROUP_ID,
       worldIDRouter,
       APP_ID,
-      IVotes(address(token)),
       INITIAL_VOTING_DELAY,
       INITIAL_VOTING_PERIOD,
       INITIAL_PROPOSAL_THRESHOLD,
@@ -120,7 +111,6 @@ contract GovernorWorldID_Unit_Constructor is Base {
         GROUP_ID,
         worldIDRouter,
         APP_ID,
-        IVotes(address(token)),
         INITIAL_VOTING_DELAY,
         INITIAL_VOTING_PERIOD,
         INITIAL_PROPOSAL_THRESHOLD,
@@ -752,11 +742,12 @@ contract GovernorWorldID_Unit_CastVote_WithParams is Base {
    * @notice Check that the function works as expected
    */
   function test_castVoteWithReasonAndParams(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
+    uint256 _weight = governor.getVotes(address(user), block.timestamp);
     bytes memory _params =
       _mockWorlIDCalls(SUPPORT, proposalId, _root, _nullifierHash, _proof, ROOT_EXPIRATION_THRESHOLD, rootTimestamp);
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, WEIGHT, REASON, _params);
+    emit IGovernor.VoteCastWithParams(user, proposalId, SUPPORT, _weight, REASON, _params);
 
     // Cast the vote
     vm.prank(user);
