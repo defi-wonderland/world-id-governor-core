@@ -31,6 +31,18 @@ contract Common {
   // Block number at which the proof was generated
   uint256 public constant BLOCK_NUMBER_PROOF_TWO = 119_106_419;
 
+  // WLD Token
+  address public constant WLD = 0xdC6fF44d5d932Cbd77B52E5612Ba0529DC6226F1;
+
+  // WLD holder
+  address public constant WLD_HOLDER = 0xacD03D601e5bB1B275Bb94076fF46ED9D753435A;
+
+  // Goat Guy address
+  address public constant GOAT_GUY = 0xD075Caa6e58702E028D0e43Cb796B73d23ab3eA5;
+
+  // Transfer amount
+  uint256 public constant WLD_AMOUNT = 250 ether;
+
   // First proof
   uint256[8] public proofOne = [
     20_133_459_519_437_958_357_407_513_100_601_192_676_864_784_869_274_718_853_355_934_822_132_250_985_684,
@@ -58,16 +70,4 @@ contract Common {
   uint256 public forkBlock = BLOCK_NUMBER_PROOF_TWO;
   // Root expiration threshold set to 1 hour so we test the `rootHistory` flow first
   uint256 public rootExpirationThreshold = 1 hours;
-
-  // WLD Token
-  address public constant WLD = 0xdC6fF44d5d932Cbd77B52E5612Ba0529DC6226F1;
-
-  // WLD holder
-  address public constant WLD_HOLDER = 0xacD03D601e5bB1B275Bb94076fF46ED9D753435A;
-
-  // Goat Guy address
-  address public constant GOAT_GUY = 0xD075Caa6e58702E028D0e43Cb796B73d23ab3eA5;
-
-  // Transfer amount
-  uint256 public constant WLD_AMOUNT = 250 ether;
 }

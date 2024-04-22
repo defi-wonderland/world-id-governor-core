@@ -3,10 +3,10 @@ pragma solidity 0.8.23;
 
 import {GoatsDAO} from 'contracts/example/GoatsDAO.sol';
 import {Test} from 'forge-std/Test.sol';
-import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 import {Common} from 'test/Common.sol';
 
+/* solhint-disable reentrancy */
 contract E2EBase is Test, Common {
   /* DAO constant settings */
   uint256 public constant GOATS_DAO_QUORUM = 2;
