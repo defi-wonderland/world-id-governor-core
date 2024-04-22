@@ -1,19 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {DemocraticGovernanceForTest} from '../forTest/DemocraticGovernanceForTest.sol';
-import {UnitUtils} from './utils/UnitUtils.sol';
+import {GoatsDAOForTest} from '../../forTest/GoatsDAOForTest.sol';
+import {UnitUtils} from '../utils/UnitUtils.sol';
 import {Test} from 'forge-std/Test.sol';
-import {IDemocraticGovernance} from 'interfaces/IDemocraticGovernance.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
 import {IWorldIDIdentityManager} from 'interfaces/IWorldIDIdentityManager.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
+import {IGoatsDAO} from 'interfaces/example/IGoatsDAO.sol';
 import {ByteHasher} from 'libraries/ByteHasher.sol';
 import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {Time} from 'open-zeppelin/utils/types/Time.sol';
-
-import 'forge-std/Test.sol';
 
 abstract contract Base is Test, UnitUtils {
   uint8 public constant SUPPORT = 1;
@@ -31,7 +29,7 @@ abstract contract Base is Test, UnitUtils {
   uint256 public constant ROOT_HISTORY_EXPIRY = 1 weeks;
   uint128 public rootTimestamp = uint128(block.timestamp - 1);
 
-  DemocraticGovernanceForTest public governor;
+  GoatsDAOForTest public governor;
   IWorldIDRouter public worldIDRouter;
   IWorldIDIdentityManager public worldIDIdentityManager;
 
@@ -67,7 +65,7 @@ abstract contract Base is Test, UnitUtils {
 
     // Deploy governor
     vm.prank(owner);
-    governor = new DemocraticGovernanceForTest(
+    governor = new GoatsDAOForTest(
       GROUP_ID,
       worldIDRouter,
       APP_ID,
@@ -88,7 +86,7 @@ abstract contract Base is Test, UnitUtils {
   }
 }
 
-contract DemocraticGovernance_Unit_SetQuorum is Base {
+contract GoatsDAO_Unit_SetQuorum is Base {
   /**
    * @notice Check that only the governance can set the quorum
    */
@@ -113,14 +111,14 @@ contract DemocraticGovernance_Unit_SetQuorum is Base {
    */
   function test_emitQuorumSet(uint256 _newQuorumThreshold) public {
     vm.expectEmit(true, true, true, true);
-    emit IDemocraticGovernance.QuorumSet(QUORUM, _newQuorumThreshold);
+    emit IGoatsDAO.QuorumSet(QUORUM, _newQuorumThreshold);
 
     vm.prank(address(governor));
     governor.setQuorum(_newQuorumThreshold);
   }
 }
 
-contract DemocraticGovernance_Unit_Constructor is Base {
+contract GoatsDAO_Unit_Constructor is Base {
   using ByteHasher for bytes;
 
   /**
@@ -130,7 +128,7 @@ contract DemocraticGovernance_Unit_Constructor is Base {
     vm.assume(_rootExpirationThreshold <= RESET_GRACE_PERIOD);
     vm.assume(_rootExpirationThreshold <= ROOT_HISTORY_EXPIRY);
 
-    governor = new DemocraticGovernanceForTest(
+    governor = new GoatsDAOForTest(
       GROUP_ID,
       worldIDRouter,
       APP_ID,
@@ -154,7 +152,7 @@ contract DemocraticGovernance_Unit_Constructor is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_Propose is Base {
+contract GoatsDAO_Unit_Propose is Base {
   /**
    * @notice Check that only the owner can propose
    */
@@ -229,7 +227,7 @@ contract DemocraticGovernance_Unit_Propose is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_Quorum is Base {
+contract GoatsDAO_Unit_Quorum is Base {
   /**
    * @notice Test that the function returns the current quorum, independently of the given argument
    */
@@ -238,7 +236,7 @@ contract DemocraticGovernance_Unit_Quorum is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_Clock is Base {
+contract GoatsDAO_Unit_Clock is Base {
   using Time for *;
 
   /**
@@ -249,7 +247,7 @@ contract DemocraticGovernance_Unit_Clock is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_VotingDelay is Base {
+contract GoatsDAO_Unit_VotingDelay is Base {
   /**
    * @notice Check that the function works as expected
    */
@@ -258,7 +256,7 @@ contract DemocraticGovernance_Unit_VotingDelay is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_VotingPeriod is Base {
+contract GoatsDAO_Unit_VotingPeriod is Base {
   /**
    * @notice Check that the function works as expected
    */
@@ -267,7 +265,7 @@ contract DemocraticGovernance_Unit_VotingPeriod is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_ProposalThreshold is Base {
+contract GoatsDAO_Unit_ProposalThreshold is Base {
   /**
    * @notice Check that the function works as expected
    */
@@ -276,7 +274,7 @@ contract DemocraticGovernance_Unit_ProposalThreshold is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_CLOCK_MODE is Base {
+contract GoatsDAO_Unit_CLOCK_MODE is Base {
   /**
    * @notice Test that the function returns the clock mode
    */
@@ -286,7 +284,7 @@ contract DemocraticGovernance_Unit_CLOCK_MODE is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_CastVote_WithoutParams is Base {
+contract GoatsDAO_Unit_CastVote_WithoutParams is Base {
   /**
    * @notice Check that the function is disabled and reverts
    */
@@ -297,7 +295,7 @@ contract DemocraticGovernance_Unit_CastVote_WithoutParams is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
+contract GoatsDAO_Unit_CastVote_WithParams is Base {
   /**
    * @notice Check that the function emits the VoteCastWithParams event
    */
@@ -327,7 +325,7 @@ contract DemocraticGovernance_Unit_CastVote_WithParams is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_QuorumReached is Base {
+contract GoatsDAO_Unit_QuorumReached is Base {
   /**
    * @notice Test that the function returns if the quorum is reached
    */
@@ -385,9 +383,9 @@ contract DemocraticGovernance_Unit_QuorumReached is Base {
   }
 }
 
-contract DemocraticGovernance_Unit_GetVotes is Base {
+contract GoatsDAO_Unit_GetVotes is Base {
   /**
-   * @notice Check that the voting weight is 1
+   * @notice Check that returns is 1
    */
   function test_returnsOne(address _account, uint256 _timepoint, bytes memory _params) public {
     uint256 _votingWeight = governor.forTest_getVotes(_account, _timepoint, _params);
