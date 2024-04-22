@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {E2EBase} from './E2EBase.sol';
+import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 
 contract E2E_GoatsDAO is E2EBase {
