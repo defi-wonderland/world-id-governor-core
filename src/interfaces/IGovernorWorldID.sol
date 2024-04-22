@@ -145,4 +145,12 @@ interface IGovernorWorldID {
    * @return _rootExpirationThreshold The expiration threshold
    */
   function rootExpirationThreshold() external view returns (uint256 _rootExpirationThreshold);
+
+  /**
+   * @notice The salt used to generate a more unique proposal id by concatenating the text to the proposal's description
+   * @return _proposalUniquenessSalt The salt
+   * @dev Is composed of the `block.chainid` and the `address(this)` to ensure proposal id
+   * uniqueness across different chains
+   */
+  function proposalUniquenessSalt() external view returns (string memory _proposalUniquenessSalt);
 }

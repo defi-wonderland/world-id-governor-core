@@ -71,6 +71,16 @@ contract GovernorWorldIdForTest is InternalCallsWatcherExtension, GovernorCounti
     _checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 
+  function forTest_propose(
+    address[] memory _targets,
+    uint256[] memory _values,
+    bytes[] memory _calldatas,
+    string memory _description,
+    address _proposer
+  ) public returns (uint256 _proposalId) {
+    _proposalId = _propose(_targets, _values, _calldatas, _description, _proposer);
+  }
+
   function quorum(uint256) public view override returns (uint256 _quorum) {
     _quorum = block.number;
   }
@@ -137,6 +147,16 @@ contract GovernorWorldIdForTest is InternalCallsWatcherExtension, GovernorCounti
     bytes memory _params
   ) internal override(Governor, GovernorWorldID) returns (uint256) {
     return super._castVote(_proposalId, _account, _support, _reason, _params);
+  }
+
+  function _propose(
+    address[] memory _targets,
+    uint256[] memory _values,
+    bytes[] memory _calldatas,
+    string memory _description,
+    address _proposer
+  ) internal virtual override(Governor, GovernorWorldID) returns (uint256 _proposalId) {
+    _proposalId = super._propose(_targets, _values, _calldatas, _description, _proposer);
   }
 
   function _checkConfigValidity(

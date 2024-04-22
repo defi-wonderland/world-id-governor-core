@@ -14,7 +14,7 @@ import {Strings} from 'open-zeppelin/utils/Strings.sol';
  */
 abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   using ByteHasher for bytes;
-  using Strings for uint256;
+  using Strings for *;
 
   /**
    * @inheritdoc IGovernorWorldID
@@ -49,6 +49,11 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
   /**
    * @inheritdoc IGovernorWorldID
    */
+  string public proposalUniquenessSalt;
+
+  /**
+   * @inheritdoc IGovernorWorldID
+   */
   mapping(uint256 _nullifierHash => bool _isUsed) public nullifierHashes;
 
   /**
@@ -65,6 +70,14 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     appId = _appId;
     APP_ID_HASH = abi.encodePacked(_appId).hashToField();
     _setConfig(uint32(votingPeriod()), resetGracePeriod, _rootExpirationThreshold);
+    // Create the proposal uniqueness salt to give more uniqueness to the proposal description
+    proposalUniquenessSalt = string.concat(
+      ' ### Proposal Uniqueness Salt:',
+      ' - **Chain ID:** ',
+      block.chainid.toString(),
+      ' - **Contract Address:** ',
+      address(this).toHexString()
+    );
   }
 
   /**
@@ -146,6 +159,29 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     uint256 _externalNullifierHash = abi.encodePacked(APP_ID_HASH, _proposalId.toString()).hashToField();
     WORLD_ID_ROUTER.verifyProof(_root, GROUP_ID, _signalHash, _decodedNullifierHash, _externalNullifierHash, _proof);
     _nullifierHash = _decodedNullifierHash;
+  }
+
+  /**
+   * @notice Creates the proposal after validating the `_targets`, `_values`, `_calldatas` and the `proposer` inputs
+   * @param _targets The target addresses for the proposal calls
+   * @param _values The values to be sent to the proposal calls
+   * @param _calldatas The calldatas for the proposal calls
+   * @param _description The description of the proposal
+   * @param _proposer The proposer address
+   * @return _proposalId The proposal id
+   * @dev It concatenates the proposal uniqueness salt to the proposal description to ensure uniqueness of the proposal
+   * between different chains. The description is validated before calling this function so we are not altering the
+   * behaviour of the Governor contract more than adding the uniqueness salt.
+   */
+  function _propose(
+    address[] memory _targets,
+    uint256[] memory _values,
+    bytes[] memory _calldatas,
+    string memory _description,
+    address _proposer
+  ) internal virtual override returns (uint256 _proposalId) {
+    _description = string.concat(_description, proposalUniquenessSalt);
+    _proposalId = super._propose(_targets, _values, _calldatas, _description, _proposer);
   }
 
   /**

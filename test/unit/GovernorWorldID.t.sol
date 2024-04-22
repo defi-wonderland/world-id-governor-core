@@ -96,6 +96,7 @@ abstract contract Base is Test, UnitUtils {
 
 contract GovernorWorldID_Unit_Constructor is Base {
   using ByteHasher for bytes;
+  using Strings for *;
 
   /**
    * @notice Check that the constructor works as expected
@@ -127,6 +128,15 @@ contract GovernorWorldID_Unit_Constructor is Base {
     assertEq(_governor.votingDelay(), INITIAL_VOTING_DELAY);
     assertEq(_governor.votingPeriod(), INITIAL_VOTING_PERIOD);
     assertEq(_governor.proposalThreshold(), INITIAL_PROPOSAL_THRESHOLD);
+    // Check the proposal's description uniqueness salt is properly set
+    string memory _proposalUniquenessSalt = string.concat(
+      ' ### Proposal Uniqueness Salt:',
+      ' - **Chain ID:** ',
+      block.chainid.toString(),
+      ' - **Contract Address:** ',
+      address(_governor).toHexString()
+    );
+    assertEq(_governor.proposalUniquenessSalt(), _proposalUniquenessSalt);
   }
 }
 
@@ -506,6 +516,26 @@ contract GovernorWorldID_Unit_CheckVoteValidity_Internal is Base {
     vm.prank(user);
     uint256 _returnedNullifierHash = governor.forTest_checkVoteValidity(SUPPORT, proposalId, _params);
     assertEq(_returnedNullifierHash, _nullifierHash);
+  }
+}
+
+contract GovernorWorldID_Unit_Propose is Base {
+  function test_proposeWithDescriptionSalt() public {
+    // Proposal Inputs
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    bytes[] memory _calldatas = new bytes[](1);
+    string memory _inputDescription = 'This is my description.';
+    // Concatenate the description with the salt and calculate the proposal id
+    string memory _saltDescription = string.concat(_inputDescription, governor.proposalUniquenessSalt());
+    uint256 _expectedProposalId =
+      governor.hashProposal(_targets, _values, _calldatas, keccak256(bytes(_saltDescription)));
+
+    vm.prank(user);
+    uint256 _proposalId = governor.forTest_propose(_targets, _values, _calldatas, _inputDescription, user);
+
+    // Assert the proposal id is the expected one
+    assertEq(_proposalId, _expectedProposalId);
   }
 }
 

@@ -13,6 +13,8 @@ import {Ownable} from 'open-zeppelin/access/Ownable.sol';
 import {IGovernor} from 'open-zeppelin/governance/IGovernor.sol';
 import {Time} from 'open-zeppelin/utils/types/Time.sol';
 
+import 'forge-std/Test.sol';
+
 abstract contract Base is Test, UnitUtils {
   uint8 public constant SUPPORT = 1;
   uint256 public constant GROUP_ID = _GROUP_ID;
@@ -171,8 +173,8 @@ contract DemocraticGovernance_Unit_Propose is Base {
     address[] memory _targets = new address[](1);
     uint256[] memory _values = new uint256[](1);
     bytes[] memory _calldatas = new bytes[](1);
-    bytes32 _descriptionHash = keccak256(bytes(_description));
-    uint256 _proposalId = governor.hashProposal(_targets, _values, _calldatas, _descriptionHash);
+    string memory _expectedDescription = string.concat(_description, governor.proposalUniquenessSalt());
+    uint256 _proposalId = governor.hashProposal(_targets, _values, _calldatas, keccak256(bytes(_expectedDescription)));
 
     vm.expectEmit(true, true, true, true);
     uint256 snapshot = governor.clock() + governor.votingDelay();
@@ -185,7 +187,7 @@ contract DemocraticGovernance_Unit_Propose is Base {
       _calldatas,
       snapshot,
       snapshot + governor.votingPeriod(),
-      _description
+      _expectedDescription
     );
 
     vm.prank(owner);
@@ -216,7 +218,8 @@ contract DemocraticGovernance_Unit_Propose is Base {
     address[] memory _targets = new address[](1);
     uint256[] memory _values = new uint256[](1);
     bytes[] memory _calldatas = new bytes[](1);
-    bytes32 _descriptionHash = keccak256(bytes(_description));
+    string memory _expectedDescription = string.concat(_description, governor.proposalUniquenessSalt());
+    bytes32 _descriptionHash = keccak256(bytes(_expectedDescription));
     uint256 _proposalId = governor.hashProposal(_targets, _values, _calldatas, _descriptionHash);
 
     vm.prank(owner);
