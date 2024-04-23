@@ -31,6 +31,7 @@ contract E2E_GoatsDAO is E2EBase {
     assert(
       governance.proposalDeadline(PROPOSAL_ID) == _startVoteTimestamp + INITIAL_VOTING_DELAY + INITIAL_VOTING_PERIOD
     );
+    // Assert that the config was correctly set
     assert(governance.votingPeriod() == _newVotingPeriod);
     assert(governance.resetGracePeriod() == _newResetGracePeriod);
     assert(governance.rootExpirationThreshold() == _newRootExpirationThreshold);
@@ -48,9 +49,10 @@ contract E2E_GoatsDAO is E2EBase {
     // After the voting period has ended, the proposal is executed
     vm.warp(block.timestamp + INITIAL_VOTING_PERIOD);
 
-    bytes32 _description = keccak256(abi.encodePacked(string.concat(description, governance.proposalUniquenessSalt())));
+    string memory _saltDescription = string.concat(description, governance.proposalUniquenessSalt());
+    bytes32 _descriptionHash = keccak256(abi.encodePacked(_saltDescription));
     vm.prank(owner);
-    governance.execute(targets, values, calldatas, _description);
+    governance.execute(targets, values, calldatas, _descriptionHash);
 
     // Check that the Goat Guy has received the WLD tokens
     assert(IERC20(WLD).balanceOf(GOAT_GUY) == _goatGuyBalanceBefore + WLD_AMOUNT);
@@ -75,18 +77,23 @@ contract E2E_GoatsDAO is E2EBase {
     // After the voting period has ended, the proposal is executed but fails
     vm.warp(block.timestamp + INITIAL_VOTING_PERIOD);
 
+    // Get the proposal's description hash
+    string memory _saltDescription = string.concat(description, governance.proposalUniquenessSalt());
+    bytes32 _descriptionHash = keccak256(abi.encodePacked(_saltDescription));
+
+    // Expect to revert with the unexpected proposal state error
     bytes32 _succeededStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Succeeded));
     bytes32 _queuedStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Queued));
     IGovernor.ProposalState _currentState = IGovernor.ProposalState.Defeated;
     bytes32 _expectedStateBitmap = _succeededStateBitmap | _queuedStateBitmap;
-    bytes32 _description = keccak256(abi.encodePacked(string.concat(description, governance.proposalUniquenessSalt())));
     vm.expectRevert(
       abi.encodeWithSelector(
         IGovernor.GovernorUnexpectedProposalState.selector, PROPOSAL_ID, _currentState, _expectedStateBitmap
       )
     );
+
     vm.prank(owner);
-    governance.execute(targets, values, calldatas, _description);
+    governance.execute(targets, values, calldatas, _descriptionHash);
   }
 
   /**
@@ -108,18 +115,23 @@ contract E2E_GoatsDAO is E2EBase {
     vm.prank(userTwo);
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, userTwoProofData);
 
-    // The voting period has not ended, the proposal is executed but fails
+    // Get the proposal's description hash
+    string memory _saltDescription = string.concat(description, governance.proposalUniquenessSalt());
+    bytes32 _descriptionHash = keccak256(abi.encodePacked(_saltDescription));
+
+    // Set the proposal state to active but not yet ended
     bytes32 _succeededStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Succeeded));
     bytes32 _queuedStateBitmap = bytes32(1 << uint8(IGovernor.ProposalState.Queued));
     IGovernor.ProposalState _currentState = IGovernor.ProposalState.Active;
     bytes32 _expectedStateBitmap = _succeededStateBitmap | _queuedStateBitmap;
-    bytes32 _description = keccak256(abi.encodePacked(string.concat(description, governance.proposalUniquenessSalt())));
+    // Expect a revert when trying to execute the proposal
     vm.expectRevert(
       abi.encodeWithSelector(
         IGovernor.GovernorUnexpectedProposalState.selector, PROPOSAL_ID, _currentState, _expectedStateBitmap
       )
     );
+
     vm.prank(owner);
-    governance.execute(targets, values, calldatas, _description);
+    governance.execute(targets, values, calldatas, _descriptionHash);
   }
 }
