@@ -120,7 +120,6 @@ interface IGovernorWorldID {
    * @dev This will be needed for the off-chain to generate valid proofs using the correct app ID
    * @dev Can't be defined as immutable because its type is string, but is never updated
    */
-  // solhint-disable-next-line func-name-mixedcase
   function appId() external view returns (string memory _appId);
 
   /**

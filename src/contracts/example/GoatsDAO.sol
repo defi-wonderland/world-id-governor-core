@@ -50,7 +50,7 @@ contract GoatsDAO is Ownable, GovernorCountingSimple, GovernorDemocratic, IGoats
     uint256 _rootExpirationThreshold
   )
     Ownable(msg.sender)
-    Governor('DemocraticGovernor')
+    Governor('GoatsDAO')
     GovernorSettings(_initialVotingDelay, _initialVotingPeriod, _initialProposalThreshold)
     GovernorWorldID(_groupID, _worldIdRouter, _appId, _rootExpirationThreshold)
   {
