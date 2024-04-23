@@ -67,7 +67,7 @@ Adding a threshold to be used as a buffer is a wise choice, but we recommend usi
 
 #### Nullifier Hash Usage
 
-The nullifier hash is unique per WorldID account and per action. Storing it and checking that was not stored before allows to prevent double voting on the same proposal.
+The nullifier hash is unique per WorldID account and per action. This means that the same user will always generate the same nullifier hash to vote on the same proposal. Storing it and checking that was not stored before allows to prevent double voting on the same proposal.
 
 ## Licensing
 
