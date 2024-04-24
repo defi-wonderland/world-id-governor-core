@@ -73,8 +73,8 @@ contract GovernorWorldIdForTest is InternalCallsWatcherExtension, GovernorCounti
     _proposalId = _propose(_targets, _values, _calldatas, _description, _proposer);
   }
 
-  function quorum(uint256) public view override returns (uint256 _quorum) {
-    _quorum = block.number;
+  function quorum(uint256) public pure override returns (uint256 _randomQuorum) {
+    _randomQuorum = 10;
   }
 
   function clock() public view override returns (uint48) {
