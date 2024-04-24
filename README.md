@@ -23,7 +23,7 @@ yarn build
 
 ### Available Commands
 
-Make sure to set `OPTIMISM_RPC` environment variable before running integration tests.
+Make sure to copy `.env.example` and set `OPTIMISM_RPC` environment variable before running integration tests.
 
 | Yarn Command            | Description                         |
 | ----------------------- | ----------------------------------- |
@@ -33,11 +33,11 @@ Make sure to set `OPTIMISM_RPC` environment variable before running integration 
 | `yarn test:unit`        | Run unit tests.                     |
 | `yarn test:integration` | Run integration tests.              |
 
-## Implementing The Abstracts
+## How to Use
 
 You can implement [GovernorWorldID](src/contracts/GovernorWorldID.sol) and [GovernorDemocratic](src/contracts/GovernorDemocratic.sol) abstract contracts, and use them as the base to create your own governance protocols.
 When implementing the contracts, other functions related to OpenZeppelin standard contracts should be implemented as well, depending on the implemented OZ extensions.
-A `GovernorDemocratic` implementation already exists and can be found at [GoatsDAO.sol](src/contracts/example/GoatsDAO.sol).
+An implementation already exists and can be found at [GoatsDAO.sol](src/contracts/example/GoatsDAO.sol).
 
 ### Deployment Considerations
 
@@ -45,13 +45,13 @@ A `GovernorDemocratic` implementation already exists and can be found at [GoatsD
 - `_worldIdRouter`: The World ID router contract address, depending on the chain it was deployed. You can see the list [here](https://docs.worldcoin.org/reference/address-book)
 - `_rootExpirationThreshold`: The time it takes for a root provided by the user to expire. See more [here](#double-voting-mitigation).
 
-### SDK Considerations
+### Good to know
 
-- `appId`: The application ID created on the [Worldcoin developer portal](https://developer.worldcoin.org/).
-- `actionId`: The action ID is composed of the `proposalId` passed as a string.
-- `signal`: The signal will be the support passed as a string.
+To interact with Worldcoin's IDKit SDK to generate proofs, you'll need to pass the `appId`, `actionId` (string type) and `support` as `signal` (string type).
 
 ### Double Voting Mitigation
+
+#### Mitigating The Reset Period Problem
 
 In the World ID protocol, users can choose to reset their account. The re-insertion will take a certain amount of time (currently [14 days](https://docs.worldcoin.org/further-reading/world-id-reset)). This introduces the possibility of a double-voting scenario in case the voting period is greater than the period it takes a user to be re-inserted. This period is an arbitrary value and it's not on-chain, so we have to track it with the `resetGracePeriod` variable and update if it changes.
 One way to mitigate the double-voting risk, is ensuring that the `votingPeriod` is less than the `resetGracePeriod`, checking the provided proof's Merkle root is equal to `latestRoot`. But there is a caveat:
@@ -60,10 +60,14 @@ New World ID accounts are inserted into the tree at a fast pace (currently 20 mi
 
 Finally, the invariant to mitigate the double-voting period is that `votingPeriod` must be less than the `resetGracePeriod` minus `rootExpirationThreshold`.
 
-If a safer version is desired, the proofs should be only verified against the `latestRoot()` can be utilized.
+If a safer version is desired, you can set to only use the `latestRoot()` by setting `rootExpirationThreshold` to 0.
 Adding a threshold to be used as a buffer is a wise choice, but we recommend using a small value, no more than 30 minutes or 1 hour, as the rootHistoryExpiry can be updated on the IdentityManager, potentially breaking the invariant of the voting period that ensures no double-voting can occur.
 
 `rootExpirationThreshold` for L2s can be any value while **_should always be 0 in Mainnet and Mainnet testnets_** due to a discrepancy between the World ID protocol on Ethereum and L2s.
+
+#### Nullifier Hash Usage
+
+The nullifier hash is unique per WorldID account and per action. This means that the same user will always generate the same nullifier hash to vote on the same proposal. Storing and verifying whether it has been stored previously helps prevent duplicate votes on the same proposal.
 
 ## Licensing
 
