@@ -103,6 +103,8 @@ contract Integration_VotingFlow_NonZeroThreshold is IntegrationBase {
    * proof but with a different nullifier
    */
   function test_revertIfInvalidNullifierHash(uint256 _invalidNullifierHash) public {
+    // Can't be 0 because it will fail on the decode
+    vm.assume(_invalidNullifierHash != 0);
     vm.assume(_invalidNullifierHash != NULLIFIER_HASH_ONE);
 
     // Cast the vote
@@ -255,6 +257,8 @@ contract Integration_VotingFlow_ZeroThreshold is IntegrationBase {
    * proof but with a different nullifier
    */
   function test_revertIfInvalidNullifierHash(uint256 _invalidNullifierHash) public {
+    // Can't be 0 because it will fail on the decode
+    vm.assume(_invalidNullifierHash != 0);
     vm.assume(_invalidNullifierHash != NULLIFIER_HASH_ONE);
 
     // Cast the vote

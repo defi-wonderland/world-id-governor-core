@@ -32,6 +32,7 @@ Make sure to copy `.env.example` and set `OPTIMISM_RPC` environment variable bef
 | `yarn test`             | Run all unit and integration tests. |
 | `yarn test:unit`        | Run unit tests.                     |
 | `yarn test:integration` | Run integration tests.              |
+| `yarn test:e2e`         | Run E2E tests.                      |
 
 ## How to Use
 
