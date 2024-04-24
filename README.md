@@ -32,6 +32,7 @@ Make sure to set `OPTIMISM_RPC` environment variable before running integration 
 | `yarn test`             | Run all unit and integration tests. |
 | `yarn test:unit`        | Run unit tests.                     |
 | `yarn test:integration` | Run integration tests.              |
+| `yarn test:e2e`         | Run E2E tests.                      |
 
 ## Implementing The Abstracts
 
