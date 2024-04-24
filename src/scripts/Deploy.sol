@@ -27,6 +27,6 @@ abstract contract Deploy is Script, Constants {
       _initialProposalThreshold,
       _rootExpirationThreshold
     );
-    console.log('Democratic Governance deployed at:', address(_goatsDAO));
+    console.log('GoatsDAO deployed at:', address(_goatsDAO));
   }
 }

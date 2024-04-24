@@ -10,13 +10,13 @@ interface IGoatsDAO {
   event QuorumSet(uint256 _oldQuorumThreshold, uint256 _newQuorumThreshold);
 
   /**
-   * @notice Sets the quorum threshold for the democratic governance
+   * @notice Sets the quorum threshold
    * @param _quorumThreshold The quorum threshold
    */
   function setQuorum(uint256 _quorumThreshold) external;
 
   /**
-   * @notice Returns the quorum threshold for the democratic governance
+   * @notice Returns the quorum threshold
    * @return _quorumThreshold The quorum threshold
    */
   function quorumThreshold() external view returns (uint256 _quorumThreshold);
