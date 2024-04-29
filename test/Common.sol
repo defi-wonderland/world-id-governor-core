@@ -72,6 +72,5 @@ contract Common {
   uint256 public rootExpirationThreshold = 1 hours;
 
   // Proposal description
-  string public constant DESCRIPTION =
-    'Donate 250WLD tokens to the Goat guy, so he can buy some more goats and build a shelter';
+  string public constant DESCRIPTION = 'Should Wonderland contribute 250 WLD to Richard\'s goat project?';
 }
