@@ -14,7 +14,7 @@ import {Time} from 'open-zeppelin/utils/types/Time.sol';
 /**
  * @title GoatsDAO
  * @notice Implementation of the GovernorDemocratic contract, with 1 vote per voter that is verified on WorldID. It aims
- * to be a simple DAO for donating WLD to the Goat guy.
+ * to be a simple DAO for contributing WLD to Richard's goat project
  * @dev For this specific case, only the owner can propose.
  */
 contract GoatsDAO is Ownable, GovernorCountingSimple, GovernorDemocratic, IGoatsDAO {
