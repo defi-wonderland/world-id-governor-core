@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {DemocraticGovernance} from 'contracts/DemocraticGovernance.sol';
+import {GoatsDAO} from 'contracts/example/GoatsDAO.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 
-contract DemocraticGovernanceForTest is DemocraticGovernance {
+contract GoatsDAOForTest is GoatsDAO {
   constructor(
     uint256 _groupID,
     IWorldIDRouter _worldIdRouter,
@@ -15,7 +15,7 @@ contract DemocraticGovernanceForTest is DemocraticGovernance {
     uint256 _initialProposalThreshold,
     uint256 _rootExpirationThreshold
   )
-    DemocraticGovernance(
+    GoatsDAO(
       _groupID,
       _worldIdRouter,
       _appId,
@@ -68,5 +68,15 @@ contract DemocraticGovernanceForTest is DemocraticGovernance {
 
   function forTest_quorumReached(uint256 _proposalId) public view returns (bool _reached) {
     return _quorumReached(_proposalId);
+  }
+
+  function _propose(
+    address[] memory _targets,
+    uint256[] memory _values,
+    bytes[] memory _calldatas,
+    string memory _description,
+    address _proposer
+  ) internal virtual override returns (uint256 _proposalId) {
+    _proposalId = super._propose(_targets, _values, _calldatas, _description, _proposer);
   }
 }

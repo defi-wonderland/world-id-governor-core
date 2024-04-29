@@ -14,7 +14,7 @@ contract DeployOptimism is Deploy {
   function run() public {
     vm.startBroadcast(deployer);
 
-    // Deploy DemocraticGovernance
+    // Deploy GoatsDAO
     _deploy(
       GROUP_ID,
       WORLD_ID_ROUTER,

@@ -1,26 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {InternalCallsWatcherExtension} from '../unit/utils/CalledInternal.sol';
+import {InternalCallsWatcherExtension} from '../utils/CalledInternal.sol';
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
-import {Governor, IERC6372, IGovernor} from 'open-zeppelin/governance/Governor.sol';
+import {Governor} from 'open-zeppelin/governance/Governor.sol';
 import {GovernorCountingSimple} from 'open-zeppelin/governance/extensions/GovernorCountingSimple.sol';
-import {GovernorVotes, IVotes} from 'open-zeppelin/governance/extensions/GovernorVotes.sol';
-import {GovernorVotesQuorumFraction} from 'open-zeppelin/governance/extensions/GovernorVotesQuorumFraction.sol';
+import {GovernorSettings} from 'open-zeppelin/governance/extensions/GovernorSettings.sol';
 
-contract GovernorWorldIdForTest is
-  InternalCallsWatcherExtension,
-  GovernorCountingSimple,
-  GovernorVotes,
-  GovernorVotesQuorumFraction,
-  GovernorWorldID
-{
+contract GovernorWorldIdForTest is InternalCallsWatcherExtension, GovernorCountingSimple, GovernorWorldID {
   struct ConstructorArgs {
     uint256 groupID;
     IWorldIDRouter worldIdRouter;
     string appId;
-    IVotes token;
     uint48 initialVotingDelay;
     uint32 initialVotingPeriod;
     uint256 initialProposalThreshold;
@@ -28,18 +20,9 @@ contract GovernorWorldIdForTest is
   }
 
   constructor(ConstructorArgs memory _args)
-    GovernorWorldID(
-      _args.groupID,
-      _args.worldIdRouter,
-      _args.appId,
-      'Governor',
-      _args.initialVotingDelay,
-      _args.initialVotingPeriod,
-      _args.initialProposalThreshold,
-      _args.rootExpirationThreshold
-    )
-    GovernorVotes(_args.token)
-    GovernorVotesQuorumFraction(4)
+    Governor('GovernorWorldID')
+    GovernorSettings(_args.initialVotingDelay, _args.initialVotingPeriod, _args.initialProposalThreshold)
+    GovernorWorldID(_args.groupID, _args.worldIdRouter, _args.appId, _args.rootExpirationThreshold)
   {}
 
   function forTest_castVote(uint256 _proposalId, address _account, uint8 _support, string memory _reason) public {
@@ -80,42 +63,47 @@ contract GovernorWorldIdForTest is
     rootExpirationThreshold = _newRootExpirationThreshold;
   }
 
-  function forTest_setResetGracePeriod(uint256 _newResetGracePeriod) public {
-    resetGracePeriod = _newResetGracePeriod;
+  function forTest_propose(
+    address[] memory _targets,
+    uint256[] memory _values,
+    bytes[] memory _calldatas,
+    string memory _description,
+    address _proposer
+  ) public returns (uint256 _proposalId) {
+    _proposalId = _propose(_targets, _values, _calldatas, _description, _proposer);
   }
 
-  function forTest_setVotingPeriodInternal(uint32 _newVotingPeriod) public {
-    _setVotingPeriod(_newVotingPeriod);
+  function clock() public view override returns (uint48) {
+    return uint48(block.timestamp);
   }
 
-  function quorum(uint256 blockNumber)
-    public
-    view
-    override(Governor, IGovernor, GovernorVotesQuorumFraction)
-    returns (uint256)
-  {
-    return super.quorum(blockNumber);
+  function forTest_checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) public view {
+    _checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
   }
 
-  // solhint-disable-next-line
-  function CLOCK_MODE() public view override(Governor, GovernorVotes, IERC6372) returns (string memory) {
-    return super.CLOCK_MODE();
-  }
-
-  function clock() public view override(Governor, GovernorVotes, IERC6372) returns (uint48) {
-    return super.clock();
-  }
-
-  function votingDelay() public view virtual override(Governor, GovernorWorldID) returns (uint256) {
+  function votingDelay() public view virtual override(Governor, GovernorSettings) returns (uint256) {
     return super.votingDelay();
   }
 
-  function votingPeriod() public view virtual override(Governor, GovernorWorldID) returns (uint256) {
+  function votingPeriod() public view virtual override(Governor, GovernorSettings) returns (uint256) {
     return super.votingPeriod();
   }
 
-  function proposalThreshold() public view virtual override(Governor, GovernorWorldID) returns (uint256) {
+  function proposalThreshold() public view virtual override(Governor, GovernorSettings) returns (uint256) {
     return super.proposalThreshold();
+  }
+
+  function quorum(uint256) public pure override returns (uint256 _randomQuorum) {
+    _randomQuorum = 10;
+  }
+
+  // solhint-disable-next-line
+  function CLOCK_MODE() public pure override returns (string memory) {
+    return '';
   }
 
   function _checkVoteValidity(
@@ -159,5 +147,32 @@ contract GovernorWorldIdForTest is
     bytes memory _params
   ) internal override(Governor, GovernorWorldID) returns (uint256) {
     return super._castVote(_proposalId, _account, _support, _reason, _params);
+  }
+
+  function _propose(
+    address[] memory _targets,
+    uint256[] memory _values,
+    bytes[] memory _calldatas,
+    string memory _description,
+    address _proposer
+  ) internal virtual override(Governor, GovernorWorldID) returns (uint256 _proposalId) {
+    _proposalId = super._propose(_targets, _values, _calldatas, _description, _proposer);
+  }
+
+  function _checkConfigValidity(
+    uint32 _votingPeriod,
+    uint256 _resetGracePeriod,
+    uint256 _rootExpirationThreshold
+  ) internal view virtual override {
+    _calledInternal(
+      abi.encodeWithSignature(
+        '_checkConfigValidity(uint32,uint256,uint256)', _votingPeriod, _resetGracePeriod, _rootExpirationThreshold
+      )
+    );
+    if (_callSuper) super._checkConfigValidity(_votingPeriod, _resetGracePeriod, _rootExpirationThreshold);
+  }
+
+  function _getVotes(address, uint256, bytes memory) internal view virtual override returns (uint256) {
+    return 1;
   }
 }

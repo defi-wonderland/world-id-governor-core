@@ -17,15 +17,26 @@ contract Integration_SetConfig is IntegrationBase {
     vm.assume(_newRootExpirationThreshold < _newResetGracePeriod);
     uint256 _rootHistoryExpiry = governance.WORLD_ID_ROUTER().routeFor(governance.GROUP_ID()).rootHistoryExpiry();
     vm.assume(_newRootExpirationThreshold < _rootHistoryExpiry);
+    // Check needed since the `votingPeriod` can't be `0` and needs to be smaller than the
+    // `resetGracePeriod` minus `rootExpirationThreshold`, so the min value for it is `1`
+    vm.assume(_newResetGracePeriod - _newRootExpirationThreshold > 1);
     // Set the `votingPeriod` to a valid value
-    _newVotingPeriod = uint32(bound(_newVotingPeriod, 1, _newResetGracePeriod - _newRootExpirationThreshold));
+    _newVotingPeriod = uint32(bound(_newVotingPeriod, 1, _newResetGracePeriod - _newRootExpirationThreshold - 1));
 
+    // Set the new config values
     vm.prank(address(governance));
     governance.setConfig(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
+
+    // Assert the values were correctly updated
+    assertEq(governance.votingPeriod(), _newVotingPeriod);
+    assertEq(governance.resetGracePeriod(), _newResetGracePeriod);
+    assertEq(governance.rootExpirationThreshold(), _newRootExpirationThreshold);
+    // Assert the invariant is never broken
+    assertTrue(governance.votingPeriod() < governance.resetGracePeriod() - governance.rootExpirationThreshold());
   }
 
   /**
-   * @notice Test reverts when `rootExpirationThreshold` is less than `rootHistoryExpiry`
+   * @notice Test reverts when `rootExpirationThreshold` is smaller than `rootHistoryExpiry`
    */
   function test_revertIfInvalidRootExpirationThreshold() public {
     // Set the reset grace period to the maximum value so we are able to test the `rootHistoryExpiry` check
@@ -42,7 +53,7 @@ contract Integration_SetConfig is IntegrationBase {
   }
 
   /**
-   * @notice Test reverts when `votingPeriod` is greater than `resetGracePeriod` less `rootExpirationThreshold`
+   * @notice Test reverts when `votingPeriod` is greater than `resetGracePeriod` minus `rootExpirationThreshold`
    */
   function test_revertIfInvalidVotingPeriod() public {
     uint256 _newResetGracePeriod = governance.resetGracePeriod();
