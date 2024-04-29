@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {GoatsDAOForTest} from '../../forTest/GoatsDAOForTest.sol';
+import {GoatsDAOForTest} from '../forTest/GoatsDAOForTest.sol';
 import {UnitUtils} from '../utils/UnitUtils.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
