@@ -84,7 +84,7 @@ interface IGovernorWorldID {
    * @param _rootExpirationThreshold The root expiration threshold to check
    * @dev The `_rootExpirationThreshold` can't be greater than IdentityManager's `rootHistoryExpiry`
    * @dev This function aims to ensure that `_votingPeriod` is smaller than `_resetGracePeriod`
-   * minues `_rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   * minus `_rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
    */
   function checkConfigValidity(
     uint32 _votingPeriod,
