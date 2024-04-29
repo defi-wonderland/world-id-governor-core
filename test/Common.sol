@@ -70,4 +70,8 @@ contract Common {
   uint256 public forkBlock = BLOCK_NUMBER_PROOF_TWO;
   // Root expiration threshold set to 1 hour so we test the `rootHistory` flow first
   uint256 public rootExpirationThreshold = 1 hours;
+
+  // Proposal description
+  string public constant DESCRIPTION =
+    'Donate 250WLD tokens to the Goat guy, so he can buy some more goats and build a shelter';
 }

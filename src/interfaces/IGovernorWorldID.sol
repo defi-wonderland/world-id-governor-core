@@ -35,7 +35,7 @@ interface IGovernorWorldID {
   error GovernorWorldID_InvalidRootExpirationThreshold();
 
   /**
-   * @notice Thrown when the provided reset grace period is minus than the current root expiration threshold
+   * @notice Thrown when the provided reset grace period is lower than the current root expiration threshold
    */
   error GovernorWorldID_InvalidResetGracePeriod();
 
@@ -84,7 +84,7 @@ interface IGovernorWorldID {
    * @param _rootExpirationThreshold The root expiration threshold to check
    * @dev The `_rootExpirationThreshold` can't be greater than IdentityManager's `rootHistoryExpiry`
    * @dev This function aims to ensure that `_votingPeriod` is smaller than `_resetGracePeriod`
-   * minues `_rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   * minus `_rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
    */
   function checkConfigValidity(
     uint32 _votingPeriod,
@@ -117,7 +117,7 @@ interface IGovernorWorldID {
   /**
    * @notice The developer portal app ID used to verify the proofs
    * @return _appId The app ID
-   * @dev This will be needed for the off-chain to generate valid proofs using the correct app ID
+   * @dev This will be needed off-chain to generate valid proofs using the correct app ID
    * @dev Can't be defined as immutable because its type is string, but is never updated
    */
   function appId() external view returns (string memory _appId);

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {GoatsDAOForTest} from '../../forTest/GoatsDAOForTest.sol';
+import {GoatsDAOForTest} from '../forTest/GoatsDAOForTest.sol';
 import {UnitUtils} from '../utils/UnitUtils.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IGovernorWorldID} from 'interfaces/IGovernorWorldID.sol';
@@ -312,7 +312,7 @@ contract GoatsDAO_Unit_CastVote_WithParams is Base {
   }
 
   /**
-   * @notice Check that the function returns the correct votingWeight
+   * @notice Check that the function returns 1
    */
   function test_returnsVotingWeight(uint256 _root, uint256 _nullifierHash, uint256[8] memory _proof) public {
     bytes memory _params =

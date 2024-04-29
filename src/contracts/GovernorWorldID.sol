@@ -146,7 +146,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
       if (_root != _identityManager.latestRoot()) revert GovernorWorldID_OutdatedRoot();
     } else {
       // The root expiration threshold can't be greater than `rootHistoryExpiry` in case it is updated. Suboptimal check
-      // since if it is smaller, it will revert on the calculation. But the revert message vebosity is prioritized
+      // since if smaller, it will revert on `verifyProof()`. But revert message vebosity is prioritized
       uint256 _rootHistoryExpiry = _identityManager.rootHistoryExpiry();
       uint256 _rootExpirationThreshold =
         rootExpirationThreshold < _rootHistoryExpiry ? rootExpirationThreshold : _rootHistoryExpiry;
@@ -195,6 +195,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
     uint256 _newResetGracePeriod,
     uint256 _newRootExpirationThreshold
   ) internal virtual {
+    // Suboptimal check since if smaller, it will revert on the calculation. But revert message verbosity is prioritized
     if (_newRootExpirationThreshold > _newResetGracePeriod) revert GovernorWorldID_InvalidRootExpirationThreshold();
     _checkConfigValidity(_newVotingPeriod, _newResetGracePeriod, _newRootExpirationThreshold);
 
@@ -248,7 +249,7 @@ abstract contract GovernorWorldID is GovernorSettings, IGovernorWorldID {
    * @param _rootExpirationThreshold The root expiration threshold to check
    * @dev The `_rootExpirationThreshold` can't be greater than IdentityManager's `rootHistoryExpiry`
    * @dev This function aims to ensure that `_votingPeriod` is smaller than `_resetGracePeriod`
-   * minues `_rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
+   * minus `_rootExpirationThreshold` to prevent double-voting attacks from resetted WorldID users
    */
   function _checkConfigValidity(
     uint32 _votingPeriod,

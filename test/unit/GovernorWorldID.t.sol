@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {GovernorWorldIdForTest} from '../forTest/GovernorWorldIdForTest.sol';
 import {GovernorSigUtils} from '../utils/GovernorSigUtils.sol';
+import {GovernorWorldIdForTest} from './forTest/GovernorWorldIdForTest.sol';
 import {InternalCallsWatcher} from './utils/CalledInternal.sol';
 import {UnitUtils} from './utils/UnitUtils.sol';
 import {Test, Vm} from 'forge-std/Test.sol';
