@@ -56,8 +56,6 @@ contract E2EBase is Test, Common {
     calldatas = new bytes[](1);
     calldatas[0] = abi.encodeWithSelector(IERC20.transfer.selector, GOAT_GUY, WLD_AMOUNT);
 
-    description = 'Donate 250WLD tokens to the Goat guy, so he can buy some more goats and build a shelter';
-
     // Pack the all the proof data together
     userOneProofData = abi.encodePacked(ROOT_ONE, NULLIFIER_HASH_ONE, proofOne);
     userTwoProofData = abi.encodePacked(ROOT_TWO, NULLIFIER_HASH_TWO, proofTwo);

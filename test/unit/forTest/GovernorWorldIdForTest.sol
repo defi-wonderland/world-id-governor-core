@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {InternalCallsWatcherExtension} from '../unit/utils/CalledInternal.sol';
+import {InternalCallsWatcherExtension} from '../utils/CalledInternal.sol';
 import {GovernorWorldID} from 'contracts/GovernorWorldID.sol';
 import {IWorldIDRouter} from 'interfaces/IWorldIDRouter.sol';
 import {Governor} from 'open-zeppelin/governance/Governor.sol';

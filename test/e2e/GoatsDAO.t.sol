@@ -16,7 +16,7 @@ contract E2E_GoatsDAO is E2EBase {
     uint256 _startVoteTimestamp = block.timestamp;
     // Create a proposal that matches the proposal id used as action id when generating the proof
     vm.prank(owner);
-    uint256 _proposalId = governance.propose(targets, values, calldatas, description);
+    uint256 _proposalId = governance.propose(targets, values, calldatas, DESCRIPTION);
     assert(_proposalId == PROPOSAL_ID);
 
     // Advance the time to make the proposal active
@@ -49,7 +49,7 @@ contract E2E_GoatsDAO is E2EBase {
     // After the voting period has ended, the proposal is executed
     vm.warp(block.timestamp + INITIAL_VOTING_PERIOD);
 
-    string memory _saltDescription = string.concat(description, governance.proposalUniquenessSalt());
+    string memory _saltDescription = string.concat(DESCRIPTION, governance.proposalUniquenessSalt());
     bytes32 _descriptionHash = keccak256(abi.encodePacked(_saltDescription));
     vm.prank(owner);
     governance.execute(targets, values, calldatas, _descriptionHash);
@@ -64,7 +64,7 @@ contract E2E_GoatsDAO is E2EBase {
   function test_flowFailureByQuorumNotReached() public {
     // Create a proposal that matches the proposal id used as action id when generating the proof
     vm.prank(owner);
-    uint256 _proposalId = governance.propose(targets, values, calldatas, description);
+    uint256 _proposalId = governance.propose(targets, values, calldatas, DESCRIPTION);
     assert(_proposalId == PROPOSAL_ID);
 
     // Advance the time to make the proposal active
@@ -78,7 +78,7 @@ contract E2E_GoatsDAO is E2EBase {
     vm.warp(block.timestamp + INITIAL_VOTING_PERIOD);
 
     // Get the proposal's description hash
-    string memory _saltDescription = string.concat(description, governance.proposalUniquenessSalt());
+    string memory _saltDescription = string.concat(DESCRIPTION, governance.proposalUniquenessSalt());
     bytes32 _descriptionHash = keccak256(abi.encodePacked(_saltDescription));
 
     // Expect to revert with the unexpected proposal state error
@@ -102,7 +102,7 @@ contract E2E_GoatsDAO is E2EBase {
   function test_flowFailureByVotingPeriodNotEnded() public {
     // Create a proposal that matches the proposal id used as action id when generating the proof
     vm.prank(owner);
-    uint256 _proposalId = governance.propose(targets, values, calldatas, description);
+    uint256 _proposalId = governance.propose(targets, values, calldatas, DESCRIPTION);
     assert(_proposalId == PROPOSAL_ID);
 
     // Advance the time to make the proposal active
@@ -116,7 +116,7 @@ contract E2E_GoatsDAO is E2EBase {
     governance.castVoteWithReasonAndParams(PROPOSAL_ID, FOR_SUPPORT, REASON, userTwoProofData);
 
     // Get the proposal's description hash
-    string memory _saltDescription = string.concat(description, governance.proposalUniquenessSalt());
+    string memory _saltDescription = string.concat(DESCRIPTION, governance.proposalUniquenessSalt());
     bytes32 _descriptionHash = keccak256(abi.encodePacked(_saltDescription));
 
     // Set the proposal state to active but not yet ended

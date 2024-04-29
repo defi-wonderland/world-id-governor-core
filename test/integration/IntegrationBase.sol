@@ -40,12 +40,10 @@ contract IntegrationBase is Test, Common {
     values[0] = 0;
     bytes[] memory calldatas = new bytes[](1);
     calldatas[0] = abi.encodeWithSelector(IERC20.transfer.selector, GOAT_GUY, WLD_AMOUNT);
-    string memory description =
-      'Donate 250WLD tokens to the Goat guy, so he can buy some more goats and build a shelter';
 
     // Create the proposal and assert is the same as the one used as action id while generating proofs
     vm.prank(owner);
-    uint256 _proposalId = governance.propose(targets, values, calldatas, description);
+    uint256 _proposalId = governance.propose(targets, values, calldatas, DESCRIPTION);
     assert(_proposalId == PROPOSAL_ID);
 
     // Advance the time to make the proposal active
