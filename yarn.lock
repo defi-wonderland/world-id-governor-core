@@ -2378,8 +2378,6 @@ web3-utils@^4.1.1:
     web3-errors "^1.1.4"
     web3-types "^1.6.0"
     web3-validator "^2.0.5"
-<<<<<<< Updated upstream
-=======
 
 web3-utils@^4.1.1:
   version "4.2.3"
@@ -2391,7 +2389,6 @@ web3-utils@^4.1.1:
     web3-errors "^1.1.4"
     web3-types "^1.6.0"
     web3-validator "^2.0.5"
->>>>>>> Stashed changes
 
 web3-utils@^4.1.1:
   version "4.2.3"
