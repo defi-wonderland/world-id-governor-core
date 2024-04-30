@@ -25,14 +25,14 @@ yarn build
 
 Make sure to copy `.env.example` and set `OPTIMISM_RPC` environment variable before running integration tests.
 
-| Yarn Command            | Description                         |
-| ----------------------- | ----------------------------------- |
-| `yarn build`            | Compile all contracts.              |
-| `yarn coverage`         | See `forge coverage` report.        |
-| `yarn test`             | Run all unit and integration tests. |
-| `yarn test:unit`        | Run unit tests.                     |
-| `yarn test:integration` | Run integration tests.              |
-| `yarn test:e2e`         | Run E2E tests.                      |
+| Yarn Command            | Description                              |
+| ----------------------- | ---------------------------------------- |
+| `yarn build`            | Compile all contracts.                   |
+| `yarn coverage`         | See `forge coverage` report.             |
+| `yarn test`             | Run all unit, integration and E2E tests. |
+| `yarn test:unit`        | Run unit tests.                          |
+| `yarn test:integration` | Run integration tests.                   |
+| `yarn test:e2e`         | Run E2E tests.                           |
 
 ## How to Use
 
