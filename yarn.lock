@@ -2379,17 +2379,6 @@ web3-utils@^4.1.1:
     web3-types "^1.6.0"
     web3-validator "^2.0.5"
 
-web3-utils@^4.1.1:
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/web3-utils/-/web3-utils-4.2.3.tgz#e1d30c4b087cd95f4307baeb80e3160f174e1cfd"
-  integrity sha512-m5plKTC2YtQntHITQRyIePw52UVP1IrShhmA2FACtn4zmc5ADmrXOlQWiPzxFP/18eRJsAaUAw2+CQn1u4WPxQ==
-  dependencies:
-    ethereum-cryptography "^2.0.0"
-    eventemitter3 "^5.0.1"
-    web3-errors "^1.1.4"
-    web3-types "^1.6.0"
-    web3-validator "^2.0.5"
-
 web3-validator@^2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/web3-validator/-/web3-validator-2.0.4.tgz#66f34c94f21a3c94d0dc2a2d30deb8a379825d38"
