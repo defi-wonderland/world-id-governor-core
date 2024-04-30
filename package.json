@@ -22,17 +22,19 @@
     "lint:sol-tests": "solhint -c .solhint.tests.json 'test/**/*.sol'",
     "prepare": "husky install",
     "test": "forge test -vvv",
+    "test:e2e": "forge test --match-contract E2E -vvv",
     "test:integration": "forge test --match-contract Integration -vvv",
     "test:unit": "forge test --match-contract Unit -vvv",
     "test:unit:deep": "FOUNDRY_FUZZ_RUNS=5000 yarn test:unit"
   },
   "lint-staged": {
     "*.{js,css,md,ts,sol}": "forge fmt",
-    "*.sol": "solhint --fix './(src|test|script)/**/*.sol",
+    "(src|script)/**/*.sol": "yarn lint:sol-logic",
+    "test/**/*.sol": "yarn lint:sol-tests",
     "package.json": "sort-package-json"
   },
   "dependencies": {
-    "isolmate": "github:defi-wonderland/isolmate#59e1804"
+    "@openzeppelin/contracts": "5.0.2"
   },
   "devDependencies": {
     "@commitlint/cli": "17.0.3",

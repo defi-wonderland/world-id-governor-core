@@ -1,146 +1,83 @@
-<img src="https://raw.githubusercontent.com/defi-wonderland/brand/v1.0.0/external/solidity-foundry-boilerplate-banner.png" alt="wonderland banner" align="center" />
-<br />
+# GovernorWorldID
 
-<div align="center"><strong>Start your next Solidity project with Foundry in seconds</strong></div>
-<div align="center">A highly scalable foundation focused on DX and best practices</div>
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/defi-wonderland/world-id-governor-core/blob/main/LICENSE)
 
-<br />
+⚠️ The code has not been audited yet, tread with caution.
 
-## Features
+## Overview
 
-<dl>
-  <dt>Sample contracts</dt>
-  <dd>Basic Greeter contract with an external interface.</dd>
+The `GovernorWorldID` contract is designed to offer a Sybil-resistant voting framework, ensuring that only orb-verified addresses can participate in DAO voting processes via World ID.
 
-  <dt>Foundry setup</dt>
-  <dd>Foundry configuration with multiple custom profiles and remappings.</dd>
-
-  <dt>Deployment scripts</dt>
-  <dd>Sample scripts to deploy contracts on both mainnet and testnet.</dd>
-
-  <dt>Sample Integration & Unit tests</dt>
-  <dd>Example tests showcasing mocking, assertions and configuration for mainnet forking. As well it includes everything needed in order to check code coverage.</dd>
-
-  <dt>Linter</dt>
-  <dd>Simple and fast solidity linting thanks to forge fmt.</dd>
-  <dd>Find missing natspec automatically.</dd>
-
-  <dt>Github workflows CI</dt>
-  <dd>Run all tests and see the coverage as you push your changes.</dd>
-  <dd>Export your Solidity interfaces and contracts as packages, and publish them to NPM.</dd>
-</dl>
+The `GovernorDemocratic` contract capitalizes on this feature to establish democratic governance for DAOs. It achieves this by assigning a voting power of one vote per voter.
 
 ## Setup
 
-1. Install Foundry by following the instructions from [their repository](https://github.com/foundry-rs/foundry#installation).
-2. Copy the `.env.example` file to `.env` and fill in the variables.
-3. Install the dependencies by running: `yarn install`. In case there is an error with the commands, run `foundryup` and try them again.
+This project uses [Foundry](https://book.getfoundry.sh/). To build it locally, run:
 
-## Build
-
-The default way to build the code is suboptimal but fast, you can run it via:
-
-```bash
+```sh
+git clone git@github.com:defi-wonderland/world-id-governor-core.git
+cd world-id-governor-core
+yarn install
 yarn build
 ```
 
-In order to build a more optimized code ([via IR](https://docs.soliditylang.org/en/v0.8.15/ir-breaking-changes.html#solidity-ir-based-codegen-changes)), run:
+### Available Commands
 
-```bash
-yarn build:optimized
-```
+Make sure to copy `.env.example` and set `OPTIMISM_RPC` environment variable before running integration tests.
 
-## Running tests
+| Yarn Command            | Description                              |
+| ----------------------- | ---------------------------------------- |
+| `yarn build`            | Compile all contracts.                   |
+| `yarn coverage`         | See `forge coverage` report.             |
+| `yarn test`             | Run all unit, integration and E2E tests. |
+| `yarn test:unit`        | Run unit tests.                          |
+| `yarn test:integration` | Run integration tests.                   |
+| `yarn test:e2e`         | Run E2E tests.                           |
 
-Unit tests should be isolated from any externalities, while Integration usually run in a fork of the blockchain. In this boilerplate you will find example of both.
+## How to Use
 
-In order to run both unit and integration tests, run:
+You can implement [GovernorWorldID](src/contracts/GovernorWorldID.sol) and [GovernorDemocratic](src/contracts/GovernorDemocratic.sol) abstract contracts, and use them as the base to create your own governance protocols.
+When implementing the contracts, other functions related to OpenZeppelin standard contracts should be implemented as well, depending on the implemented OZ extensions.
+An implementation already exists and can be found at [GoatsDAO.sol](src/contracts/example/GoatsDAO.sol).
 
-```bash
-yarn test
-```
+### Deployment Considerations
 
-In order to just run unit tests, run:
+- `_groupID`: The group ID of the World ID group. Currently 1 for the orb verification level.
+- `_worldIdRouter`: The World ID router contract address, depending on the chain it was deployed. You can see the list [here](https://docs.worldcoin.org/reference/address-book)
+- `_rootExpirationThreshold`: The time it takes for a root provided by the user to expire. See more [here](#double-voting-mitigation).
 
-```bash
-yarn test:unit
-```
+### Good to know
 
-In order to run unit tests and run way more fuzzing than usual (5x), run:
+To interact with Worldcoin's IDKit SDK to generate proofs, you'll need to pass the `appId`, `actionId` (string type) and `support` as `signal` (string type).
 
-```bash
-yarn test:unit:deep
-```
+### Double Voting Mitigation
 
-In order to just run integration tests, run:
+#### Mitigating The Reset Period Problem
 
-```bash
-yarn test:integration
-```
+In the World ID protocol, users can choose to reset their account. The re-insertion will take a certain amount of time (currently [14 days](https://docs.worldcoin.org/further-reading/world-id-reset)). This introduces the possibility of a double-voting scenario in case the voting period is greater than the period it takes a user to be re-inserted. This period is an arbitrary value and it's not on-chain, so we have to track it with the `resetGracePeriod` variable and update if it changes.
+One way to mitigate the double-voting risk, is ensuring that the `votingPeriod` is less than the `resetGracePeriod`, checking the provided proof's Merkle root is equal to `latestRoot`. But there is a caveat:
 
-In order to check your current code coverage, run:
+New World ID accounts are inserted into the tree at a fast pace (currently 20 mins to 1 hour) changing the root from the Merkle tree. This means `latestRoot` changes very often, which can lead to the user generating the proof for a root, and then it is updated when he is casting the vote. That's when `rootExpirationThreshold` comes into play: It adds a buffer so the user can use an older root and not only the latest one, representing the time it takes for a root provided by the user to expire.
 
-```bash
-yarn coverage
-```
+Finally, the invariant to mitigate the double-voting period is that `votingPeriod` must be less than the `resetGracePeriod` minus `rootExpirationThreshold`.
 
-<br>
+If a safer version is desired, you can set to only use the `latestRoot()` by setting `rootExpirationThreshold` to 0.
+Adding a threshold to be used as a buffer is a wise choice, but we recommend using a small value, no more than 30 minutes or 1 hour, as the rootHistoryExpiry can be updated on the IdentityManager, potentially breaking the invariant of the voting period that ensures no double-voting can occur.
 
-## Deploy & verify
+`rootExpirationThreshold` for L2s can be any value while **_should always be 0 in Mainnet and Mainnet testnets_** due to a discrepancy between the World ID protocol on Ethereum and L2s.
 
-### Setup
+#### Nullifier Hash Usage
 
-Configure the `.env` variables.
-
-### Sepolia
-
-```bash
-yarn deploy:sepolia
-```
-
-### Mainnet
-
-```bash
-yarn deploy:mainnet
-```
-
-The deployments are stored in ./broadcast
-
-See the [Foundry Book for available options](https://book.getfoundry.sh/reference/forge/forge-create.html).
-
-## Export And Publish
-
-Export TypeScript interfaces from Solidity contracts and interfaces providing compatibility with TypeChain. Publish the exported packages to NPM.
-
-To enable this feature, make sure you've set the `NPM_TOKEN` on your org's secrets. Then set the job's conditional to `true`:
-
-```yaml
-jobs:
-  export:
-    name: Generate Interfaces And Contracts
-    # Remove the following line if you wish to export your Solidity contracts and interfaces and publish them to NPM
-    if: true
-    ...
-```
-
-Also, remember to update the `package_name` param to your package name:
-
-```yaml
-- name: Export Solidity - ${{ matrix.export_type }}
-  uses: defi-wonderland/solidity-exporter-action@1dbf5371c260add4a354e7a8d3467e5d3b9580b8
-  with:
-    # Update package_name with your package name
-    package_name: "my-cool-project"
-    ...
-
-
-- name: Publish to NPM - ${{ matrix.export_type }}
-  # Update `my-cool-project` with your package name
-  run: cd export/my-cool-project-${{ matrix.export_type }} && npm publish --access public
-  ...
-```
-
-You can take a look at our [solidity-exporter-action](https://github.com/defi-wonderland/solidity-exporter-action) repository for more information and usage examples.
+The nullifier hash is unique per WorldID account and per action. This means that the same user will always generate the same nullifier hash to vote on the same proposal. Storing and verifying whether it has been stored previously helps prevent duplicate votes on the same proposal.
 
 ## Licensing
-The primary license for the boilerplate is MIT, see [`LICENSE`](https://github.com/defi-wonderland/solidity-foundry-boilerplate/blob/main/LICENSE)
+
+The primary license for GovernorWorldID contracts is MIT, see [`LICENSE`](./LICENSE).
+
+## Contributors
+
+GovernorWorldID was built with ❤️ by [Wonderland](https://defi.sucks).
+
+Wonderland is a team of top Web3 researchers, developers, and operators who believe that the future needs to be open-source, permissionless, and decentralized.
+
+[DeFi sucks](https://defi.sucks), but Wonderland is here to make it better.

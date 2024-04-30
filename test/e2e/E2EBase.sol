@@ -7,15 +7,24 @@ import {IERC20} from 'open-zeppelin/token/ERC20/IERC20.sol';
 import {Common} from 'test/Common.sol';
 
 /* solhint-disable reentrancy */
-contract IntegrationBase is Test, Common {
+contract E2EBase is Test, Common {
+  /* DAO constant settings */
+  uint256 public constant GOATS_DAO_QUORUM = 2;
+
+  /* Proposal Data */
+  address[] public targets;
+  uint256[] public values;
+  bytes[] public calldatas;
+  string public description;
+
   // Contracts, addresses and other values
   GoatsDAO public governance;
   address public owner = makeAddr('owner');
-  address public user = makeAddr('user');
+  address public userOne = makeAddr('userOne');
   address public userTwo = makeAddr('userTwo');
   address public stranger = makeAddr('stranger');
-  bytes public proofDataOne;
-  bytes public proofDataTwo;
+  bytes public userOneProofData;
+  bytes public userTwoProofData;
 
   function setUp() public virtual {
     vm.createSelectFork(vm.rpcUrl('optimism'), forkBlock);
@@ -26,32 +35,29 @@ contract IntegrationBase is Test, Common {
       GROUP_ID,
       WORLD_ID_ROUTER,
       APP_ID,
-      QUORUM,
+      GOATS_DAO_QUORUM,
       INITIAL_VOTING_DELAY,
       INITIAL_VOTING_PERIOD,
       INITIAL_PROPOSAL_THRESHOLD,
       rootExpirationThreshold
     );
 
-    // Create a proposal to donate 250 WLD tokens
-    address[] memory targets = new address[](1);
+    // Transfer the amount from the holder to the DAO
+    vm.prank(WLD_HOLDER);
+    IERC20(WLD).transfer(address(governance), WLD_AMOUNT);
+
+    // Set the proposal data
+    targets = new address[](1);
     targets[0] = WLD;
-    uint256[] memory values = new uint256[](1);
+
+    values = new uint256[](1);
     values[0] = 0;
-    bytes[] memory calldatas = new bytes[](1);
+
+    calldatas = new bytes[](1);
     calldatas[0] = abi.encodeWithSelector(IERC20.transfer.selector, GOAT_GUY, WLD_AMOUNT);
 
-    // Create the proposal and assert is the same as the one used as action id while generating proofs
-    vm.prank(owner);
-    uint256 _proposalId = governance.propose(targets, values, calldatas, DESCRIPTION);
-    assert(_proposalId == PROPOSAL_ID);
-
-    // Advance the time to make the proposal active
-    vm.warp(block.timestamp + INITIAL_VOTING_DELAY + 1);
-
-    // Pack all the first proof data together
-    proofDataOne = abi.encodePacked(ROOT_ONE, NULLIFIER_HASH_ONE, proofOne);
-    // Pack all the second proof data together
-    proofDataTwo = abi.encodePacked(ROOT_TWO, NULLIFIER_HASH_TWO, proofTwo);
+    // Pack the all the proof data together
+    userOneProofData = abi.encodePacked(ROOT_ONE, NULLIFIER_HASH_ONE, proofOne);
+    userTwoProofData = abi.encodePacked(ROOT_TWO, NULLIFIER_HASH_TWO, proofTwo);
   }
 }
