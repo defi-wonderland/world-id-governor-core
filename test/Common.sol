@@ -17,6 +17,8 @@ contract Common {
   string public constant APP_ID = 'app_40cfae76904f7231cf7dc28ce48a40e7';
   uint256 public constant PROPOSAL_ID =
     20_261_653_924_289_286_028_884_754_682_055_703_278_899_359_147_134_906_975_799_268_095_826_480_486_592;
+  // Proposal description
+  string public constant DESCRIPTION = 'Should Wonderland contribute 250 WLD to Richard\'s goat project?';
   uint8 public constant FOR_SUPPORT = 1;
   uint256 public constant GROUP_ID = 1;
 
@@ -70,7 +72,4 @@ contract Common {
   uint256 public forkBlock = BLOCK_NUMBER_PROOF_TWO;
   // Root expiration threshold set to 1 hour so we test the `rootHistory` flow first
   uint256 public rootExpirationThreshold = 1 hours;
-
-  // Proposal description
-  string public constant DESCRIPTION = 'Should Wonderland contribute 250 WLD to Richard\'s goat project?';
 }
