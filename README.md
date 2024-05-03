@@ -62,7 +62,7 @@ New World ID accounts are inserted into the tree at a fast pace (currently 20 mi
 Finally, the invariant to mitigate the double-voting period is that `votingPeriod` must be less than the `resetGracePeriod` minus `rootExpirationThreshold`.
 
 If a safer version is desired, you can set to only use the `latestRoot()` by setting `rootExpirationThreshold` to 0.
-Adding a threshold to be used as a buffer is a wise choice, but we recommend using a small value, no more than 30 minutes or 1 hour, as the rootHistoryExpiry can be updated on the IdentityManager, potentially breaking the invariant of the voting period that ensures no double-voting can occur.
+Adding a threshold to be used as a buffer is a wise choice, but we recommend using a small value, as the rootHistoryExpiry can be updated on the IdentityManager, potentially breaking the invariant of the voting period that ensures no double-voting can occur.
 
 `rootExpirationThreshold` for L2s can be any value while **_should always be 0 in Mainnet and Mainnet testnets_** due to a discrepancy between the World ID protocol on Ethereum and L2s.
 
