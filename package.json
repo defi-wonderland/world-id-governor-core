@@ -1,11 +1,11 @@
 {
-  "name": "solidity-foundry-boilerplate",
+  "name": "@defi-wonderland/world-id-governor-core",
   "version": "1.0.0",
-  "description": "Production ready Solidity boilerplate with Foundry",
+  "description": "Governor World ID contracts integrate with World ID to provide Sybil-resistant governance mechanisms.",
   "homepage": "https://github.com/defi-wonderland/solidity-foundry-boilerplate#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/defi-wonderland/solidity-foundry-boilerplate.git"
+    "url": "git+https://github.com/defi-wonderland/world-id-governor-core.git"
   },
   "license": "MIT",
   "author": "Wonderland",
